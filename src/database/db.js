@@ -1,5 +1,5 @@
 import { neon } from '@neondatabase/serverless';
-import config from '@/config';
+import config from '../config';
 
 let sql;
 

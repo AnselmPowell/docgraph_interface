@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useAuth } from '@/app/hooks/useAuth';
+import { useAuth } from '../../hooks/useAuth';
 import { Mail, Lock } from 'lucide-react';
 
 import { FcGoogle } from 'react-icons/fc';

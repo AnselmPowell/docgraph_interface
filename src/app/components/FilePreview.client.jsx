@@ -3,7 +3,7 @@
 
 import Image from 'next/image';
 import { FileText, File, FileImage } from 'lucide-react';
-import { FILE_TYPES } from '@/app/utils/file/fileConfig';
+import { FILE_TYPES } from '../../app/utils/file/fileConfig';
 import { AnalysisResults } from './AnalysisResults.client';
 
 

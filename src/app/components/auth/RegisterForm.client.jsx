@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Mail, Lock, User, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
 import { FcGoogle } from 'react-icons/fc';
 import { TfiMicrosoftAlt } from "react-icons/tfi";
-import { useAuth } from '@/app/hooks/useAuth';
+import { useAuth } from '../../hooks/useAuth';
 
 import StatusMessage from '../messages/StatusMessage.cleint';
 

@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { cookies } from 'next/headers';
 import jwt from  'jsonwebtoken';
-import * as authSchema from '@/database/schema/authSchema';
+import * as authSchema from '../../../../database/schema/authSchema';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 

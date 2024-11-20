@@ -2,7 +2,7 @@
 'use client';
 
 import { Moon, Sun } from 'lucide-react';
-import { useApp } from '@/app/contexts/AppContext.client';
+import { useApp } from '../../contexts/AppContext.client';
 import { useState, useEffect } from 'react';
 
 export default function ThemeToggle() {

@@ -4,9 +4,9 @@
 import { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Loader2, Upload, AlertCircle, FileX, X } from 'lucide-react';
-import { getFileType, ACCEPTED_FILES, FILE_TYPES, formatFileSize } from '@/app/utils/file/fileConfig';
+import { getFileType, ACCEPTED_FILES, FILE_TYPES, formatFileSize } from '../../utils/file/fileConfig';
 import { FilePreview } from '../FilePreview.client';
-import { toast } from '@/app/components/ui/Toast.client';
+import { toast } from '../../components/ui/Toast.client';
 
 export function UploadFile({
   acceptedTypes = [FILE_TYPES.IMAGE, FILE_TYPES.DOCUMENT],

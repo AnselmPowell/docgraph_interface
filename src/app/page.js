@@ -3,10 +3,11 @@
 import Head from 'next/head'
 import styles from './styles/Main.module.css';
 import UserList from './components/UserList.client';
-import { useAuth } from '@/app/contexts/AuthContext.client';
+import { useAuth } from './contexts/AuthContext.client';
 import UploadImage from './components/fileUpload/UploadImage.client';
 import  UploadFile  from './components/fileUpload/UploadFile.client';
-import { GovernanceAnalysis } from '@/app/components/governance/GovernanceAnalysis.client';
+import { GovernanceAnalysis } from './components/governance/GovernanceAnalysis.client';
+import { ResearchAssistant } from './components/research/ResearchAssistant.client';
 
 export default function HomePage() {
   const { user, checkAuth } = useAuth();
@@ -29,7 +30,8 @@ export default function HomePage() {
       {/* <UserList />
       <UploadImage/>
       <UploadFile/> */}
-      <GovernanceAnalysis />
+      {/* <GovernanceAnalysis /> */}
+      <ResearchAssistant/>
     </div>
   );
 }

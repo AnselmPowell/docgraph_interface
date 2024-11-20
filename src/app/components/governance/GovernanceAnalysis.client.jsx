@@ -1,3 +1,4 @@
+
 // src/app/components/governance/GovernanceAnalysis.client.jsx
 'use client';
 

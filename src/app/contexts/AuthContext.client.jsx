@@ -1,6 +1,6 @@
 'use client';
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useAuth as useAuthHook } from '@/app/hooks/useAuth';
+import { useAuth as useAuthHook } from '../hooks/useAuth';
 
 const AuthContext = createContext(null);
 
