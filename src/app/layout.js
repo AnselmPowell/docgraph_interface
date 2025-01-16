@@ -24,7 +24,7 @@ export default function RootLayout({ children }) {
               <Suspense fallback={<div>Loading...</div>}>
                 <Navbar />
                 {children}
-                <Footer/>
+                {/* <Footer/> */}
               </Suspense>
             </AuthProvider>
         </AppProvider>

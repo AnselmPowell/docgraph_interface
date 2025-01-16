@@ -1,266 +1,299 @@
-// // src/app/components/research/ResearchAssistant.client.jsx
-// 'use client';
-
-// import dynamic from 'next/dynamic';
-
-// // Dynamically import components that need browser APIs
-// const DocumentViewer = dynamic(
-//   () => import('./DocumentViewer.client'),
-//   { ssr: false }
-// );
-
-
-// import { useState } from 'react';
-// import { ResearchLayout } from './ResearchLayout.client';
-// import { UploadSection } from './UploadSection.client';
-// import { ProcessingStatus } from './ProcessingStatus.client';
-// import { ResultsSection } from './ResultsSection.client';
-// import { toast } from '../ui/Toast.client';
-
-// export function ResearchAssistant() {
-//   // Core state management
-//   const [analysisState, setAnalysisState] = useState({
-//     isProcessing: false,
-//     currentStage: null,
-//     progress: 0,
-//     documentsProcessed: 0,
-//     totalDocuments: 0
-//   });
-  
-//   const [activeDocuments, setActiveDocuments] = useState([]);
-//   const [selectedDocument, setSelectedDocument] = useState(null);
-//   const [savedDocuments, setSavedDocuments] = useState([]);
-
-//   // Handle document analysis
-//   const handleAnalysis = async (formData) => {
-//     try {
-//       // Update initial processing state
-//       const totalDocs = formData.getAll('files').length;
-//       setAnalysisState({
-//         isProcessing: true,
-//         currentStage: 'processing',
-//         progress: 0,
-//         documentsProcessed: 0,
-//         totalDocuments: totalDocs
-//       });
-
-//       const response = await fetch('/api/research/search', {
-//         method: 'POST',
-//         body: formData
-//       });
-
-//       if (!response.ok) {
-//         throw new Error('Analysis failed');
-//       }
-
-//       const data = await response.json();
-      
-//       if (data.status === 'success') {
-//         setActiveDocuments(data.results);
-//         setAnalysisState(prev => ({
-//           ...prev,
-//           isProcessing: false,
-//           currentStage: 'complete',
-//           progress: 100,
-//           documentsProcessed: totalDocs
-//         }));
-//         toast.success(data.message);
-//       } else {
-//         throw new Error(data.error);
-//       }
-
-//     } catch (error) {
-//       console.error('Research analysis error:', error);
-//       toast.error(error.message || 'Failed to analyze documents');
-//       setAnalysisState(prev => ({
-//         ...prev,
-//         isProcessing: false,
-//         currentStage: null,
-//         progress: 0
-//       }));
-//     }
-//   };
-
-//   // Document management handlers
-//   const handleSaveDocument = async (documentId) => {
-//     try {
-//       const document = activeDocuments.find(doc => doc.document_id === documentId);
-//       if (!document) return;
-
-//       setSavedDocuments(prev => [...prev, document]);
-//       toast.success('Document saved successfully');
-//     } catch (error) {
-//       toast.error('Failed to save document');
-//     }
-//   };
-
-//   const handleRemoveDocument = async (documentId) => {
-//     try {
-//       setActiveDocuments(prev => prev.filter(doc => doc.document_id !== documentId));
-//       setSavedDocuments(prev => prev.filter(doc => doc.document_id !== documentId));
-      
-//       const response = await fetch('/api/research/search', {
-//         method: 'DELETE',
-//         headers: { 'Content-Type': 'application/json' },
-//         body: JSON.stringify({ document_ids: [documentId] })
-//       });
-
-//       if (!response.ok) throw new Error('Failed to remove document');
-//       toast.success('Document removed successfully');
-
-//     } catch (error) {
-//       toast.error('Failed to remove document');
-//     }
-//   };
-
-//   // Document viewer handlers
-//   const handleViewDocument = (documentId) => {
-//     const document = activeDocuments.find(doc => doc.document_id === documentId);
-//     if (document) {
-//       setSelectedDocument(document);
-//     }
-//   };
-
-//   return (
-//     <ResearchLayout savedDocuments={savedDocuments}>
-//       <div className="max-w-7xl mx-auto space-y-6">
-//         {/* Upload Section */}
-//         <div className="bg-background rounded-lg border border-tertiary/10 p-6">
-//           <h2 className="text-xl font-semibold text-primary mb-4">
-//             Research Assistant
-//           </h2>
-//           <UploadSection 
-//             onAnalyze={handleAnalysis} 
-//             isProcessing={analysisState.isProcessing} 
-//           />
-//         </div>
-
-//         {/* Processing Status */}
-//         {analysisState.isProcessing && (
-//           <ProcessingStatus 
-//             currentStage={analysisState.currentStage}
-//             progress={analysisState.progress}
-//             documentsProcessed={analysisState.documentsProcessed}
-//             totalDocuments={analysisState.totalDocuments}
-//           />
-//         )}
-
-//         {/* Results Section */}
-//         {activeDocuments.length > 0 && (
-//           <ResultsSection
-//             results={activeDocuments}
-//             onRemoveDocument={handleRemoveDocument}
-//             onSaveDocument={handleSaveDocument}
-//             onToggleViewer={handleViewDocument}
-//           />
-//         )}
-
-//         {/* Document Viewer */}
-//         {selectedDocument && (
-//           <DocumentViewer
-//             documentUrl={selectedDocument.url}
-//             metadata={{
-//               title: selectedDocument.title,
-//               authors: selectedDocument.authors,
-//               citation: selectedDocument.citation,
-//               pageCount: selectedDocument.total_pages
-//             }}
-//             relevantSections={selectedDocument.relevant_sections}
-//             onClose={() => setSelectedDocument(null)}
-//           />
-//         )}
-//       </div>
-//     </ResearchLayout>
-//   );
-// }
-
-// export default ResearchAssistant;
-
-
-
-
+/******************************************************************************
+ * RESEARCH ASSISTANT - MAIN CONTAINER COMPONENT
+ * // src/app/components/research/ResearchAssistant.client.jsx
+ * TEAM GUIDELINES:
+ * This file follows a strict organizational structure to maintain scalability
+ * and readability. When modifying this component:
+ * 1. Group imports by type (React, Components, Services)
+ * 2. Add new states to appropriate state management sections
+ * 3. Keep related functionality together (document handling, search, etc.)
+ * 4. Document data flow with clear comments above each function
+ * 5. Use spacing between sections for readability
+ * 6. Follow existing error handling patterns
+ * 7. Maintain state grouping structure
+ * New features should be added to their relevant section with proper documentation
+ * and flow comments. If creating a new section, follow the existing format with
+ * clear headers and separation.
+ *****************************************************************************/
 
 
 // src/app/components/research/ResearchAssistant.client.jsx
 'use client';
 
-import { useState, useCallback } from 'react';
-import dynamic from 'next/dynamic';
-import { toast } from '../ui/Toast.client';
-import { UploadSection } from './UploadSection/UploadSection.client';
-import { ProcessingStatus } from './ProcessingStatus/ProcessingStatus.client';
+/******************************************************************************
+ * IMPORTS
+ *****************************************************************************/
+
+// React Core
+import { useState, useCallback, useEffect } from 'react';
+
+// Layout Components
+import { ResearchLayout } from './layout/ResearchLayout.client';
+import { FloatingActionButton } from './core/FloatingActionButton.client';
+
+// Document Management Components
+import { DocumentSidebar } from './DocumentManagement/DocumentSidebar.client';
+import { DocumentViewer } from './DocumentViewer/DocumentViewer.client';
+import { UploadModal } from './Upload/UploadModal.client';
+
+// Search Components
+import { SearchBar } from './Search/SearchBar.client';
 import { ResultsContainer } from './Results/ResultsContainer.client';
+import { NoResults } from './Results/NoResults.client';
 
-// Dynamically import components that need browser APIs
-const DocumentViewer = dynamic(
-  () => import('./DocumentViewer/DocumentViewer.client'),
-  { ssr: false }
-);
+// UI Components
+import { toast } from '../ui/Toast.client';
 
-// Processing stages for status tracking
-const PROCESSING_STAGES = {
-  UPLOAD: 'upload',
-  PROCESSING: 'processing',
-  ANALYSIS: 'analysis',
-  CONTEXT: 'context',
-  COMPLETE: 'complete'
-};
+// Services & Utilities
+import { getCache, setCache, clearCache } from '../../services/caches';
+import { storageManager } from '../../services/storageManager';
+
+import { useDocumentCache } from '../../hooks/useDocumentCache';
+import { useSearchCache } from '../../hooks/useSearchCache';
+import { useUICache } from '../../hooks/useUICache';
+
+/******************************************************************************
+ * TYPE DEFINITIONS
+ *****************************************************************************/
+
+/**
+ * @typedef {Object} Document
+ * @property {string} id - Document identifier
+ * @property {string} name - Document name
+ * @property {string} url - Document URL
+ * @property {string} processing_status - Current processing status
+ */
+
+/******************************************************************************
+ * COMPONENT: ResearchAssistant
+ * 
+ * Main container component for the research assistant application.
+ * Manages document upload, processing, viewing, and searching functionality.
+ * 
+ * Data Flow:
+ * 1. User uploads documents → Staged → Processed → Available for search
+ * 2. Documents can be selected for searching
+ * 3. Search results show relevant sections across documents
+ *****************************************************************************/
 
 export function ResearchAssistant() {
-  // Core state management
-  const [processingState, setProcessingState] = useState({
-    stage: null,
-    isProcessing: false,
-    progress: 0,
-    processedCount: 0,
-    totalCount: 0
-  });
+
+  /**************************************************************************
+   * STATE MANAGEMENT
+   **************************************************************************/
+
+  // UI States
+  // Controls visibility and processing states for UI elements
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [searchVisible, setSearchVisible] = useState(false);
   
-  // Document management state
-  const [documents, setDocuments] = useState([]);
-  const [selectedDocument, setSelectedDocument] = useState(null);
-  const [activeTheme, setActiveTheme] = useState(null);
-  const [savedDocuments, setSavedDocuments] = useState([]);
+  // Document Management States
+  // Handles different states of documents in the system
+  const [documents, setDocuments] = useState([]); // Processed documents
+  const [selectedDocuments, setSelectedDocuments] = useState([]); // Selected for search
+  const [activeDocument, setActiveDocument] = useState(null); // Currently viewed
+  const [stagedDocuments, setStagedDocuments] = useState([]); // Pending upload
+  
+  // Search & Results States
+  // Manages search functionality and results
+  const [searchResults, setSearchResults] = useState(null);
+  const [storedDocuments, setStoredDocuments] = useState(new Map());
 
-  // Search parameters state
-  const [searchParams, setSearchParams] = useState({
-    context: '',
-    theme: null,
-    keywords: []
-  });
+  // Cache 
+  // Cache System  Hooks 
+  const { cacheDocument, getCachedDocument,cacheStagedDocuments, getCachedStaged, removeCachedStaged } = useDocumentCache();
+  const { cacheSearchParams, cacheSearchResults } = useSearchCache();
+  const { cacheUIPreferences } = useUICache();
 
-  // Handle document analysis
-  const handleAnalysis = useCallback(async (formData) => {
-    console.log("handle analysis")
+  /**************************************************************************
+   * EFFECTS
+   **************************************************************************/
+
+  // Initial Load Effect
+  // Clears expired documents and fetches existing ones
+  useEffect(() => {
+    storageManager.clearExpiredCachedDocuments();
+    fetchDocuments();
+  }, []);
+
+   // Initial Cache Effect
+   useEffect(() => {
+     const initializeFromCache = async () => {
+      // Restore staged documents
+      const staged = await getCachedStaged();
+        if (staged) {
+          console.log('cache manager: 5', staged )
+          setStagedDocuments(staged);
+      }
+    };
+
+    initializeFromCache();
+  }, [getCachedDocument, getCachedStaged]);
+
+  // Search Parameters Cache Effect
+  // Restores previous search parameters from cache
+  useEffect(() => {
+    const cachedSearchParams = getCache('searchParams');
+    if (cachedSearchParams) {
+      setContext(cachedSearchParams.context || '');
+      setTheme(cachedSearchParams.theme || null);
+      setKeywords(cachedSearchParams.keywords || []);
+    }
+  }, []);
+
+  // restore cached documents 
+  // useEffect(() => {
+  //     const restoreState = async () => {
+  //       const staged = await getCachedStaged();
+  //       if (staged) {
+  //         console.log('cache manager: 5', staged )
+  //         setStagedDocuments(staged);
+  //       }
+  //     };
+  
+  //     restoreState();
+  //   }, [getCachedStaged]);
+
+/**************************************************************************
+   * DOCUMENT MANAGEMENT
+   * Core functionality for handling document operations
+   **************************************************************************/
+
+  /**
+   * Fetches processed documents from backend
+   * Data Flow: API → documents state → DocumentSidebar
+   */
+  const fetchDocuments = async () => {
     try {
-      // Update initial processing state
-      setProcessingState({
-        stage: PROCESSING_STAGES.UPLOAD,
-        isProcessing: false,
-        progress: 0,
-        processedCount: 0,
-        totalCount: formData.getAll('files').length
+      const response = await fetch('/api/research/documents/upload');
+      const data = await response.json();
+
+      if (data.status === 'error') {
+        throw new Error(data.error);
+      }
+  
+      setDocuments(data.documents);
+    } catch (error) {
+      console.error('Failed to fetch documents:', error);
+      toast.error('Failed to load documents');
+    }
+  };
+
+  /**************************************************************************
+   * PINATA STORAGE INTEGRATION
+   * Handles document storage in IPFS via Pinata
+   **************************************************************************/
+
+  /**
+   * Stores document in Pinata IPFS
+   * Flow: File → Pinata → URL Cache → Storage
+   */
+  const storeToPinata = async (file) => {
+    console.log('[ResearchAssistant] Uploading to Pinata:', file.name);
+    
+    const formData = new FormData();
+    formData.append('files', file);
+
+    const response = await fetch('/api/research/documents/file', {
+      method: 'POST',
+      body: formData
+    });
+
+    const data = await response.json();
+
+    if (data.status === 'error') {
+      throw new Error(data.error);
+    }
+
+    const storedDocument = data.documents[0];
+
+
+    
+    return storedDocument;
+  };
+
+  /**************************************************************************
+   * DOCUMENT STAGING & UPLOAD HANDLERS
+   * Manages document upload workflow
+   **************************************************************************/
+
+  /**
+   * Handles initial document staging before upload
+   * Flow: Files → Staging Area → Upload Queue
+   */
+  // const handleStagedUpload = useCallback((files) => {
+  //   console.log('Staging documents:', files);
+  //   setStagedDocuments(prev => [...prev, ...files]);
+  //   toast.success(`${files.length} document${files.length !== 1 ? 's' : ''} staged`);
+  // }, []);
+
+  const handleStagedUpload = useCallback(async (files) => {
+    console.log('Staging documents:', files);
+
+    const storedDocuments = [];
+    for (const file of files) {
+        const storedDocument = await storeToPinata(file);
+        storedDocuments.push(storedDocument);
+    }
+
+    console.log('All documents staged:', storedDocuments);
+    setStagedDocuments(prev => {
+      const newDocs = [...prev, ...storedDocuments];
+      // Add cache update
+      console.log('cache manager: 0-', {newDocs} )
+      cacheStagedDocuments(newDocs);
+      return newDocs;
+    });
+    toast.success(`${files.length} document${files.length !== 1 ? 's' : ''} staged`);
+  }, [cacheStagedDocuments]);
+
+  /**
+   * Removes document from staging area
+   * Flow: Staging Area → Remove → Update UI
+   */
+  const handleRemoveStaged = useCallback((fileToRemove) => {
+    setStagedDocuments(prev => 
+      prev.filter(file => file !== fileToRemove)
+    );
+    toast.success('Document removed from staging');
+  }, []);
+
+  /**
+   * Removes document from stored documents
+   * Flow: Storage → Remove → Update UI
+   */
+  const handleRemoveUpload = useCallback( async(documentName) => {
+    
+    setStoredDocuments(prev => {
+      const newMap = new Map(prev);
+      newMap.delete(documentName);
+      return newMap;
+    });
+    // setStagedDocuments(prev => { prev.filter(file => file.file_name !== documentName) });
+    setStagedDocuments(prev => prev.filter(doc => doc.file_name !== documentName));
+    await removeCachedStaged(documentName);
+    
+    toast.success('Document removed from staging');
+  }, []);
+
+  /**
+   * Process all staged documents for upload
+   * Flow: Staging → Processing → Upload → Storage
+   */
+  const handleUploadStaged = useCallback(async () => {
+    if (stagedDocuments.length === 0) return;
+
+    try {
+      setIsProcessing(true);
+      const formData = new FormData();
+      stagedDocuments.forEach(file => {
+        formData.append('files', file);
       });
 
-      // Simulate different processing stages
-      const simulateStage = async (stage, duration) => {
-        setProcessingState(prev => ({ ...prev, stage }));
-        for (let i = 0; i <= 100; i += 5) {
-          await new Promise(resolve => setTimeout(resolve, duration / 20));
-          updateProgress(stage, i);
-        }
-      };
-      console.log("Simulating stages")
+      console.log('Uploading staged documents:', stagedDocuments);
 
-      // Simulate processing stages
-      await simulateStage(PROCESSING_STAGES.UPLOAD, 50);
-      await simulateStage(PROCESSING_STAGES.PROCESSING, 50);
-      await simulateStage(PROCESSING_STAGES.ANALYSIS, 50);
-      await simulateStage(PROCESSING_STAGES.CONTEXT, 50);
-
-      // Make API request
-      console.log("Sending request")
-      const response = await fetch('/api/research/search', {
+      const response = await fetch('/api/research/documents/upload', {
         method: 'POST',
         body: formData
       });
@@ -270,175 +303,301 @@ export function ResearchAssistant() {
       if (data.status === 'error') {
         throw new Error(data.error);
       }
-
-      // Update documents with results
-      setDocuments(data.results);
-      setActiveTheme(JSON.parse(formData.get('theme')));
       
-      // Update processing state to complete
-      setProcessingState(prev => ({
-        ...prev,
-        stage: PROCESSING_STAGES.COMPLETE,
-        isProcessing: false,
-        progress: 100,
-        processedCount: prev.totalCount
-      }));
-
-      toast.success(`Successfully analyzed ${data.results.length} documents`);
+      setDocuments(prev => [...prev, ...data.documents]);
+      setStagedDocuments([]); // Clear staged documents
+      toast.success('Documents uploaded successfully');
 
     } catch (error) {
-      console.error('Analysis error:', error);
-      toast.error(error.message || 'Failed to analyze documents');
-      
-      // Reset processing state
-      setProcessingState({
-        stage: null,
-        isProcessing: false,
-        progress: 0,
-        processedCount: 0,
-        totalCount: 0
+      console.error('Upload error:', error);
+      toast.error(error.message || 'Failed to upload documents');
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [stagedDocuments]);
+
+  /**
+   * Handles document upload from modal
+   * Flow: Modal → Upload → Process → Storage
+   */
+  const handleUpload = useCallback(async (formData) => {
+    try {
+      setIsProcessing(true);
+
+      const response = await fetch('/api/research/documents/upload', {
+        method: 'POST',
+        body: formData
       });
+
+      const data = await response.json();
+
+      if (data.status === 'error') {
+        throw new Error(data.error);
+      }
+      
+      setDocuments(prev => [...prev, ...data.documents]);
+      setIsUploadModalOpen(false);
+      toast.success(data.message);
+
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error(error.message || 'Failed to upload documents');
+    } finally {
+      setIsProcessing(false);
     }
   }, []);
 
-  // Handle document saving
-  const handleSaveDocument = useCallback(async (documentId) => {
+  /**
+   * Handles document deletion
+   * Flow: Delete Request → Pinata → Storage → UI Update
+   */
+  const handleDeleteDocument = async (documentName) => {
+    const uploadedDocument = storedDocuments.get(documentName);
+    // let fileId;
+
+    // if (storedDocuments.size > 0) {
+    //   fileId = uploadedDocument.file_id;
+    // } else {
+    //   fileId = document.file_id;
+    // }
+
+    // console.log('[handleDeleteDocument] Deleting file with CID:', cid);
+    
+    // if (cid) {
+    //   const response = await fetch('/api/research/documents/file', {
+    //     method: 'DELETE',
+    //     headers: {
+    //       'Content-Type': 'application/json'
+    //     },
+    //     body: JSON.stringify({ cid })
+    //   });
+
+    //   if (!response.ok) {
+    //     const error = await response.json();
+    //     throw new Error(error.error || 'Failed to unpin file from Pinata');
+    //   }
+    // }
+    
+
+    handleRemoveUpload(uploadedDocument);
+ 
+    toast.success('Document deleted successfully');
+  };
+
+ /**************************************************************************
+   * DOCUMENT SELECTION & VIEWING
+   * Handles document interaction and viewing functionality
+   **************************************************************************/
+
+  /**
+   * Handles document selection for search
+   * Flow: Selection → Search Visibility → UI Update
+   */
+
+  const handleDocumentSelect = useCallback((fileIds) => {
+    setSelectedDocuments(fileIds);
+    // Add cache update
+    setSearchVisible(fileIds.length > 0);
+  }, []);
+
+  /**
+   * Manages document viewing functionality
+   * Flow: View Request → Cache Check → Document Display
+   */
+  const handleDocumentView = useCallback(async (document) => {
+    console.log('[ResearchAssistant] Viewing document:', document);
     try {
-      const document = documents.find(doc => doc.document_id === documentId);
-      if (!document) throw new Error('Document not found');
+      let docToView = document
 
-      setSavedDocuments(prev => [...prev, { ...document, saved_at: new Date() }]);
-      toast.success('Document saved successfully');
-
+      if (document instanceof File) {
+        // Handle new file viewing
+        let storedDocument = storedDocuments.get(document.file_name);
+        if (storedDocument) {
+          // Use cached document
+          console.log('[ResearchAssistant] Using cached document');
+          docToView = { ...storedDocument, file_url: storedDocument.file_url };
+        } else {
+          // Store and cache new document
+          docToView = { ...document, file_url: storedDocument.file_url };
+          setStoredDocuments(prev => new Map(prev).set(storedDocument.file_name, storedDocument));
+        }
+      } else {
+        // Handle existing document viewing
+        const cachedUrl = storageManager.getCachedDocumentUrl(document.file_id, document.file_name);
+        if (cachedUrl) {
+          docToView = { ...document, file_url: cachedUrl };
+        }
+      }
+      console.log('active docuement', {docToView} )
+      setActiveDocument(docToView);
     } catch (error) {
-      console.error('Save error:', error);
-      toast.error('Failed to save document');
+      console.error('[ResearchAssistant] Error viewing document:', error);
+      toast.error('Failed to prepare document for viewing');
     }
-  }, [documents]);
+  }, [storedDocuments]);
 
-  // Handle document removal
-  const handleRemoveDocument = useCallback(async (documentId) => {
+  /**************************************************************************
+   * SEARCH FUNCTIONALITY
+   * Manages document search and result handling
+   **************************************************************************/
+
+  /**
+   * Handles document search across selected documents
+   * Flow: Search Parameters → API → Results Display
+   */
+  // const handleSearch = useCallback(async (searchParams) => {
+  //   try {
+  //     setIsProcessing(true);
+
+  //     const response = await fetch('/api/research/documents/search', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json'
+  //       },
+  //       body: JSON.stringify({
+  //         document_ids: selectedDocuments,
+  //         ...searchParams
+  //       })
+  //     });
+
+  //     const data = await response.json();
+
+  //     if (data.status === 'error') {
+  //       throw new Error(data.error);
+  //     }
+
+  //     // Cache search parameters for future use
+  //     setCache('searchParams', searchParams);
+  //     setSearchResults(data.results);
+  //     toast.success(`Found matches in ${data.results.length} documents`);
+  //   } catch (error) {
+  //     console.error('Search error:', error);
+  //     toast.error(error.message || 'Failed to perform search');
+  //     setSearchResults(null);
+  //   } finally {
+  //     setIsProcessing(false);
+  //   }
+  // }, [selectedDocuments]);
+
+
+  const handleSearch = useCallback(async (searchParams) => {
     try {
-      const response = await fetch('/api/research/search', {
-        method: 'DELETE',
+      setIsProcessing(true);
+      // Cache search parameters
+      await cacheSearchParams(searchParams);
+
+      const response = await fetch('/api/research/documents/search', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          documentIds: [documentId],
-          theme: activeTheme 
+        body: JSON.stringify({
+          document_ids: selectedDocuments,
+          ...searchParams
         })
       });
 
       const data = await response.json();
-      
+
       if (data.status === 'error') {
         throw new Error(data.error);
       }
 
-      // Remove document from state
-      setDocuments(prev => prev.filter(doc => doc.document_id !== documentId));
-      
-      if (selectedDocument?.document_id === documentId) {
-        setSelectedDocument(null);
-      }
-
-      toast.success('Document removed successfully');
-
+      // Cache search results
+      await cacheSearchResults(data.results);
+      setSearchResults(data.results);
+      toast.success(`Found matches in ${data.results.length} documents`);
     } catch (error) {
-      console.error('Remove error:', error);
-      toast.error('Failed to remove document');
+      console.error('Search error:', error);
+      toast.error(error.message || 'Failed to perform search');
+      setSearchResults(null);
+    } finally {
+      setIsProcessing(false);
     }
-  }, [activeTheme, selectedDocument]);
+  }, [selectedDocuments, cacheSearchParams, cacheSearchResults]);
 
-  // Handle document selection for viewing
-  const handleDocumentSelect = useCallback((document) => {
-    setSelectedDocument(document);
+
+
+  /**
+   * Clears search results and cached parameters
+   * Flow: Clear Request → Reset States → UI Update
+   */
+  const handleClearSearch = useCallback(() => {
+    setSearchResults(null);
+    clearCache('searchParams');
   }, []);
 
-  // Handle search parameter updates
-  const handleSearchUpdate = useCallback((newParams) => {
-    setSearchParams(prev => ({
-      ...prev,
-      ...newParams
-    }));
-  }, []);
-
-  // Update progress during processing
-  const updateProgress = useCallback((stage, progress) => {
-    setProcessingState(prev => ({
-      ...prev,
-      stage,
-      progress,
-      processedCount: Math.floor((progress / 100) * prev.totalCount)
-    }));
-  }, []);
+  /**************************************************************************
+   * RENDER
+   * Component render logic with conditional content display
+   **************************************************************************/
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-        {/* Upload Section */}
-        <section>
-          <UploadSection 
-            onAnalyze={handleAnalysis}
-            isProcessing={processingState.isProcessing}
-            activeTheme={activeTheme}
-            searchParams={searchParams}
-            onSearchUpdate={handleSearchUpdate}
+    <> 
+      <ResearchLayout
+        // Sidebar Component - Document Management
+        sidebarContent={
+          <DocumentSidebar
+            documents={documents}
+            selectedDocuments={selectedDocuments}
+            onSelect={handleDocumentSelect}
+            onView={handleDocumentView}
+            onDelete={handleDeleteDocument}
+            stagedDocuments={stagedDocuments}
+            onStagedUpload={handleStagedUpload}
+            onRemoveStaged={handleRemoveStaged}
+            onUploadStaged={handleUploadStaged}
           />
-        </section>
+        }
 
-        {/* Processing Status */}
-        {processingState.isProcessing && (
-          <section>
-            <ProcessingStatus
-              stage={processingState.stage}
-              progress={processingState.progress}
-              processedCount={processingState.processedCount}
-              totalCount={processingState.totalCount}
-            />
-          </section>
-        )}
+        // Main Content Area - Dynamic Content Display
+        mainContent={
+          <div className="relative min-h-full">
+            {/* Conditional Content Rendering */}
+            {searchResults ? (
+              // Search Results View
+              <ResultsContainer
+                results={searchResults}
+                onViewDocument={handleDocumentView}
+              />
+            ) : activeDocument ? (
+              // Document Viewer
+              <DocumentViewer
+                document={activeDocument}
+                onClose={() => setActiveDocument(null)}
+              />
+            ) : (
+              // Empty State
+              <div className="flex items-center justify-center h-full text-tertiary">
+                <NoResults />
+              </div>
+            )}
+          </div>
+        }
 
-        {/* Results Section */}
-        {documents.length > 0 && !processingState.isProcessing && (
-          <section className="animate-in fade-in slide-in-from-bottom-4">
-            <ResultsContainer
-              documents={documents}
-              onRemoveDocument={handleRemoveDocument}
-              onSaveDocument={handleSaveDocument}
-              onViewDocument={handleDocumentSelect}
-            />
-          </section>
-        )}
-
-        {/* Document Viewer */}
-        {selectedDocument && (
-      <DocumentViewer
-        document={{
-          file_url: selectedDocument.url,
-          metadata: {
-            title: selectedDocument.title,
-            authors: selectedDocument.authors,
-            citation: selectedDocument.citation,
-            pageCount: selectedDocument.total_pages
-          },
-          pointers: selectedDocument.relevant_sections.map(section => ({
-            section_id: section.section_id,
-            page_number: section.page_number,
-            section_start: section.start_text,
-            text: section.content,
-            matching_context: section.matching_context,
-            matching_theme: section.matching_theme
-          }))
-        }}
-        onClose={() => setSelectedDocument(null)}
-        onRemove={handleRemoveDocument}
-        onSave={handleSaveDocument}
+        // Search Interface
+        searchBarContent={
+          <SearchBar
+            visible={searchVisible}
+            onSearch={handleSearch}
+            onClose={handleClearSearch}
+          />
+        }
       />
-    )}
-      </div> 
-    </div>
-  
-  )
+
+      {/* Global Action Button */}
+      <FloatingActionButton
+        onClick={() => setIsUploadModalOpen(true)}
+      />
+
+      {/* Upload Modal */}
+      <UploadModal
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        onUpload={handleUpload}
+        isProcessing={isProcessing}
+      />
+    </>
+  );
 }
+
 
 export default ResearchAssistant;

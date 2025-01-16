@@ -1,4 +1,4 @@
-import { getGoogleAuthUrl } from '@/auth/social/googleAuth';
+import { getGoogleAuthUrl } from '../../../../../auth/social/googleAuth';
 
 export async function GET() {
   const url = getGoogleAuthUrl();

@@ -25,12 +25,27 @@ export function DOCXRenderer({ url, pointers }) {
 
   // Load and convert DOCX
   const loadDocument = useCallback(async () => {
+    if (!url) {
+      setError('No URL provided');
+      setLoading(false);
+      return;
+    }
+
     try {
-      setIsProcessing(true);
+      setLoading(true);
+      setError(null);
+      console.log('[DOCXRenderer] Fetching document through proxy:', url);
       
-      // Fetch document
+      // Fetch document through proxy
       const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch document: ${response.status} ${response.statusText}`);
+      }
+
+      // Get document as ArrayBuffer
       const arrayBuffer = await response.arrayBuffer();
+      console.log('[DOCXRenderer] Document received, size:', arrayBuffer.byteLength);
 
       // Convert to HTML using mammoth
       const result = await mammoth.convertToHtml({ arrayBuffer }, {
@@ -41,10 +56,12 @@ export function DOCXRenderer({ url, pointers }) {
         ]
       });
 
+      console.log('[DOCXRenderer] Document converted to HTML');
       setRawContent(result.value);
 
       // Process content into pages
       const processedPages = paginateContent(result.value);
+      console.log('[DOCXRenderer] Content paginated:', processedPages.length, 'pages');
       setPages(processedPages);
       setTotalPages(processedPages.length);
       
@@ -61,10 +78,11 @@ export function DOCXRenderer({ url, pointers }) {
       setIsLoading(false);
       
     } catch (error) {
-      console.error('Error loading DOCX:', error);
+      console.error('[DOCXRenderer] Error loading document:', error);
+      setError(error.message);
       setIsLoading(false);
     } finally {
-      setIsProcessing(false);
+      setLoading(false);
     }
   }, [url, setTotalPages, setIsLoading]);
 
@@ -75,50 +93,55 @@ export function DOCXRenderer({ url, pointers }) {
 
   // Process pointers and search highlights for current page
   useEffect(() => {
-    if (!pageElements[currentPage] || isProcessing) return;
+    if (!pageElements[currentPage] || loading) return;
 
-    // Clear existing highlights
-    removeHighlight(`search-${currentPage}`);
-    
-    // Process pointers
-    const pagePointers = pointers.filter(p => p.page_number === currentPage);
-    pagePointers.forEach(pointer => {
-      const positions = findTextPositionsInElements(
-        pageElements[currentPage],
-        pointer.section_start
-      );
+    try {
+      // Clear existing highlights
+      removeHighlight(`search-${currentPage}`);
+      
+      // Process pointers
+      const pagePointers = pointers?.filter(p => p.page_number === currentPage) || [];
+      pagePointers.forEach(pointer => {
+        const positions = findTextPositionsInElements(
+          pageElements[currentPage],
+          pointer.start_text
+        );
 
-      if (positions.length > 0) {
-        addHighlight({
-          id: pointer.section_id,
-          positions,
-          type: 'pointer',
-          text: pointer.text,
-          metadata: {
-            context: pointer.matching_context,
-            theme: pointer.matching_theme
-          }
-        });
+        if (positions.length > 0) {
+          addHighlight({
+            id: pointer.section_id,
+            positions,
+            type: 'pointer',
+            text: pointer.text,
+            metadata: {
+              context: pointer.matching_context,
+              theme: pointer.matching_theme
+            }
+          });
+        }
+      });
+
+      // Process search query
+      if (searchQuery) {
+        const positions = findTextPositionsInElements(
+          pageElements[currentPage],
+          searchQuery
+        );
+
+        if (positions.length > 0) {
+          addHighlight({
+            id: `search-${currentPage}`,
+            positions,
+            type: 'search',
+            text: searchQuery
+          });
+        }
       }
-    });
-
-    // Process search query
-    if (searchQuery) {
-      const positions = findTextPositionsInElements(
-        pageElements[currentPage],
-        searchQuery
-      );
-
-      if (positions.length > 0) {
-        addHighlight({
-          id: `search-${currentPage}`,
-          positions,
-          type: 'search',
-          text: searchQuery
-        });
-      }
+    } catch (error) {
+      console.error('[DOCXRenderer] Error processing highlights:', error);
     }
-  }, [currentPage, pageElements, searchQuery, pointers, isProcessing, addHighlight, removeHighlight]);
+  }, [currentPage, pageElements, searchQuery, pointers, loading, addHighlight, removeHighlight]);
+
 
   // Helper function to find text positions in HTML elements
   const findTextPositionsInElements = (elements, searchText) => {
@@ -179,6 +202,27 @@ export function DOCXRenderer({ url, pointers }) {
 
     return pages;
   };
+
+  // Error state
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full p-8 bg-red-50 rounded-lg">
+        <AlertTriangle className="w-12 h-12 text-red-500 mb-4" />
+        <h3 className="text-lg font-medium text-red-800 mb-2">
+          Failed to load document
+        </h3>
+        <p className="text-sm text-red-600 text-center">
+          {error || 'An error occurred while loading the document'}
+        </p>
+        <button 
+          onClick={loadDocument}
+          className="mt-4 px-4 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-screen bg-background">

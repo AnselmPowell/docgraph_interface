@@ -1,9 +1,9 @@
 
 import { NextResponse } from 'next/server';
-import { getGoogleUser } from '@/auth/social/googleAuth';
-import { googleLoginRegister } from '@/auth/core/auth';
+import { getGoogleUser } from '../../../../../auth/social/googleAuth';
+import { googleLoginRegister } from '../../../../../auth/core/auth';
 import { cookies } from 'next/headers';
-import config from '@/config';
+import config from '../../../../../config';
 
 export async function GET(request) {
   const code = request.nextUrl.searchParams.get('code');

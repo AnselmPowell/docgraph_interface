@@ -1,10 +1,10 @@
 export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
-import { msalInstance } from '@/auth/social/microsoftAuth';
-import { microsoftLoginRegister } from '@/auth/core/auth';
+import { msalInstance } from '../../../../../auth/social/microsoftAuth';
+import { microsoftLoginRegister } from '../../../../../auth/core/auth';
 import { cookies } from 'next/headers';
-import config from '@/config';
+import config from '../../../../../config';
 
 export async function GET(request) {
     const { searchParams } = new URL(request.url);
