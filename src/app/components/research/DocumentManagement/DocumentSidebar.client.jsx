@@ -1,67 +1,68 @@
 // src/app/components/research/DocumentManagement/DocumentSidebar.client.jsx
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { 
-  FileText, 
-  Check, 
-  Loader2, 
-  AlertTriangle, 
-  ChevronDown,
-  Upload,
-  Trash2, 
-  Info
+  Upload, Loader2 
 } from 'lucide-react';
+
+
+
+import { DocumentList } from './DocumentList.client';
+import { UrlInput } from './UrlInput.client';
 import { DeleteDocumentModal } from './DeleteDocumentModal.client';
 import { DocumentDetailsModal } from './DocumentDetailsModal.client';
-import { toast } from '../../ui/Toast.client';
-import { storageManager } from '../../../services/storageManager';
-
+import {ReferencesModal} from '../ToolBar/ReferenceList.client'
+import { toast } from '../../messages/Toast.client';
 import { useDocumentCache } from '../../../hooks/useDocumentCache';
+import { X } from 'lucide-react'; 
+
 
 export function DocumentSidebar({
-
   documents = [],
   selectedDocuments = [],
+  stagedDocuments = [],
   onSelect,
   onView,
   onDelete,
   onStagedUpload,
-  stagedDocuments = [],
-  onRemoveStaged,
-  onUploadStaged
+  onUploadStaged,
+  onClose  
 }) {
   // Existing state
   const [isAllSelected, setIsAllSelected] = useState(false);
   const [deleteDocumentName, setDeleteDocumentName] = useState(null);
   const [documentDetails, setDocumentDetails] = useState(null);
+  const [showReferences, setShowReferences] = useState(null);
+
+  const [isUploading, setIsUploading] = useState(false);
 
   const {
     cacheDocument,
   } = useDocumentCache();
 
-  const storedDocs = storageManager.getAllDocuments();
 
- 
+  // URL submission handler
+  const handleUrlSubmit = useCallback(async (url) => {
+    try {
+      await onStagedUpload([{ url, name: url.split('/').pop() }]);
+      toast.success('URL added successfully');
+    } catch (error) {
+      toast.error('Failed to add URL');
+    }
+  }, [onStagedUpload]);
 
 
   // UPDATE dropzone configuration
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop: acceptedFiles => {
-      const newFiles = acceptedFiles.filter(file => {
-        const isDuplicateStaged = stagedDocuments.some(doc => 
-          doc.file_name === file.name && doc.file_size === file.size
-        );
-        return !isDuplicateStaged;
-      });
-
-      if (newFiles.length > 0) {
-
-        onStagedUpload?.(newFiles);
+    onDrop: async (files) => {
+      setIsUploading(true);
+      try {
+        await onStagedUpload(files);
+      } finally {
+        setIsUploading(false);
       }
-
     },
     accept: {
       'application/pdf': ['.pdf'],
@@ -69,224 +70,102 @@ export function DocumentSidebar({
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
       'text/plain': ['.txt']
     },
-    maxSize: 50 * 1024 * 1024 // 50MB
+    maxSize: 50 * 1024 * 1024,
+    noClick: true, // Disable click to upload - IMPORTANT
+    noDragEventsBubbling: true // Prevent drag events from bubbling
   });
 
   // handle select all
-  const handleSelectAll = useCallback(() => {
+   const handleSelectAll = useCallback(() => {
     if (isAllSelected) {
       onSelect([]);
       setIsAllSelected(false);
     } else {
-      const allDocIds = documents
+      const selectableDocIds = documents
         .filter(doc => doc.processing_status === 'completed')
-        .map(doc => doc.name);
-      onSelect(allDocIds);
+        .map(doc => doc.file_name);
+      onSelect(selectableDocIds);
       setIsAllSelected(true);
     }
-    // Cache selection state
-    cacheDocument({ id: 'selection', selected: isAllSelected ? [] : allDocIds });
-  }, [documents, onSelect, isAllSelected, cacheDocument]);
+  }, [documents, onSelect, isAllSelected]);
 
-
-  const handleSelectDocument = useCallback((docId) => {
-    if (selectedDocuments.includes(docId)) {
-      onSelect(selectedDocuments.filter(id => id !== docId));
-      setIsAllSelected(false);
-    } else {
-      onSelect([...selectedDocuments, docId]);
-    }
-  }, [selectedDocuments, onSelect]);
 
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="p-4 border-b border-tertiary/10">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-lg font-semibold text-primary">Documents</h2>
-          <span className="text-sm text-tertiary">
-            {selectedDocuments.length} of {documents.length} selected
-          </span>
-        </div>
-        
-        {documents.length > 0 && (
-          <button
-            onClick={handleSelectAll}
-            className={`
-              w-full px-3 py-1.5 rounded-lg
-              border transition-colors
-              ${isAllSelected ? 'bg-primary/10 border-primary/20' : 'border-tertiary/10 hover:border-tertiary/20'}
-              text-sm font-medium
-            `}
-          >
-            {isAllSelected ? 'Deselect All' : 'Select All'}
-          </button>
-        )}
-      </div>
-  
-      {/* Drop Zone Section */}
-      <div
-        {...getRootProps()}
-        className={`
-          px-4 py-3 border-b border-tertiary/10
-          ${isDragActive ? 'bg-primary/5' : 'hover:bg-tertiary/5'}
-          transition-colors cursor-pointer
-        `}
-      >
-        <input {...getInputProps()} />
-        <div className="flex flex-col items-center gap-2">
-          <Upload className={`w-5 h-5 ${isDragActive ? 'text-primary' : 'text-tertiary'}`} />
-          <p className="text-sm text-center text-tertiary">
-            {isDragActive ? 'Drop files here...' : 'Drag & drop documents here'}
-          </p>
+    <div {...getRootProps()} className="flex flex-col pt-10 h-full ">
+      <input {...getInputProps()} />
+
+      {/* URL Input Section */}
+      <UrlInput onUrlSubmit={handleUrlSubmit} />
+       {/* Upload Area */}
+       <div className=" border-b border-tertiary/10">
+        <div 
+          onClick={() => document.querySelector('input[type="file"]').click()}
+          className={`
+            border-2 border-dashed border-tertiary/30 rounded-lg p-4
+            hover:border-primary/30 transition-colors cursor-pointer
+            flex flex-col items-center
+            ${isUploading ? 'bg-tertiary/5' : ''}
+          `}
+        >
+          {isUploading ? (
+            <>
+              <Loader2 className="w-5 h-5 text-primary animate-spin" />
+              <p className="text-sm text-tertiary text-center">
+                Uploading files...
+              </p>
+            </>
+          ) : (
+            <>
+              <Upload className="w-5 h-5 text-tertiary" />
+              <p className="text-sm text-tertiary text-center">
+                Drop files here or <span className="text-primary">browse</span>
+              </p>
+              <p className="text-xs text-tertiary/70">
+                Supports PDF, DOCX, DOC, TXT
+              </p>
+            </>
+          )}
         </div>
       </div>
-  
-      {/* Document List Container */}
-      <div className="flex-1 overflow-y-auto">
-        {/* Staged Documents */}
-        {stagedDocuments.length > 0 && (
-          <div className="divide-y divide-tertiary/10">
-            <div className="px-4 py-3 bg-tertiary/5">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium text-primary">Staged Documents</h3>
-                <button
-                  onClick={onUploadStaged}
-                  className="px-3 py-1 text-xs font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors"
-                >
-                  Upload All
-                </button>
-              </div>
-            </div>
-            {stagedDocuments.map((doc) => (
-              <motion.div
-                key={doc.file_name + doc.file_size}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="group px-4 py-3 hover:bg-tertiary/5 transition-colors"
+
+      {/* Selection Header */}
+        <div className="px-4 py-2 border-b border-tertiary/10">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-medium text-primary">Documents  {selectedDocuments.length > 0 && (<span> Selected: {selectedDocuments.length}</span> )} </h2>
+            {documents.length > 0 && (
+              <button
+                onClick={handleSelectAll}
+                className="text-sm text-tertiary hover:text-primary transition-colors"
               >
-                <div className="flex items-center gap-3">
-                  <FileText className="w-5 h-5 text-tertiary" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-primary truncate">{doc.file_name}</p>
-                    <p className="text-xs text-tertiary">
-                      {(doc.file_size / (1024 * 1024)).toFixed(2)} MB
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => onView(doc)}
-                      className="px-2 py-1 text-xs text-tertiary hover:text-primary hover:bg-tertiary/10 rounded transition-colors"
-                    >
-                      View
-                    </button>
-                    <button
-                    onClick={async (e) => {
-                      e.stopPropagation();
-                      await onDelete(doc.file_name);
-                      onRemoveStaged(doc)
-                      setDeleteDocumentName(doc.file_name);
-                    }}
-                    className="p-1 text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+                {isAllSelected ? 'Deselect all' : 'Select all'}
+              </button>
+            )}
           </div>
-        )}
-  
-        {/* Processed Documents */}
-        <div className="divide-y divide-tertiary/10">
-          {documents.map((doc) => (
-            <motion.div
-              key={doc.name + file_size}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className={`
-                group relative
-                px-4 py-3
-                hover:bg-tertiary/5
-                transition-colors
-                cursor-pointer
-                ${selectedDocuments.includes(doc.file_name) ? 'bg-primary/5' : ''}
-              `}
-              onClick={() => handleSelectDocument(doc.file_name)}
-            >
-              <div className="flex items-center gap-3">
-  
-                {/* Document Info */}
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-medium text-primary truncate">
-                    {doc.file_name}
-                  </h3>
-                  {doc.authors?.length > 0 && (
-                    <p className="text-sm text-tertiary truncate">
-                      {doc.authors.join(', ')}
-                    </p>
-                  )}
-                </div>
-  
-                {/* Action Buttons */}
-                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  {doc.processing_status === 'completed' && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onView(doc);
-                      }}
-                      className="px-2 py-1 text-xs text-tertiary hover:text-primary hover:bg-tertiary/10 rounded transition-colors"
-                    >
-                      View
-                    </button>
-                  )}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleViewDetails(doc);
-                    }}
-                    className="p-1 text-tertiary hover:text-primary hover:bg-tertiary/10 rounded transition-colors"
-                  >
-                    <Info className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteDocument(doc.file_name);
-                      setDeleteDocumentName(doc.file_name);
-                    }}
-                    className="p-1 text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-  
-              {/* Error Message */}
-              {doc.processing_status === 'failed' && doc.error_message && (
-                <p className="mt-1 text-xs text-red-500">
-                  {doc.error_message}
-                </p>
-              )}
-            </motion.div>
-          ))}
         </div>
-  
-        {/* Empty State */}
-        {documents.length === 0 && stagedDocuments.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-[200px] text-center p-4">
-            <FileText className="w-12 h-12 text-tertiary/50 mb-2" />
-            <p className="text-tertiary">No documents uploaded</p>
-            <p className="text-sm text-tertiary/50">
-              Upload documents to begin searching
-            </p>
+
+      {/* Dropzone Indicator */}
+      {isDragActive && (
+        <div className="absolute inset-0 z-50 bg-blue-500/10 backdrop-blur-sm 
+          border-2 border-blue-500 border-dashed rounded-lg flex items-center justify-center">
+          <div className="text-blue-600 font-medium">
+            Drop files here...
           </div>
-        )}
-      </div>
-  
+        </div>
+      )}
+
+      {/* Document Lists */}
+      <DocumentList
+        documents={documents}
+        stagedDocuments={stagedDocuments}
+        selectedDocuments={selectedDocuments}
+        onSelect={onSelect}
+        onView={onView}
+        onDelete={setDeleteDocumentName}
+        onDetails={setDocumentDetails}
+        onUploadStaged={onUploadStaged}
+      />
+
       {/* Modals */}
       <DeleteDocumentModal
         isOpen={deleteDocumentName !== null}
@@ -294,7 +173,7 @@ export function DocumentSidebar({
         documentName={deleteDocumentName}
         onDeleteDocument={onDelete}
       />
-  
+
       <DocumentDetailsModal
         isOpen={documentDetails !== null}
         onClose={() => setDocumentDetails(null)}
@@ -303,3 +182,6 @@ export function DocumentSidebar({
     </div>
   );
 }
+
+
+

@@ -5,8 +5,8 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { Button } from '../../ui/Button.client';
-import { toast } from '../../ui/Toast.client';
-
+import { toast } from '../../messages/Toast.client';
+ 
 export function DeleteDocumentModal({ isOpen, onClose, documentName, onDeleteDocument }) {
   const [isDeleting, setIsDeleting] = useState(false);
 

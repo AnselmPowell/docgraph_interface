@@ -46,6 +46,15 @@ export function useSearchCache() {
     return await getCache('search_results', CACHE_LEVELS.SESSION);
   }, [getCache]);
 
+
+  const removeCachedResults = async (newResults) => {
+ 
+    cacheSearchResults(newResults)
+
+    return true;
+ 
+}
+
   /**
    * Clear search cache
    */
@@ -59,6 +68,7 @@ export function useSearchCache() {
     getCachedParams,
     cacheSearchResults,
     getCachedResults,
+    removeCachedResults,
     clearSearchCache
   };
 }

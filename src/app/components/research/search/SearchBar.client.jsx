@@ -1,72 +1,85 @@
+
 // src/app/components/research/Search/SearchBar.client.jsx
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, ChevronUp, Book, Tag, X, Plus } from 'lucide-react';
+import {  
+  FileText, 
+  Tag, 
+  X, 
+  ChevronDown, 
+  ChevronUp,
+  Search,
+  Loader2,
+  Sparkles
+} from 'lucide-react';
 
-import { useSearchCache } from '../../../hooks/useSearchCache';
+
+// Add SparklesCore component for animation
+const SparklesCore = ({ className = "" }) => {
+  return (
+    <div className={`absolute inset-0 ${className}`}>
+      <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 animate-pulse duration-1000" />
+    </div>
+  );
+};
 
 export function SearchBar({
-  visible = false,
+  visible = true,
   onSearch,
-  onClose
+  onClose,
+  selectedDocuments = [],
+  isSearching,
+  onToggleVisibility, // Add new prop
+  onSelect,
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [context, setContext] = useState('');
-  const [theme, setTheme] = useState(null);
   const [keywords, setKeywords] = useState([]);
   const [keywordInput, setKeywordInput] = useState('');
-  const [showThemeDropdown, setShowThemeDropdown] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [documentsToSearch, setDocumentsToSearch] = useState([...selectedDocuments]);
 
   const containerRef = useRef(null);
+  const textareaRef = useRef(null);
   const keywordInputRef = useRef(null);
 
-  const { 
-    cacheSearchParams, 
-    getCachedParams 
-  } = useSearchCache();
-
-  const handleClickOutside = useCallback((event) => {
-    if (containerRef.current && !containerRef.current.contains(event.target)) {
-      setIsExpanded(false);
-      setShowThemeDropdown(false);
-    }
-  }, []);
-
+  // Click outside handler
   useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [handleClickOutside]);
-
-   // Add cache initialization effect
-   useEffect(() => {
-    const restoreSearchState = async () => {
-      if (visible) {
-        const cachedParams = await getCachedParams();
-        if (cachedParams) {
-          setContext(cachedParams.context || '');
-          setTheme(cachedParams.theme || null);
-          setKeywords(cachedParams.keywords || []);
-        }
+    const handleClickOutside = (event) => {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setIsExpanded(false);
       }
     };
 
-    restoreSearchState();
-  }, [visible, getCachedParams]);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`; // Max height of 200px
+    }
+  
+  }, [context]);
 
-  // Sample themes (replace with actual data)
-  const themes = [
-    { id: '1', name: 'Academic Research' },
-    { id: '2', name: 'Literature Review' },
-    { id: '3', name: 'Case Study' }
-  ];
+  useEffect(() => {
+    if(!isSearching) {
+      setIsProcessing(false)
+    }
 
- 
+  },[isSearching])
 
+  useEffect(() => {
+    setDocumentsToSearch([...selectedDocuments])
 
+  },[selectedDocuments])
 
+  // Keyword management
   const addKeyword = useCallback((keyword) => {
     const trimmed = keyword.trim().toLowerCase();
     if (trimmed && !keywords.includes(trimmed)) {
@@ -79,193 +92,427 @@ export function SearchBar({
     setKeywords(prev => prev.filter(k => k !== keywordToRemove));
   }, []);
 
-
+  // Search handling
   const handleSubmit = useCallback(() => {
-    if (!context.trim() || !theme) return;
+    if (!context.trim()) return;
+    
+    setIsProcessing(true); // Show loading in search button
     
     const searchParams = {
       context: context.trim(),
-      theme,
       keywords
     };
-
-    // Cache search parameters
-    cacheSearchParams(searchParams);
+  
     onSearch?.(searchParams);
     setIsExpanded(false);
-  }, [context, theme, keywords, onSearch, cacheSearchParams]);
+  }, [context, keywords, onSearch]);
 
-  if (!visible) return null;
+  // Clear search
+  const handleClear = useCallback(() => {
+    setContext('');
+    setKeywords([]);
+    setKeywordInput('');
+    onClose?.();
+  }, [onClose]);
 
+
+
+// floating search button
+// if (!visible) {
+//   return (
+//     <button
+//   onClick={() => onToggleVisibility(true)}
+//   className={`fixed bottom-10 right-36 
+//     p-8
+//     rounded-full 
+//     bg-white/95
+//     shadow-[0_8px_30px_rgb(0,0,0,0.06)]
+//     border border-tertiary/20
+//     group 
+//     hover:bg-white
+//     hover:shadow-[0_20px_50px_rgb(0,0,0,0.12)]
+//     hover:border-primary/20
+//     hover:scale-105 
+//     transition-all duration-500 ease-out z-50
+//     ${selectedDocuments.length > 0 ? 'animate-[wiggle_1s_ease-in-out] brightness-110' : ''}
+//   `}
+// >
+//   <div className="relative flex items-center justify-center gap-4">
+//     <Sparkles 
+//       className={`absolute w-9 h-9 
+//         text-primary/10
+//         ${selectedDocuments.length > 0 ? 'opacity-80' : 'opacity-20'}
+//         group-hover:opacity-80 
+//         group-hover:rotate-6
+//         transition-all duration-500
+//       `} 
+//     />
+//   </div>
+// </button>
+//   );
+// }
+
+
+if (!visible) {
   return (
-    <div ref={containerRef} className="relative">
-      <motion.div
-        animate={{ 
-          height: isExpanded ? 'auto' : '64px',
-          borderRadius: isExpanded ? '12px 12px 0 0' : '0'
-        }}
-        className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-3xl bg-background border border-tertiary/10 shadow-lg overflow-hidden z-40"
-      >
-        {/* Context Input */}
-        <div className="flex items-center px-4 h-16">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tertiary" />
-            <input
-              value={context}
-              onChange={(e) => setContext(e.target.value)}
-              placeholder="Enter your research context..."
-              onFocus={() => setIsExpanded(true)}
-              className="w-full pl-9 pr-4 py-2 bg-transparent text-primary placeholder:text-tertiary/50 focus:outline-none"
-            />
+    <div className="relative">
+      {/* Popup for selected documents */}
+          {selectedDocuments.length > 0 && (
+      <div className="absolute -top-[0] right-2 mb-2">
+        <div className="relative">
+          {/* Compact round popup bubble */}
+          <div className="
+            bg-gradient-to-br from-primary/70 to-primary/80
+            text-white px-4 py-4
+            rounded-full
+            text-xs font-medium
+            shadow-[0_4px_12px_rgba(0,0,0,0.08)]
+            backdrop-blur-sm
+            border border-white/20
+            animate-[wiggle_0.6s_ease-in-out,fadeOut_2s_ease-in-out]
+          ">
+            {/* Compact content */}
+            <div className="flex items-center gap-1.5 text-black">
+              <span>{selectedDocuments.length} Selected</span>
+            </div>
           </div>
-          
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="ml-2 p-2 rounded-lg hover:bg-tertiary/10 text-tertiary"
-          >
-            <motion.div
-              animate={{ rotate: isExpanded ? 180 : 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <ChevronUp className="w-4 h-4" />
-            </motion.div>
-          </button>
         </div>
+      </div>
+    )}
 
-        {/* Expanded Section */}
-        <AnimatePresence>
-          {isExpanded && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="border-t border-tertiary/10"
-            >
-              {/* Theme Selection */}
-              <div className="p-4 border-b border-tertiary/10">
-                <div className="relative">
-                  <Book className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tertiary" />
-                  <input
-                    readOnly
-                    value={theme?.name ?? ''}
-                    placeholder="Select a research theme..."
-                    onFocus={() => setShowThemeDropdown(true)}
-                    className="w-full pl-9 pr-4 py-2 bg-transparent text-primary placeholder:text-tertiary/50 focus:outline-none cursor-pointer"
-                  />
-                  
-                  {/* Theme Dropdown */}
-                  <AnimatePresence>
-                    {showThemeDropdown && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className="absolute top-full left-0 right-0 mt-1 bg-background border border-tertiary/10 rounded-lg shadow-lg overflow-hidden z-50"
-                      >
-                        {themes.map((t) => (
-                          <button
-                            key={t.id}
-                            onClick={() => {
-                              setTheme(t);
-                              setShowThemeDropdown(false);
-                            }}
-                            className="w-full px-4 py-2 text-left hover:bg-tertiary/5 transition-colors"
-                          >
-                            {t.name}
-                          </button>
-                        ))}
-                        
-                        <button
-                          onClick={() => {
-                            // Handle new theme creation
-                            setShowThemeDropdown(false);
-                          }}
-                          className="w-full px-4 py-2 text-primary hover:bg-tertiary/5 transition-colors flex items-center gap-2 border-t border-tertiary/10"
-                        >
-                          <Plus className="w-4 h-4" />
-                          <span>Create New Theme</span>
-                        </button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </div>
-
-              {/* Keywords */}
-              <div className="p-4">
-                <div className="flex flex-wrap gap-2">
-                  {keywords.map((keyword) => (
-                    <span
-                      // Continuing src/app/components/research/Search/SearchBar.client.jsx
-
-                      key={keyword}
-                      className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 text-primary text-sm"
-                    >
-                      <Tag className="w-3 h-3" />
-                      {keyword}
-                      <button
-                        onClick={() => removeKeyword(keyword)}
-                        className="p-0.5 hover:bg-primary/20 rounded-full transition-colors"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  ))}
-                  
-                  <input
-                    ref={keywordInputRef}
-                    type="text"
-                    value={keywordInput}
-                    onChange={(e) => setKeywordInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && keywordInput.trim()) {
-                        addKeyword(keywordInput);
-                      }
-                    }}
-                    placeholder={keywords.length === 0 ? "Add keywords..." : ""}
-                    className="flex-1 min-w-[150px] bg-transparent text-primary placeholder:text-tertiary/50 focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="p-4 bg-tertiary/5 flex justify-between items-center">
-                <div className="flex items-center gap-4">
-                  <p className="text-xs text-tertiary">
-                    Press Enter to add keywords
-                  </p>
-                  {context.length > 0 && (
-                    <p className="text-xs text-tertiary">
-                      {context.trim().split(/\s+/).length}/200 words
-                    </p>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => {
-                      setContext('');
-                      setTheme(null);
-                      setKeywords([]);
-                      setIsExpanded(false);
-                      onClose?.();
-                    }}
-                    className="px-4 py-2 rounded-lg text-tertiary hover:text-primary hover:bg-tertiary/10 transition-colors"
-                  >
-                    Clear
-                  </button>
-                  <button
-                    onClick={handleSubmit}
-                    disabled={!context.trim() || !theme}
-                    className="px-4 py-2 rounded-lg bg-primary text-background hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    Search Documents
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
+      {/* Search Button */}
+      <button
+        onClick={() => onToggleVisibility(true)}
+        className={`fixed bottom-10 right-36 
+          p-8
+          rounded-full 
+          bg-white/95
+          shadow-[0_8px_30px_rgb(0,0,0,0.06)]
+          border border-tertiary/20
+          group 
+          hover:bg-white
+          hover:shadow-[0_20px_50px_rgb(0,0,0,0.12)]
+          hover:border-primary/20
+          hover:scale-105 
+          transition-all duration-500 ease-out z-50
+          ${selectedDocuments.length > 0 ? 'animate-[wiggle_1s_ease-in-out] brightness-110' : ''}
+        `}
+        title={`${selectedDocuments.length} document${selectedDocuments.length !== 1 ? 's' : ''} selected`}
+      >
+        <div className="relative flex items-center justify-center gap-4">
+          <Sparkles 
+            className={`absolute w-9 h-9 
+              text-primary/10
+              ${selectedDocuments.length > 0 ? 'opacity-80' : 'opacity-20'}
+              group-hover:opacity-80 
+              group-hover:rotate-6
+              transition-all duration-500
+            `} 
+          />
+        </div>
+      </button>
     </div>
   );
 }
+  
+  return (
+    <div ref={containerRef} className="fixed bottom-10 left-1/2 -translate-x-1/2 
+      w-full max-w-5xl mx-auto px-4 z-30">
+      
+      <div className="max-w-5xl mx-auto items-center p-3">
+        
+        <motion.div
+          initial={false}
+          animate={{
+            height: isExpanded ? 'auto' : '80px',
+          }}
+          transition={{ duration: 0.2 }}
+          className={`
+            ${isExpanded ? 'rounded-xl p-5' : 'rounded-full'}
+            bg-white border border-tertiary/20 shadow-sm overflow-hidden
+            relative group
+          `}
+        >
+           {/* Hide Button */}
+        <button
+          onClick={() => onToggleVisibility(false)}
+          className="absolute top-3 right-3 
+            px-3 py-1.5  pt-4
+            rounded-full
+            bg-background/50 backdrop-blur-sm
+            text-tertiary hover:text-primary
+            text-m font-medium
+            flex items-center gap-1.5
+            hover:bg-tertiary/5 hover:border-primary/30
+            transition-all duration-200 z-50
+            group"
+        >
+          <span>Hide</span>
+        </button>
+        
+
+
+
+
+                  {isExpanded && ( 
+            <>
+              <div className="space-y-4 pt-2">
+                {/* Header with guidance */}
+                <div className='flex items-center justify-between'>
+                  <div className='flex items-center gap-3'>
+                    <h3 className="text-sm font-medium text-primary">
+                      Search Documents
+                    </h3>
+                    <div className="flex items-center gap-1.5 px-2.5 py-0.5 
+                      bg-primary/5 rounded-full">
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary/40" />
+                      <span className="text-xs text-primary/70">
+                        {documentsToSearch.length} selected
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Document Selection Area */}
+                <div className={`
+                  relative 
+                  ${documentsToSearch.length === 0 ? 'bg-tertiary/5' : 'bg-white'}
+                  transition-colors duration-300
+                `}>
+                  {documentsToSearch.length === 0 ? (
+                    // Empty State
+                    <div className="p-4 flex flex-col items-center text-center">
+                      <div className="p-3 rounded-full bg-tertiary/5 mb-3">
+                        <FileText className="w-5 h-5 text-tertiary/50" />
+                      </div>
+                      <p className="text-sm text-primary/70">
+                        Select documents to search through
+                      </p>
+                      <p className="text-xs text-tertiary mt-1 max-w-[250px]">
+                        Click the "Select" button next to documents in the left sidebar
+                      </p>
+                    </div>
+                  ) : (
+                    // Selected Documents
+                    <div className="p-3">
+                      <div className="flex flex-wrap gap-2">
+                        {documentsToSearch.map((docFileName) => (
+                          <div
+                            key={docFileName}
+                            className="group flex items-center gap-2 
+                              pl-3 pr-2 py-1.5 
+                              bg-tertiary/5 hover:bg-tertiary/10
+                              rounded-full border 
+                              hover:border-primary/20
+                              transition-all duration-200"
+                          >
+                            <span className="text-sm text-primary/70 truncate max-w-[180px]">
+                              {docFileName}
+                            </span>
+                            <button
+                              onClick={() => {
+                                 const updatedDocouments = documentsToSearch.filter(id => id !== docFileName)
+                                 setDocumentsToSearch(updatedDocouments)
+                                 onSelect(updatedDocouments)
+                                 
+                              
+                              }
+                                
+                              }
+                              className="p-1 rounded-full
+                                text-tertiary hover:text-primary
+                                hover:bg-white/50
+                                transition-colors duration-200"
+                              title="Remove from search"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Helpful hint */}
+                      <div className="mt-3 flex items-center gap-2 px-1">
+                        <div className="relative flex h-1.5 w-1.5">
+                          <span className="animate-ping absolute inline-flex h-full w-full 
+                            rounded-full bg-primary/30"></span>
+                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 
+                            bg-primary/50"></span>
+                        </div>
+                        <p className="text-xs text-tertiary">
+                          Select more documents to expand your search
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+
+
+
+          {/* Main Search Input */}
+            <div className={`flex items-center w-auto
+               ${isExpanded ? 'pb-5'  : 'h-[80px]' }`}>
+
+                {isExpanded ? null : (<button
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className=" p-4 rounded-lg hover:bg-tertiary/10 text-tertiary
+                    transition-colors"
+                >  <Search className="w-6 h-6" />
+                </button>
+                )}
+                <div className={`relative flex hide-scrollbar w-full
+                  
+                  ${isExpanded  ?  "rounded-xl" :  "rounded-full"} `}>
+                  <textarea
+                    ref={textareaRef}
+                    value={context}
+                    onChange={(e) => {
+                      setContext(e.target.value);
+                      // Auto-resize
+                      e.target.style.height = 'inherit';
+                      e.target.style.height = `${e.target.scrollHeight}px`;
+                    }}
+                    onFocus={() => setIsExpanded(true)}
+                    onClick={() => setIsExpanded(true)}
+                    placeholder="Enter your research query to search the papaer..."
+                    className={`
+                      ${isExpanded  ? 'min-h-[160px] p-3  border-2'
+                        : 'min-h-[100px] flex items-center justify-center border-none relative top-3 p-3 pt-10 ' } 
+                      w-full bg-white text-primary rounded-xl
+                      
+                       border-tertiary/20 
+                      placeholder:text-tertiary/50 
+                      focus:outline-none focus:border-primary/30 focus:ring-2 
+                      focus:ring-primary/20 
+                      
+                      transition-all duration-200 
+                  
+                      hover:border-primary/30 hide-scrollbar`}
+                    style={{
+                      minHeight: '80px',
+                      maxHeight: '400px'
+                    }}
+                  />
+
+                  {/* Character Count */}
+                  {context.length > 0 && (
+                    <div className="absolute bottom-2 right-4 px-2 pt-3 
+                      bg-background/80 rounded-md text-xs text-tertiary 
+                      backdrop-blur-sm "
+                    >
+                      {context.length}/2000 characters
+                    </div>
+                  )}
+                    
+                </div>
+              
+          </div>
+
+         {/* Expanded Content */}
+         <AnimatePresence>
+            {isExpanded && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
+                className=" border-tertiary/10"
+              >
+                
+                  {/* Right Column - Keywords */}
+                  
+                    <h3 className="text-sm font-medium text-primary flex items-center gap-2">
+                      <Tag className="w-4 h-4" />
+                      Keywords
+                    </h3>
+                    <div className="bg-tertiary/5 rounded-lg p-3">
+                      <div className="flex flex-wrap gap-2">
+                        {keywords.map((keyword) => (
+                          <span
+                            key={keyword}
+                            className="inline-flex items-center gap-1 px-3 py-1 rounded-full 
+                              bg-primary/10 text-primary text-sm hover:bg-primary/20 transition-colors"
+                          >
+                            {keyword}
+                            <button
+                              onClick={() => removeKeyword(keyword)}
+                              className="p-0.5 hover:bg-primary/20 rounded-full"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ))}
+                        <input
+                          ref={keywordInputRef}
+                          type="text"
+                          value={keywordInput}
+                          onChange={(e) => setKeywordInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && keywordInput.trim()) {
+                              addKeyword(keywordInput);
+                            }
+                          }}
+                          placeholder={keywords.length === 0 ? "Add keywords..." : ""}
+                          className="flex-1 min-w-[150px] px-2 py-1 bg-transparent text-primary 
+                            placeholder:text-tertiary/60 focus:outline-none text-sm"
+                        />
+                      </div>
+                    </div>
+
+                {/* Action Bar */}
+                <div className=" bg-tertiary/5 border-tertiary/10 
+                  flex items-center justify-between">
+                  <p className="text-xs text-tertiary flex items-center gap-1">
+                    Press <span className="font-medium px-1 py-0.5 bg-tertiary/10 rounded-md">⏎ Enter</span> 
+                    to add keywords
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={handleClear}
+                      className="px-2 py-2 text-sm text-tertiary hover:text-primary 
+                        hover:bg-tertiary/10 rounded-lg transition-colors"
+                    >
+                      Clear All
+                    </button>
+                    <button
+                      onClick={handleSubmit}
+                      disabled={!context.trim() || isProcessing}
+                      className="px-6 py-2.5 text-sm font-medium
+                          bg-gradient-to-b from-gray-50 to-gray-100
+                          text-gray-900 rounded-lg
+                          border border-gray-200
+                          shadow-sm 
+                          hover:bg-gray-100 hover:border-gray-300 hover:translate-y-[1px]
+                          active:bg-gray-200 active:translate-y-[2px]
+                          disabled:opacity-50 disabled:cursor-not-allowed 
+                          disabled:hover:translate-y-0
+                          transition-all duration-150 ease-in-out
+                          flex items-center gap-2 overflow-hidden "
+                    >
+                      {isProcessing ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4" />
+                          Search
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      </div>
+    </div>
+        
+    
+  )
+  
+  }

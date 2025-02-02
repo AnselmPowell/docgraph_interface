@@ -5,6 +5,40 @@ import { NextResponse } from 'next/server';
 import config from '../../../../../config';
 import { pinata, deletePinataFile } from '../../../../api/file/pinata';
 
+
+async function uploadToPrivateIPFS(file) {
+    try {
+      const upload = await pinata.upload.file(file, {
+        pinataOptions: {
+          cidVersion: 1,
+        },
+        pinataMetadata: {
+          name: "My Private File",
+        },
+      });
+      
+      console.log("File uploaded to Private IPFS:", upload);
+      return upload;
+    } catch (error) {
+      console.error("Error uploading to Private IPFS:", error);
+    }
+  }
+
+
+
+  async function deleteFile(fileId) {
+    try {
+        // 0194ae86-c97f-7ae8-a405-f81b7c8fdf3b
+      const result = await pinata.files.delete([fileId]);
+      console.log("File deleted:", result);
+      return result;
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      throw error;
+    }
+  }
+
+
 export async function POST(request) {
     console.log("[POST] Starting document upload");
      
@@ -26,12 +60,13 @@ export async function POST(request) {
             files.map(async (file) => {
                 try {
                     console.log(`[POST] Processing: ${file.name}`);
-                    const uploadData = await pinata.upload.file(file);
+                    // const uploadData = await pinata.upload.file(file);
+                    const uploadData = await uploadToPrivateIPFS(file);
                     const signedUrl = await pinata.gateways.createSignedURL({
                         cid: uploadData.cid,
-                        expires: 3600  
+                        expires: 2592000 
                     });
-
+                    console.log("uploadData id :", uploadData.id)
                     return {
                         file_name: file.name,
                         file_url: signedUrl,
@@ -77,17 +112,18 @@ export async function POST(request) {
 
 export async function DELETE(request) {
     try {
-      const { cid } = await request.json();
+      const { file_id } = await request.json();
       
-      if (!cid) {
+      if (!file_id) {
         return NextResponse.json({
           status: 'error',
-          error: 'No CID provided'
+          error: 'No file id provided'
         }, { status: 400 });
       }
   
-      console.log('[DELETE] Attempting to unpin file with CID:', cid);
-      const success = await deletePinataFile(cid);
+      console.log('[DELETE] Attempting to unpin files with file_id:', file_id);
+    //   const success = await deletePinataFile(file_id);
+    const success =await deleteFile(file_id)
   
       if (!success) {
         throw new Error('Failed to unpin file from Pinata');

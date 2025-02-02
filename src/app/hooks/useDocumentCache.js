@@ -71,8 +71,6 @@ export function useDocumentCache() {
     return await getCache(`doc_${documentId}`, CACHE_LEVELS.PERSISTENT);
   }, [getCache]);
 
-
-  
   
 
   /**
@@ -102,14 +100,20 @@ export function useDocumentCache() {
   /**
    * remove cached document
    */
-  const removeCachedStaged = async (documentName) => {
-    try {
+  const removeCachedStaged = async (document) => {
+    // try {
       // First get current staged documents
+   
       const currentStaged = await getCache('staged_documents', CACHE_LEVELS.SESSION);
       if (!currentStaged) return true;
   
       // Filter out the document to remove
-      const updatedStaged = currentStaged.filter(doc => doc.name !== documentName);
+      const updatedStaged = currentStaged.filter(file => file.
+        file_name
+         !== document.
+         file_name
+         );
+
   
       // Update cache with remaining documents
       await setCache('staged_documents', updatedStaged, {
@@ -117,11 +121,59 @@ export function useDocumentCache() {
       });
   
       return true;
-    } catch (error) {
-      console.error('Error removing cached staged document:', error);
-      return false;
-    }
+    // } catch (error) {
+    //   console.error('Error removing cached staged document:', error);
+    //   return false;
+    // }
   }
+
+
+/**
+   * Cache staged documents
+   */
+const cacheTabDocuments = useCallback(async (tabDocuments) => {
+  // const serializedDocuments = documents.map(serializeFile);
+  
+  console.log('cache manager: 1', {tabDocuments} )
+  await setCache('tab_documents', tabDocuments, {
+    level: CACHE_LEVELS.SESSION
+  });
+}, [setCache]);
+
+
+/**
+ * Get cached staged documents
+ */
+const getCacheTabDocuments = useCallback(async () => {
+  const tabDocuments = await getCache('tab_documents', CACHE_LEVELS.SESSION);
+  if (!tabDocuments) return [];
+  // const reconstructedDocuments = documents.map(deserializeFile);
+  return tabDocuments
+}, [getCache]);
+
+
+const removeCachedTabDocument = async (tabDocumentId) => {
+ 
+    const currentTabs = await getCacheTabDocuments('staged_documents', CACHE_LEVELS.SESSION);
+    if (!currentTabs) return true;
+
+    // Filter out the document to remove
+    console.log("remove tab:", tabDocumentId)
+    const updatedTabs = currentTabs.filter(tab => tab.id
+       !== tabDocumentId
+       );
+
+     console.log("updated tab:", updatedTabs)
+    // Update cache with remaining documents
+    await setCache('tab_documents', updatedTabs, {
+      level: CACHE_LEVELS.SESSION
+    });
+
+    return true;
+ 
+}
+
+
     /**
  * Cache document view url
  */
@@ -152,7 +204,10 @@ const getCacheDocumentViewUrl = useCallback(async (documentName) => {
     cacheStagedDocuments,
     getCachedStaged,
     removeCachedStaged,
+    cacheTabDocuments,
+    getCacheTabDocuments,
+    removeCachedTabDocument,
     cacheDocumentViewUrl,
-    getCacheDocumentViewUrl
+    getCacheDocumentViewUrl,
   };
 }

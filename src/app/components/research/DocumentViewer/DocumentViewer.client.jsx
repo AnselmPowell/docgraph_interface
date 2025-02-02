@@ -34,7 +34,7 @@ export function DocumentViewer({ document, onClose, className = '' }) {
   // Viewer state
   const [numPages, setNumPages] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [scale, setScale] = useState(1.0);
+  const [scale, setScale] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [documentUrl, setDocumentUrl] = useState(null);
@@ -197,7 +197,7 @@ export function DocumentViewer({ document, onClose, className = '' }) {
   
       try {
         const url = document.file_url;
-        console.log('[DocumentViewer] Using document URL:');
+        console.log('[DocumentViewer] Using document URL:',  url);
   
         // Get proxied URL
         const proxiedUrl = await getProxiedUrl(url);
@@ -228,7 +228,7 @@ export function DocumentViewer({ document, onClose, className = '' }) {
   useEffect(() => {
     console.log('[DocumentViewer] Resetting viewer state for new document');
     setCurrentPage(1);
-    setScale(1.0);
+    setScale(1);
     setError(null);
     setIsLoading(true);
     setNumPages(null);
@@ -296,30 +296,33 @@ export function DocumentViewer({ document, onClose, className = '' }) {
 
   return (
     <div className={`flex flex-col h-full bg-background ${className}`}>
-      {/* Toolbar */}
-      <SearchToolbar 
-        onSearch={handleSearch}
-        onNavigate={handleSearchNavigate}
-        totalResults={resultsList.length}
-        currentMatch={resultsList.length ? currentMatchIndex + 1 : 0}
-        isSearching={isSearching}
-      />
-      <div className="flex items-center justify-between px-4 py-2 border-b border-tertiary/10">
-        {/* Left Section */}
-        <div className="flex items-center gap-4">
-          <button
-            onClick={onClose}
-            className="p-1 rounded hover:bg-tertiary/10 text-tertiary hover:text-primary transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-          <h2 className="text-sm font-medium text-primary truncate max-w-md">
-            {document instanceof File ? document.name : document.title || document.file_name}
-          </h2>
+      
+      <div className="flex sticky top-0 items-center justify-center px-4 py-2 border-b border-tertiary/10 min-w-0 z-50 bg-white">
+      {/* Left Section - Always visible */}
+      <div className="flex items-center gap-4 min-w-0">
+        <button
+          onClick={onClose}
+          className="shrink-0 p-1 rounded hover:bg-tertiary/10 text-tertiary hover:text-primary transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+      {/* Search - Collapsible on smaller widths */}
+      <div className="flex-shrink items-center">
+          <SearchToolbar 
+            onSearch={handleSearch}
+            onNavigate={handleSearchNavigate}
+            totalResults={resultsList.length}
+            currentMatch={resultsList.length ? currentMatchIndex + 1 : 0}
+            isSearching={isSearching}
+          />
         </div>
 
-        {/* Center Section - Page Navigation */}
-        <div className="flex items-center gap-2">
+      {/* Center/Right Section - Flexible layout */}
+      <div className="flex items-center gap-4">
+
+        {/* Navigation - Fixed size */}
+        <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={goToPrevPage}
             disabled={currentPage <= 1 || isLoading}
@@ -327,9 +330,37 @@ export function DocumentViewer({ document, onClose, className = '' }) {
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <span className="text-sm text-tertiary">
-            {currentPage} / {numPages || '?'}
-          </span>
+          <div className="flex items-center gap-1">
+            <input
+              type="text" // Changed from number to text
+              value={currentPage}
+              onChange={(e) => {
+                const value = e.target.value;
+                // Allow empty input for typing
+                if (value === '') {
+                  setCurrentPage(value);
+                  return;
+                }
+                // Parse number and validate
+                const pageNum = parseInt(value);
+                if (!isNaN(pageNum) && pageNum > 0 && pageNum <= numPages) {
+                  setCurrentPage(pageNum);
+                }
+              }}
+              // Handle blur to reset invalid values
+              onBlur={() => {
+                if (currentPage === '' || currentPage < 1) {
+                  setCurrentPage(1);
+                } else if (currentPage > numPages) {
+                  setCurrentPage(numPages);
+                }
+              }}
+              className="w-12 px-1 py-0.5 text-center text-sm text-tertiary 
+                bg-tertiary/5 border border-tertiary/10 rounded
+                focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
+            />
+            <span className="text-sm text-tertiary whitespace-nowrap">/ {numPages || '?'}</span>
+          </div>
           <button
             onClick={goToNextPage}
             disabled={currentPage >= (numPages || 1) || isLoading}
@@ -339,8 +370,8 @@ export function DocumentViewer({ document, onClose, className = '' }) {
           </button>
         </div>
 
-        {/* Right Section - Tools */}
-        <div className="flex items-center gap-2">
+        {/* Zoom Controls - Rightmost */}
+        <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={zoomOut}
             disabled={scale <= 0.5 || isLoading}
@@ -348,13 +379,9 @@ export function DocumentViewer({ document, onClose, className = '' }) {
           >
             <ZoomOut className="w-5 h-5" />
           </button>
-          <button
-            onClick={resetZoom}
-            disabled={isLoading}
-            className="px-2 py-1 text-xs text-tertiary hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+          <span className="px-2 py-1 text-xs text-tertiary min-w-[48px] text-center">
             {Math.round(scale * 100)}%
-          </button>
+          </span>
           <button
             onClick={zoomIn}
             disabled={scale >= 3 || isLoading}
@@ -371,6 +398,7 @@ export function DocumentViewer({ document, onClose, className = '' }) {
           </button>
         </div>
       </div>
+    </div>
 
       {/* Document Viewer */}
       <div className="flex-1 overflow-auto">
@@ -430,3 +458,7 @@ export function DocumentViewer({ document, onClose, className = '' }) {
     </div>
   );
 }
+
+
+
+

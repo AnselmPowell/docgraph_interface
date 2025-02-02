@@ -1,8 +1,7 @@
-// src/app/components/research/DocumentManagement/DocumentDetailsModal.client.jsx
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
+import { X, FileText, Users, Book } from 'lucide-react';
 
 export function DocumentDetailsModal({ isOpen, onClose, document }) {
   if (!document) return null;
@@ -20,7 +19,7 @@ export function DocumentDetailsModal({ isOpen, onClose, document }) {
             initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
             exit={{ scale: 0.9 }}
-            className="relative w-full max-w-2xl p-6 bg-background border border-tertiary/10 rounded-lg shadow-lg"
+            className="relative w-full max-w-2xl max-h-[80vh] overflow-y-auto p-6 bg-background border border-tertiary/10 rounded-lg shadow-lg"
           >
             <button
               onClick={onClose}
@@ -29,26 +28,60 @@ export function DocumentDetailsModal({ isOpen, onClose, document }) {
               <X className="w-5 h-5" />
             </button>
 
+            {/* Document Title */}
             <h2 className="text-2xl font-semibold text-primary mb-4">
-              {document.title}
+              {document.title || document.file_name}
             </h2>
-            <div className="text-tertiary mb-6">
-              <p className="mb-4">
-                <strong>Authors:</strong>{' '}
-                {document.authors?.join(', ')}
-              </p>
-              <p className="mb-4">
-                <strong>Summary:</strong>{' '}
-                {document.summary}
-              </p>
-              <div>
-                <strong>References:</strong>
-                <ul className="list-disc list-inside">
-                  {Object.entries(document.references?.entries || {}).map(([key, value]) => (
-                    <li key={key}>{value}</li>
-                  ))}
-                </ul>
-              </div>
+
+            {/* Basic Info */}
+            <div className="grid gap-4 mb-6">
+              {/* Authors */}
+              {document.authors?.length > 0 && (
+                <div className="flex items-start gap-3">
+                  <Users className="w-5 h-5 text-tertiary shrink-0 mt-1" />
+                  <div>
+                    <h3 className="text-sm font-medium text-primary">Authors</h3>
+                    <p className="text-sm text-tertiary mt-1">
+                      {document.authors.join(', ')}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Summary */}
+              {document.summary && (
+                <div className="flex items-start gap-3">
+                  <FileText className="w-5 h-5 text-tertiary shrink-0 mt-1" />
+                  <div>
+                    <h3 className="text-sm font-medium text-primary">Summary</h3>
+                    <p className="text-sm text-tertiary mt-1">
+                      {document.summary}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* References */}
+              {document.references?.entries && (
+                <div className="flex items-start gap-3">
+                  <Book className="w-5 h-5 text-tertiary shrink-0 mt-1" />
+                  <div>
+                    <h3 className="text-sm font-medium text-primary">References</h3>
+                    <div className="mt-2 space-y-2 max-h-60 overflow-y-auto">
+                      {Object.entries(document.references.entries).map(([key, value]) => (
+                        <div 
+                          key={key}
+                          className="text-sm text-tertiary p-2 rounded-lg bg-tertiary/5"
+                        >
+                          <span className="font-medium text-primary">[{key}]</span>
+                          {" "}
+                          {value.text}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </motion.div>
         </motion.div>
@@ -56,4 +89,3 @@ export function DocumentDetailsModal({ isOpen, onClose, document }) {
     </AnimatePresence>
   );
 }
-

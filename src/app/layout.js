@@ -3,8 +3,7 @@
 
 import { Suspense } from 'react';
 import './styles/globals.css';
-import Navbar from './components/main/Navbar.client';
-import Footer from './components/main/Footer.client';
+import './styles/svg-animation.css';
 import { AuthProvider } from './contexts/AuthContext.client';
 import { AppProvider } from './contexts/AppContext.client';
 import ThemeScript from './contexts/ThemeScript';
@@ -22,9 +21,7 @@ export default function RootLayout({ children }) {
         <AppProvider>
             <AuthProvider>
               <Suspense fallback={<div>Loading...</div>}>
-                <Navbar />
                 {children}
-                {/* <Footer/> */}
               </Suspense>
             </AuthProvider>
         </AppProvider>

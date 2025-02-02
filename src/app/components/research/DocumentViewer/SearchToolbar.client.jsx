@@ -22,7 +22,7 @@ export function SearchToolbar({
     };
   
     return (
-      <form onSubmit={handleSubmit} className="flex items-center gap-2 px-4 py-2 border-b border-tertiary/10">
+      <form onSubmit={handleSubmit} className="flex w-full items-center gap-2 px-4 py-2 border-tertiary/10">
         <div className="relative flex-1 max-w-md">
           <input
             type="text"

@@ -26,23 +26,37 @@
 
 // React Core
 import { useState, useCallback, useEffect } from 'react';
+import { 
+  Search, 
+  Sparkles,
+  FileText, 
+  BookOpen, 
+  ListTodo,
+  PlusSquare 
+} from 'lucide-react';
+
+
+import { DocGraphLogo } from '../svg/DocGraphLogo.client';
 
 // Layout Components
 import { ResearchLayout } from './layout/ResearchLayout.client';
-import { FloatingActionButton } from './core/FloatingActionButton.client';
+
 
 // Document Management Components
 import { DocumentSidebar } from './DocumentManagement/DocumentSidebar.client';
 import { DocumentViewer } from './DocumentViewer/DocumentViewer.client';
-import { UploadModal } from './Upload/UploadModal.client';
+
 
 // Search Components
 import { SearchBar } from './Search/SearchBar.client';
 import { ResultsContainer } from './Results/ResultsContainer.client';
 import { NoResults } from './Results/NoResults.client';
 
+// ToolBar Component
+import {ToolbarContainer} from './ToolBar/ToolbarContainer.client'
+
 // UI Components
-import { toast } from '../ui/Toast.client';
+import { toast } from '../messages/Toast.client';
 
 // Services & Utilities
 import { getCache, setCache, clearCache } from '../../services/caches';
@@ -84,8 +98,7 @@ export function ResearchAssistant() {
 
   // UI States
   // Controls visibility and processing states for UI elements
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
+
   const [searchVisible, setSearchVisible] = useState(false);
   
   // Document Management States
@@ -97,14 +110,29 @@ export function ResearchAssistant() {
   
   // Search & Results States
   // Manages search functionality and results
-  const [searchResults, setSearchResults] = useState(null);
-  const [storedDocuments, setStoredDocuments] = useState(new Map());
+  const [searchBarVisible, setSearchBarVisible] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  // States for Document Status
+  const [tabs, setTabs] = useState([]);
+  const [activeTab, setActiveTab] = useState(null);
+
+  
+  // Toolbar States
+   const [activeTool, setActiveTool] = useState(null);
+   const [notes, setNotes] = useState([]);
+
 
   // Cache 
   // Cache System  Hooks 
-  const { cacheDocument, getCachedDocument,cacheStagedDocuments, getCachedStaged, removeCachedStaged } = useDocumentCache();
-  const { cacheSearchParams, cacheSearchResults } = useSearchCache();
+  const { cacheDocument, getCachedDocument,cacheStagedDocuments, 
+          getCachedStaged, removeCachedStaged, cacheTabDocuments, getCacheTabDocuments, removeCachedTabDocument} = useDocumentCache();
+  const { cacheSearchParams, cacheSearchResults, getCachedResults, removeCachedResults } = useSearchCache();
   const { cacheUIPreferences } = useUICache();
+
+
+  const [isProcessing, setIsProcessing] = useState(false);
 
   /**************************************************************************
    * EFFECTS
@@ -126,10 +154,23 @@ export function ResearchAssistant() {
           console.log('cache manager: 5', staged )
           setStagedDocuments(staged);
       }
+      const tabs = await getCacheTabDocuments();
+      if (tabs) {
+           console.log("stored tabs:", tabs)
+           setTabs(tabs)
+      } else {setTabs([])}
+
+      const results = await getCachedResults();
+      if(results) {
+        console.log("stored search results:", results.data)
+        setSearchResults(results.data)
+      }
+
+
     };
 
     initializeFromCache();
-  }, [getCachedDocument, getCachedStaged]);
+  }, [getCachedDocument, getCachedStaged, getCacheTabDocuments, getCachedResults]);
 
   // Search Parameters Cache Effect
   // Restores previous search parameters from cache
@@ -137,23 +178,27 @@ export function ResearchAssistant() {
     const cachedSearchParams = getCache('searchParams');
     if (cachedSearchParams) {
       setContext(cachedSearchParams.context || '');
-      setTheme(cachedSearchParams.theme || null);
       setKeywords(cachedSearchParams.keywords || []);
     }
   }, []);
 
-  // restore cached documents 
-  // useEffect(() => {
-  //     const restoreState = async () => {
-  //       const staged = await getCachedStaged();
-  //       if (staged) {
-  //         console.log('cache manager: 5', staged )
-  //         setStagedDocuments(staged);
-  //       }
-  //     };
-  
-  //     restoreState();
-  //   }, [getCachedStaged]);
+
+  // Search Results Effect
+  useEffect(() => {
+    if (searchResults?.length > 0) {
+      setActiveTool('search-results');
+    }
+  }, [searchResults]);
+
+  // Document Details Effect
+  useEffect(() => {
+    if (activeDocument && searchResults?.length < 1 ) {
+      setActiveTool('document-details');
+    }
+  }, [activeDocument, searchResults]);
+
+
+ 
 
 /**************************************************************************
    * DOCUMENT MANAGEMENT
@@ -166,6 +211,7 @@ export function ResearchAssistant() {
    */
   const fetchDocuments = async () => {
     try {
+      setIsProcessing(true);
       const response = await fetch('/api/research/documents/upload');
       const data = await response.json();
 
@@ -174,11 +220,34 @@ export function ResearchAssistant() {
       }
   
       setDocuments(data.documents);
+      setIsProcessing(false);
     } catch (error) {
       console.error('Failed to fetch documents:', error);
       toast.error('Failed to load documents');
     }
   };
+
+
+  const handleUrlSubmit = useCallback(async (url) => {
+    try {
+      const formData = new FormData();
+      formData.append('url', url);
+
+      const response = await fetch('/api/research/documents/url', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await response.json();
+      if (data.status === 'error') throw new Error(data.error);
+
+      setStagedDocuments(prev => [...prev, data.document]);
+      toast.success('Document added from URL');
+    } catch (error) {
+      console.error('URL submission error:', error);
+      toast.error(error.message || 'Failed to add document from URL');
+    }
+  }, []);
 
   /**************************************************************************
    * PINATA STORAGE INTEGRATION
@@ -206,12 +275,12 @@ export function ResearchAssistant() {
       throw new Error(data.error);
     }
 
-    const storedDocument = data.documents[0];
+    const stagedDocument = data.documents[0];
 
-
-    
-    return storedDocument;
+    return stagedDocument;
   };
+
+
 
   /**************************************************************************
    * DOCUMENT STAGING & UPLOAD HANDLERS
@@ -222,167 +291,166 @@ export function ResearchAssistant() {
    * Handles initial document staging before upload
    * Flow: Files → Staging Area → Upload Queue
    */
-  // const handleStagedUpload = useCallback((files) => {
-  //   console.log('Staging documents:', files);
-  //   setStagedDocuments(prev => [...prev, ...files]);
-  //   toast.success(`${files.length} document${files.length !== 1 ? 's' : ''} staged`);
-  // }, []);
 
   const handleStagedUpload = useCallback(async (files) => {
     console.log('Staging documents:', files);
+    setIsProcessing(true);
 
-    const storedDocuments = [];
+    const stagedDocuments = [];
     for (const file of files) {
-        const storedDocument = await storeToPinata(file);
-        storedDocuments.push(storedDocument);
+        const stagedDocument = await storeToPinata(file);
+        stagedDocuments.push(stagedDocument)
     }
 
-    console.log('All documents staged:', storedDocuments);
-    setStagedDocuments(prev => {
-      const newDocs = [...prev, ...storedDocuments];
+    console.log('All documents staged:', stagedDocuments);
+    let newDocs = [];
+    await setStagedDocuments(prev => {
+      newDocs = [...prev, ...stagedDocuments];
       // Add cache update
       console.log('cache manager: 0-', {newDocs} )
       cacheStagedDocuments(newDocs);
       return newDocs;
     });
+
     toast.success(`${files.length} document${files.length !== 1 ? 's' : ''} staged`);
+    const delayedUpload = async () => {
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Pass newDocs directly to ensure we have the latest data
+      await handleUploadStaged(newDocs);
+    };
+    
+    await delayedUpload();
   }, [cacheStagedDocuments]);
 
   /**
-   * Removes document from staging area
+   * Removes document 
    * Flow: Staging Area → Remove → Update UI
    */
-  const handleRemoveStaged = useCallback((fileToRemove) => {
-    setStagedDocuments(prev => 
-      prev.filter(file => file !== fileToRemove)
+  const handleRemoveDocument = useCallback(async(document) => {
+  
+    await handleTabClose(document.document_id)
+    await removeCachedStaged(document)
+    await deleteFromPinata(document)
+    await deleteUploadedDocument(document)
+    await handleTabClose(document.document_id)
+    setDocuments(prev => 
+      prev.filter(file => file.document_id !== document.document_id)
     );
-    toast.success('Document removed from staging');
   }, []);
 
-  /**
-   * Removes document from stored documents
-   * Flow: Storage → Remove → Update UI
-   */
-  const handleRemoveUpload = useCallback( async(documentName) => {
+
+  const deleteFromPinata = async (document) => {
+    console.log("Document delete:", document)
+    let file_id = document.document_id
+
+
+    console.log('[handleDeleteDocument] Deleting file with fileId:', file_id);
     
-    setStoredDocuments(prev => {
-      const newMap = new Map(prev);
-      newMap.delete(documentName);
-      return newMap;
-    });
-    // setStagedDocuments(prev => { prev.filter(file => file.file_name !== documentName) });
-    setStagedDocuments(prev => prev.filter(doc => doc.file_name !== documentName));
-    await removeCachedStaged(documentName);
-    
-    toast.success('Document removed from staging');
-  }, []);
+    if (file_id) {
+      const response = await fetch('/api/research/documents/file', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ file_id })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to unpin file from Pinata');
+      }
+    }
+  };
+
+  
+  const deleteUploadedDocument = async (document) => {
+      console.log("Document uploaded deleted:", document)
+      let document_id = document.document_id
+
+      console.log('[handleDeleteDocumentUpload] Deleting document:', document_id);
+      
+      if (document_id) {
+          try {
+              const response = await fetch('/api/research/documents/delete', {
+                  method: 'DELETE',
+                  headers: {
+                      'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({ document_id }), // Send single ID
+              });
+
+              if (!response.ok) {
+                  const error = await response.json();
+                  throw new Error(error.error || 'Failed to delete document');
+              }
+
+              toast.success('Document deleted successfully');
+          } catch (error) {
+              console.error('Delete error:', error);
+              toast.error(error.message || 'Failed to delete document');
+          }
+          }
+      };
+
+
+
 
   /**
    * Process all staged documents for upload
    * Flow: Staging → Processing → Upload → Storage
    */
-  const handleUploadStaged = useCallback(async () => {
+
+  const handleUploadStaged = useCallback(async (stagedDocuments) => {
+    console.log("Upload Staged document!!!:", stagedDocuments)
     if (stagedDocuments.length === 0) return;
-
+    console.log("Number of staged docs:", stagedDocuments.length)
+  
     try {
-      setIsProcessing(true);
-      const formData = new FormData();
-      stagedDocuments.forEach(file => {
-        formData.append('files', file);
-      });
+  
+      const filesData = stagedDocuments.map(file => ({
+        file_name: file.file_name,
+        file_url: file.file_url,
+        file_id: file.file_id,
+        file_type: file.file_type,
+        file_size: file.file_size,
+        file_cid: file.file_cid,
+      }));
+  
+      console.log('Uploading staged documents:', filesData);
 
-      console.log('Uploading staged documents:', stagedDocuments);
-
+      toast.success(`Now processing documents ...`);
+  
       const response = await fetch('/api/research/documents/upload', {
         method: 'POST',
-        body: formData
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ files: filesData }),
       });
-
+  
       const data = await response.json();
-
+      console.log("data response: ", data)
+  
       if (data.status === 'error') {
         throw new Error(data.error);
       }
+      const firstDocument = data.documents[0]
       
-      setDocuments(prev => [...prev, ...data.documents]);
-      setStagedDocuments([]); // Clear staged documents
-      toast.success('Documents uploaded successfully');
+      await setDocuments(prev => [...prev, ...data.documents]);
+      await setStagedDocuments([]); // Clear staged documents
+      await removeCachedStaged(...data.documents); 
+      // await handleDocumentView(firstDocument)
 
+      toast.success('Documents successfully Processed');
+      setIsProcessing(false);
+  
     } catch (error) {
       console.error('Upload error:', error);
       toast.error(error.message || 'Failed to upload documents');
     } finally {
-      setIsProcessing(false);
     }
   }, [stagedDocuments]);
 
-  /**
-   * Handles document upload from modal
-   * Flow: Modal → Upload → Process → Storage
-   */
-  const handleUpload = useCallback(async (formData) => {
-    try {
-      setIsProcessing(true);
-
-      const response = await fetch('/api/research/documents/upload', {
-        method: 'POST',
-        body: formData
-      });
-
-      const data = await response.json();
-
-      if (data.status === 'error') {
-        throw new Error(data.error);
-      }
-      
-      setDocuments(prev => [...prev, ...data.documents]);
-      setIsUploadModalOpen(false);
-      toast.success(data.message);
-
-    } catch (error) {
-      console.error('Upload error:', error);
-      toast.error(error.message || 'Failed to upload documents');
-    } finally {
-      setIsProcessing(false);
-    }
-  }, []);
-
-  /**
-   * Handles document deletion
-   * Flow: Delete Request → Pinata → Storage → UI Update
-   */
-  const handleDeleteDocument = async (documentName) => {
-    const uploadedDocument = storedDocuments.get(documentName);
-    // let fileId;
-
-    // if (storedDocuments.size > 0) {
-    //   fileId = uploadedDocument.file_id;
-    // } else {
-    //   fileId = document.file_id;
-    // }
-
-    // console.log('[handleDeleteDocument] Deleting file with CID:', cid);
-    
-    // if (cid) {
-    //   const response = await fetch('/api/research/documents/file', {
-    //     method: 'DELETE',
-    //     headers: {
-    //       'Content-Type': 'application/json'
-    //     },
-    //     body: JSON.stringify({ cid })
-    //   });
-
-    //   if (!response.ok) {
-    //     const error = await response.json();
-    //     throw new Error(error.error || 'Failed to unpin file from Pinata');
-    //   }
-    // }
-    
-
-    handleRemoveUpload(uploadedDocument);
- 
-    toast.success('Document deleted successfully');
-  };
 
  /**************************************************************************
    * DOCUMENT SELECTION & VIEWING
@@ -394,11 +462,15 @@ export function ResearchAssistant() {
    * Flow: Selection → Search Visibility → UI Update
    */
 
-  const handleDocumentSelect = useCallback((fileIds) => {
-    setSelectedDocuments(fileIds);
-    // Add cache update
-    setSearchVisible(fileIds.length > 0);
-  }, []);
+  const handleDocumentSelect = useCallback((documentFileName) => {
+    console.log("selected Docs:", documentFileName)
+    setSelectedDocuments(documentFileName);
+    setSearchVisible(documentFileName.length > 0);
+    // Cache selection state
+    cacheDocument({ type: 'selection', data: documentFileName });
+  }, [cacheDocument]);
+
+
 
   /**
    * Manages document viewing functionality
@@ -408,90 +480,137 @@ export function ResearchAssistant() {
     console.log('[ResearchAssistant] Viewing document:', document);
     try {
       let docToView = document
-
-      if (document instanceof File) {
-        // Handle new file viewing
-        let storedDocument = storedDocuments.get(document.file_name);
-        if (storedDocument) {
-          // Use cached document
-          console.log('[ResearchAssistant] Using cached document');
-          docToView = { ...storedDocument, file_url: storedDocument.file_url };
-        } else {
-          // Store and cache new document
-          docToView = { ...document, file_url: storedDocument.file_url };
-          setStoredDocuments(prev => new Map(prev).set(storedDocument.file_name, storedDocument));
-        }
-      } else {
-        // Handle existing document viewing
-        const cachedUrl = storageManager.getCachedDocumentUrl(document.file_id, document.file_name);
-        if (cachedUrl) {
-          docToView = { ...document, file_url: cachedUrl };
-        }
+      let tabId;
+      // Create new tab or focus existing
+      if(document?.document_id) {
+        console.log(" [ResearchAssistant] Viewing --Doc")
+        tabId = `${document.document_id}`;
       }
+      if(document?.file_id) {
+        console.log(" [ResearchAssistant] Viewing --File")
+        tabId = `${document.file_id}`;
+      }
+      setSelectedDocuments([document.file_name])
+      const existingTab = tabs.find(t => t.id === tabId);
+
+      console.log("all Tabs: ", tabs)
+      
+      if (existingTab) {
+        setActiveTab(tabId);
+      } else {
+       createTab(document)
+      }
+
+     
       console.log('active docuement', {docToView} )
       setActiveDocument(docToView);
+      setSearchBarVisible(true);
+      
     } catch (error) {
       console.error('[ResearchAssistant] Error viewing document:', error);
       toast.error('Failed to prepare document for viewing');
     }
-  }, [storedDocuments]);
+  }, [tabs]);
 
+
+
+  // Tab Management
+  const createTab =(document)=>{
+    const newTab = {
+      id: document.document_id || document.file_id,
+      title:  document.file_name || document.title,
+      type: 'document',
+      document: document
+    };
+    console.log("New tab:", newTab)
+    setTabs(prev => {
+      cacheTabDocuments([...prev, newTab]);
+      return [...prev, newTab];
+    })
+    setActiveTab(document.document_id);
+  
+  } 
+    
+
+  // Tab Change Handler
+  const handleTabChange = useCallback((tabId) => {
+    setActiveTab(tabId);
+    const tab = tabs.find(t => t.id === tabId);
+    if (tab?.document) {
+      setActiveDocument(tab.document);
+      handleDocumentView(tab.document)
+      
+    }
+  }, [tabs]);
+
+
+  // Tab Close Handler
+  const handleTabClose = useCallback(async(tabId) => {
+    console.log("tab remove:", tabId)
+    // Remove tab
+    setTabs(prev => prev.filter(t => t.id !== tabId));
+    await removeCachedTabDocument(tabId)
+    
+
+    // If closing active tab
+    if (activeTab === tabId) {
+      const remainingTabs = tabs.filter(t => t.id !== tabId);
+      if (remainingTabs.length > 0) {
+        // Switch to last remaining tab
+        const lastTab = remainingTabs[remainingTabs.length - 1];
+        setActiveTab(lastTab.id);
+        setActiveDocument(lastTab.document);
+        handleDocumentView(lastTab.document)
+      } else {
+        // No tabs left
+        setActiveTab(null);
+        setActiveDocument(null);
+      }
+    }
+  }, [activeTab, tabs]);
+
+
+/**************************************************************************
+   * TOOLBAR FUNCTIONALITY
+   * Manages all our tools 
+   **************************************************************************/
+
+
+    // Toolbar Handlers
+    const handleToolSelect = useCallback((toolId) => {
+      if (activeTool === toolId) {
+        setActiveTool(null);
+      } else {
+        setActiveTool(toolId);
+      }
+    }, [activeTool]);
+
+
+  
   /**************************************************************************
    * SEARCH FUNCTIONALITY
    * Manages document search and result handling
    **************************************************************************/
 
-  /**
-   * Handles document search across selected documents
-   * Flow: Search Parameters → API → Results Display
-   */
-  // const handleSearch = useCallback(async (searchParams) => {
-  //   try {
-  //     setIsProcessing(true);
 
-  //     const response = await fetch('/api/research/documents/search', {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json'
-  //       },
-  //       body: JSON.stringify({
-  //         document_ids: selectedDocuments,
-  //         ...searchParams
-  //       })
-  //     });
-
-  //     const data = await response.json();
-
-  //     if (data.status === 'error') {
-  //       throw new Error(data.error);
-  //     }
-
-  //     // Cache search parameters for future use
-  //     setCache('searchParams', searchParams);
-  //     setSearchResults(data.results);
-  //     toast.success(`Found matches in ${data.results.length} documents`);
-  //   } catch (error) {
-  //     console.error('Search error:', error);
-  //     toast.error(error.message || 'Failed to perform search');
-  //     setSearchResults(null);
-  //   } finally {
-  //     setIsProcessing(false);
-  //   }
-  // }, [selectedDocuments]);
-
+  const handleSearchBarVisibility = useCallback((visible) => {
+    setSearchBarVisible(visible);
+  }, []);
 
   const handleSearch = useCallback(async (searchParams) => {
     try {
-      setIsProcessing(true);
-      // Cache search parameters
-      await cacheSearchParams(searchParams);
-
+      setIsSearching(true);
+      
+      // Show toolbar and search results immediately
+      setActiveTool('search-results');
+      
       const response = await fetch('/api/research/documents/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           document_ids: selectedDocuments,
-          ...searchParams
+          context: searchParams.context,
+          keywords: searchParams.keywords
         })
       });
 
@@ -501,18 +620,32 @@ export function ResearchAssistant() {
         throw new Error(data.error);
       }
 
-      // Cache search results
       await cacheSearchResults(data.results);
-      setSearchResults(data.results);
+      setSearchResults(prev=> [...prev, ...data.results]);
       toast.success(`Found matches in ${data.results.length} documents`);
+
     } catch (error) {
       console.error('Search error:', error);
       toast.error(error.message || 'Failed to perform search');
       setSearchResults(null);
     } finally {
-      setIsProcessing(false);
+      setIsSearching(false);
     }
-  }, [selectedDocuments, cacheSearchParams, cacheSearchResults]);
+  }, [selectedDocuments, cacheSearchResults]);
+
+
+
+  const handleRemoveSearchResult = useCallback((documentQuestion, documentTitle) => {
+    setSearchResults(prev => {
+      const newResults = prev.filter(result => 
+        
+        
+        !(result.question == documentQuestion &&result.title == documentTitle )
+      );
+      removeCachedResults(newResults)
+      return newResults;
+    });
+  }, []);
 
 
 
@@ -524,6 +657,28 @@ export function ResearchAssistant() {
     setSearchResults(null);
     clearCache('searchParams');
   }, []);
+
+
+
+
+
+
+  // Note Management
+  const handleSaveNote = useCallback((noteData) => {
+    const newNote = {
+      id: Date.now(),
+      ...noteData,
+      source: activeDocument?.title || activeDocument?.file_name,
+      timestamp: new Date().toISOString()
+    };
+    setNotes(prev => [...prev, newNote]);
+    setActiveTool('notes-list');
+  }, [activeDocument]);
+
+  const handleNoteSelect = useCallback((note) => {
+    setActiveTool('create-note');
+  }, []);
+
 
   /**************************************************************************
    * RENDER
@@ -540,25 +695,20 @@ export function ResearchAssistant() {
             selectedDocuments={selectedDocuments}
             onSelect={handleDocumentSelect}
             onView={handleDocumentView}
-            onDelete={handleDeleteDocument}
+            onDelete={handleRemoveDocument}
             stagedDocuments={stagedDocuments}
             onStagedUpload={handleStagedUpload}
-            onRemoveStaged={handleRemoveStaged}
             onUploadStaged={handleUploadStaged}
+            onUrlSubmit={handleUrlSubmit}
           />
         }
 
         // Main Content Area - Dynamic Content Display
         mainContent={
-          <div className="relative min-h-full">
+          <div className="relative min-h-full min-w-full border-emerald-600 ">
             {/* Conditional Content Rendering */}
-            {searchResults ? (
-              // Search Results View
-              <ResultsContainer
-                results={searchResults}
-                onViewDocument={handleDocumentView}
-              />
-            ) : activeDocument ? (
+            <DocGraphLogo isAnimating={isProcessing} />
+            { activeDocument ? (
               // Document Viewer
               <DocumentViewer
                 document={activeDocument}
@@ -567,34 +717,55 @@ export function ResearchAssistant() {
             ) : (
               // Empty State
               <div className="flex items-center justify-center h-full text-tertiary">
-                <NoResults />
+                {/* <NoResults /> */}
+                <DocGraphLogo isAnimating={isProcessing} />
               </div>
             )}
           </div>
         }
 
-        // Search Interface
+        // // Search Interface
         searchBarContent={
           <SearchBar
-            visible={searchVisible}
-            onSearch={handleSearch}
-            onClose={handleClearSearch}
+          visible={searchBarVisible}
+          onSearch={handleSearch}
+          onClose={handleClearSearch}
+          selectedDocuments={selectedDocuments}
+          onToggleVisibility={handleSearchBarVisibility}
+          isSearching={isSearching}
+          onSelect={handleDocumentSelect}
+        />
+        }
+
+        toolbarContent={
+          <ToolbarContainer
+            activeTool={activeTool}
+            onToolSelect={handleToolSelect}
+            document={activeDocument}
+            results={searchResults}
+            onSaveNote={handleSaveNote}
+            onViewDocument={handleDocumentView}
+            notes={notes}
+            onNoteSelect={handleNoteSelect}
+            isSearching={isSearching}
+            onRemoveResult={handleRemoveSearchResult}
+
           />
         }
+
+        tabs={tabs}
+        activeTab={activeTab}
+        activeTool={activeTool}
+        onTabChange={handleTabChange}
+        onTabClose={handleTabClose}
+        selectedDocuments={selectedDocuments}
+
+        
+
+
       />
 
-      {/* Global Action Button */}
-      <FloatingActionButton
-        onClick={() => setIsUploadModalOpen(true)}
-      />
-
-      {/* Upload Modal */}
-      <UploadModal
-        isOpen={isUploadModalOpen}
-        onClose={() => setIsUploadModalOpen(false)}
-        onUpload={handleUpload}
-        isProcessing={isProcessing}
-      />
+     
     </>
   );
 }

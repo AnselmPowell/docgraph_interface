@@ -1,4 +1,5 @@
-// src/app/api/research/documents/search/route.js
+// // src/app/api/research/documents/search/route.js
+
 
 import { NextResponse } from 'next/server';
 import config from '../../../../../config';
@@ -12,8 +13,9 @@ export async function POST(request) {
         const data = await request.json();
          
         // Validate required fields
-        const { document_ids, context, theme, keywords = [] } = data;
+        const { document_ids, context, keywords = [] } = data;
         
+        const file_name = document_ids
         if (!document_ids?.length) {
             return NextResponse.json({ 
                 status: 'error',
@@ -25,13 +27,6 @@ export async function POST(request) {
             return NextResponse.json({ 
                 status: 'error',
                 error: "Search context is required" 
-            }, { status: 400 });
-        }
-
-        if (!theme) {
-            return NextResponse.json({ 
-                status: 'error',
-                error: "Theme selection is required" 
             }, { status: 400 });
         }
 
@@ -50,14 +45,14 @@ export async function POST(request) {
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
             body: JSON.stringify({
-                document_ids,
+                file_name,
                 context: context.trim(),
-                theme,
                 keywords: keywords.filter(Boolean)
             })
         });
 
         const searchResults = await response.json();
+        console.log('search results \n', searchResults)
 
         if (!response.ok) {
             throw new Error(searchResults.message || 'Failed to perform search');
@@ -70,6 +65,8 @@ export async function POST(request) {
             results: searchResults.results.map(result => ({
                 document_id: result.document_id,
                 title: result.title,
+                question: result.question,
+                keywords: result.keywords,
                 authors: result.authors,
                 summary: result.summary,
                 relevance_score: result.relevance_score,
@@ -78,18 +75,15 @@ export async function POST(request) {
                     page_number: section.page_number,
                     content: section.content,
                     matching_context: section.matching_context,
-                    matching_theme: section.matching_theme,
                     matching_keywords: section.matching_keywords,
                     citations: section.citations,
-                    context_citations: section.context_citations || [],
-                    theme_citations: section.theme_citations || []
+                    context_citations: section.context_citations || []
                 }))
             })),
             metadata: {
                 total_results: searchResults.results.length,
                 search_params: {
                     context,
-                    theme,
                     keywords,
                     document_count: document_ids.length
                 }
@@ -104,3 +98,5 @@ export async function POST(request) {
         }, { status: 500 });
     }
 }
+
+
