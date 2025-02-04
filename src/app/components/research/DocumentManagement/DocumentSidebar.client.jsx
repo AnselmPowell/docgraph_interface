@@ -92,7 +92,7 @@ export function DocumentSidebar({
 
 
   return (
-    <div {...getRootProps()} className="flex flex-col pt-10 h-full ">
+    <div {...getRootProps()} className="flex flex-col pt- h-full ">
       <input {...getInputProps()} />
 
       {/* URL Input Section */}

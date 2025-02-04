@@ -73,11 +73,22 @@ export async function POST(request) {
                 matching_sections: result.matching_sections.map(section => ({
                     section_id: section.section_id,
                     page_number: section.page_number,
-                    content: section.content,
-                    matching_context: section.matching_context,
-                    matching_keywords: section.matching_keywords,
-                    citations: section.citations,
-                    context_citations: section.context_citations || []
+                    start_text: section.start_text,
+                    // Map each match type array
+                    context_matches: section.context_matches?.map(match => ({
+                        text: match.text,
+                        citations: match.citations || []
+                    })) || [],
+                    keyword_matches: section.keyword_matches?.map(match => ({
+                        keyword: match.keyword,
+                        text: match.text
+                    })) || [],
+                    similar_matches: section.similar_matches?.map(match => ({
+                        similar_keyword: match.similar_keyword,
+                        text: match.text
+                    })) || [],
+                    // Keep any remaining metadata
+                    citations: section.citations || []
                 }))
             })),
             metadata: {
@@ -98,5 +109,17 @@ export async function POST(request) {
         }, { status: 500 });
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 

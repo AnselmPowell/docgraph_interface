@@ -118,7 +118,7 @@ const handleClickOutside =(event)=> {
               {showSidebar && (
                 <button
                   onClick={() => setShowSidebar(false)}
-                  className="absolute right-0 top-0 p-2 pb-4 bg-background/80 
+                  className="relative right-[100%] top-0 p-2 pb-4 bg-background/80 
                   hover:bg-tertiary/5 transition-colors z-50 cursor-pointer
                   rounded-lg"
                 >

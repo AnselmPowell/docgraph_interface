@@ -33,12 +33,14 @@ const tools = [
 ];
 
 export function ToolbarContainer({ 
+  documents,
   activeTool, 
   onToolSelect, 
   document,
   results,
   onSaveNote,
   onViewDocument,
+  onViewSearchResults,
   notes,
   onNoteSelect,
   isSearching,
@@ -61,11 +63,14 @@ export function ToolbarContainer({
       case 'search-results':
         return (
           <SearchResults 
+            documents={documents}
             results={results}
             onSaveNote={onSaveNote}
             onViewDocument={onViewDocument}
+            onViewSearchResults={onViewSearchResults}
             isLoading={isSearching}
             onRemoveResult={onRemoveResult}
+            isExpanded={isExpanded}
           />
         );
       case 'document-details':
@@ -109,7 +114,7 @@ export function ToolbarContainer({
           className="overflow-x-hidden"
         >
             {activeTool && 
-            <div className="flex items-center gap-1 relative top-2 ">
+            <div className="flex items-center gap-1 relative ">
               {/* Expand Button */}
               <button
                 onClick={() => setIsExpanded(!isExpanded)}

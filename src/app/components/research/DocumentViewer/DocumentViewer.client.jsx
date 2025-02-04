@@ -27,7 +27,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/$
 
 
 
-export function DocumentViewer({ document, onClose, className = '' }) {
+export function DocumentViewer({ document, onClose, searchInResults, className = '' }) {
   console.log('[DocumentViewer] Component mounted with document:', document);
   console.log('[DocumentViewer] Document type:', document instanceof File ? 'File' : typeof document);
 
@@ -40,10 +40,10 @@ export function DocumentViewer({ document, onClose, className = '' }) {
   const [documentUrl, setDocumentUrl] = useState(null);
   const [uploadStatus, setUploadStatus] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
   const [currentSearchResult, setCurrentSearchResult] = useState(0);
-
+  
   const [searchTerm, setSearchTerm] = useState('');
+  const [isSearchResults, setIsSearchResults] = useState([]);
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
 
   const [pageTextContent, setPageTextContent] = useState({});
@@ -110,12 +110,16 @@ export function DocumentViewer({ document, onClose, className = '' }) {
   
 
 
-
-  const handleSearch = useCallback((query) => {
+  const handleSearch = useCallback((query, isResults = false, pageNumber = 1) => {
     console.log('[DocumentViewer] New search:', query);
     setSearchTerm(query);
     setCurrentMatchIndex(0);
+    setIsSearchResults(isResults)
+    setCurrentPage(pageNumber)
   }, []);
+
+  
+
 
   const handleSearchNavigate = useCallback(
     (direction) => {
@@ -180,7 +184,7 @@ export function DocumentViewer({ document, onClose, className = '' }) {
         );
       })[0]; // Only render the first match for the text item
     },
-    [searchTerm, resultsList, currentPage, currentMatchIndex] // Include currentMatchIndex in dependencies
+    [searchTerm, resultsList, currentPage, currentMatchIndex] 
   );
   
 
@@ -233,6 +237,18 @@ export function DocumentViewer({ document, onClose, className = '' }) {
     setIsLoading(true);
     setNumPages(null);
   }, [document]);
+
+
+  useEffect(() => {
+    if(searchInResults){
+      setSearchTerm(searchInResults);
+      setCurrentMatchIndex(0);
+      const isResults = true
+      const {text, page} = searchInResults
+      handleSearch(text, isResults, page)
+    }
+  }, [searchInResults]);
+
 
 
   const handleLoadSuccess = ({ numPages }) => {

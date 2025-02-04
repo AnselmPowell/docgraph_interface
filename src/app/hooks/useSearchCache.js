@@ -26,10 +26,12 @@ export function useSearchCache() {
     return await getCache('search_params', CACHE_LEVELS.SESSION);
   }, [getCache]);
 
+  
   /**
    * Cache search results
    */
   const cacheSearchResults = useCallback(async (results) => {
+    console.log("Cache search results", results)
     await setCache('search_results', {
       data: results,
       timestamp: Date.now()

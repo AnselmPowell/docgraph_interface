@@ -60,6 +60,60 @@ export const usePdfTextSearch = (file, searchString) => {
     const searchTerm = searchString.toLowerCase();
     const results = [];
 
+    // pages.forEach((page) => {
+    //   page.items.forEach((item) => {
+    //     if (item.str.toLowerCase().includes(searchTerm)) {
+    //       results.push({
+    //         pageNumber: page.pageNumber,
+    //         itemIndex: item.itemIndex,
+    //         text: item.str,
+    //         str: item.str,
+    //         transform: item.transform,
+    //         width: item.width,
+    //         height: item.height,
+    //         startIndex: item.str.toLowerCase().indexOf(searchTerm),
+    //         endIndex: item.str.toLowerCase().indexOf(searchTerm) + searchTerm.length
+    //       });
+    //     }
+    //   });
+    // });
+
+
+    // pages.forEach((page) => {
+    //   const pageItems = page.items;
+      
+    //   pageItems.forEach((item, index) => {
+    //     // Get previous, current and next items
+    //     const prevItem = index > 0 ? pageItems[index - 1] : null;
+    //     const currentItem = item;
+    //     const nextItem = index < pageItems.length - 1 ? pageItems[index + 1] : null;
+        
+    //     // Combine text from adjacent items
+    //     const combinedText = [
+    //       prevItem?.str || '',
+    //       currentItem.str,
+    //       nextItem?.str || ''
+    //     ].join(' ').trim();
+    
+    //     if (combinedText.toLowerCase().includes(searchTerm)) {
+    //       results.push({
+    //         pageNumber: page.pageNumber,
+    //         itemIndex: item.itemIndex,
+    //         text: searchTerm,
+    //         originalText: item.str,
+    //         prevText: prevItem?.str || null,
+    //         nextText: nextItem?.str || null,
+    //         str: searchTerm,
+    //         transform: item.transform,
+    //         width: item.width,
+    //         height: item.height,
+    //         startIndex: combinedText.toLowerCase().indexOf(searchTerm),
+    //         endIndex: combinedText.toLowerCase().indexOf(searchTerm) + searchTerm.length
+    //       });
+    //     }
+    //   });
+    // });
+
     pages.forEach((page) => {
       page.items.forEach((item) => {
         if (item.str.toLowerCase().includes(searchTerm)) {
@@ -77,6 +131,51 @@ export const usePdfTextSearch = (file, searchString) => {
         }
       });
     });
+
+    // pages.forEach((page) => {
+    //   const pageItems = page.items;
+    //   const processedIndices = new Set();
+      
+    //   pageItems.forEach((item, index) => {
+    //     // Skip if this item was part of a previous match
+    //     // if (processedIndices.has(index)) return;
+    
+    //     const prevItem = index > 0 ? pageItems[index - 1] : null;
+    //     const currentItem = item;
+    //     const nextItem = index < pageItems.length - 1 ? pageItems[index + 1] : null;
+        
+    //     const combinedText = [
+    //       prevItem?.str || '',
+    //       currentItem.str,
+    //       nextItem?.str || ''
+    //     ].join(' ').trim();
+    
+    //     if (combinedText.toLowerCase().includes(searchTerm)) {
+    //       // Mark items as processed
+    //       if (prevItem && prevItem.str.toLowerCase().includes(searchTerm)) {
+    //         // processedIndices.add(index - 1);
+    //       }
+    //       if (nextItem && nextItem.str.toLowerCase().includes(searchTerm)) {
+    //         // processedIndices.add(index + 1);
+    //       }
+    //       processedIndices.add(index);
+    
+    //       results.push({
+    //         pageNumber: page.pageNumber,
+    //         itemIndex: item.itemIndex,
+    //         text: searchTerm,
+    //         prevText: prevItem?.str || null,
+    //         nextText: nextItem?.str || null,
+    //         transform: item.transform,
+    //         str: item.str,
+    //         width: item.width,
+    //         height: item.height,
+    //         startIndex: item.str.toLowerCase().indexOf(searchTerm),
+    //         endIndex: item.str.toLowerCase().indexOf(searchTerm) + searchTerm.length 
+    //       });
+    //     }
+    //   });
+    // });
 
     console.log('[usePdfTextSearch] Search results:', results);
     setResultsList(results);

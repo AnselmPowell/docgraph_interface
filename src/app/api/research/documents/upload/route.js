@@ -175,6 +175,3 @@ export async function GET() {
             );
         }
     }
-
-
-    

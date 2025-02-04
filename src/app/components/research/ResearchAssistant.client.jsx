@@ -26,14 +26,6 @@
 
 // React Core
 import { useState, useCallback, useEffect } from 'react';
-import { 
-  Search, 
-  Sparkles,
-  FileText, 
-  BookOpen, 
-  ListTodo,
-  PlusSquare 
-} from 'lucide-react';
 
 
 import { DocGraphLogo } from '../svg/DocGraphLogo.client';
@@ -49,8 +41,6 @@ import { DocumentViewer } from './DocumentViewer/DocumentViewer.client';
 
 // Search Components
 import { SearchBar } from './Search/SearchBar.client';
-import { ResultsContainer } from './Results/ResultsContainer.client';
-import { NoResults } from './Results/NoResults.client';
 
 // ToolBar Component
 import {ToolbarContainer} from './ToolBar/ToolbarContainer.client'
@@ -98,8 +88,6 @@ export function ResearchAssistant() {
 
   // UI States
   // Controls visibility and processing states for UI elements
-
-  const [searchVisible, setSearchVisible] = useState(false);
   
   // Document Management States
   // Handles different states of documents in the system
@@ -113,6 +101,8 @@ export function ResearchAssistant() {
   const [searchBarVisible, setSearchBarVisible] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [searchInDocumentResults, setSearchInDocumentResults] = useState({});
+ 
 
   // States for Document Status
   const [tabs, setTabs] = useState([]);
@@ -154,13 +144,15 @@ export function ResearchAssistant() {
           console.log('cache manager: 5', staged )
           setStagedDocuments(staged);
       }
-      const tabs = await getCacheTabDocuments();
-      if (tabs) {
-           console.log("stored tabs:", tabs)
-           setTabs(tabs)
+      const cacheTabs = await getCacheTabDocuments();
+      if (cacheTabs) {
+           console.log("stored tabs:", cacheTabs)
+           setTabs(cacheTabs)
       } else {setTabs([])}
 
+      
       const results = await getCachedResults();
+      console.log("Get cache search results: ", results)
       if(results) {
         console.log("stored search results:", results.data)
         setSearchResults(results.data)
@@ -465,7 +457,7 @@ export function ResearchAssistant() {
   const handleDocumentSelect = useCallback((documentFileName) => {
     console.log("selected Docs:", documentFileName)
     setSelectedDocuments(documentFileName);
-    setSearchVisible(documentFileName.length > 0);
+    setSearchBarVisible(documentFileName.length > 0);
     // Cache selection state
     cacheDocument({ type: 'selection', data: documentFileName });
   }, [cacheDocument]);
@@ -512,6 +504,15 @@ export function ResearchAssistant() {
     }
   }, [tabs]);
 
+
+  const handleViewSearchResults = useCallback(async (text, document, page) => { 
+    console.log("view document search:", document)
+    if(text) {
+      await handleDocumentView(document)
+      await setSearchInDocumentResults({text, page})
+    }
+
+  }, [searchInDocumentResults, handleDocumentView]);
 
 
   // Tab Management
@@ -620,14 +621,14 @@ export function ResearchAssistant() {
         throw new Error(data.error);
       }
 
-      await cacheSearchResults(data.results);
+      await cacheSearchResults([...searchResults, ...data.results]);
       setSearchResults(prev=> [...prev, ...data.results]);
       toast.success(`Found matches in ${data.results.length} documents`);
 
     } catch (error) {
       console.error('Search error:', error);
       toast.error(error.message || 'Failed to perform search');
-      setSearchResults(null);
+      setSearchResults(prev=> [...prev]);
     } finally {
       setIsSearching(false);
     }
@@ -640,7 +641,7 @@ export function ResearchAssistant() {
       const newResults = prev.filter(result => 
         
         
-        !(result.question == documentQuestion &&result.title == documentTitle )
+        !(result.question == documentQuestion && result.title == documentTitle )
       );
       removeCachedResults(newResults)
       return newResults;
@@ -654,13 +655,9 @@ export function ResearchAssistant() {
    * Flow: Clear Request → Reset States → UI Update
    */
   const handleClearSearch = useCallback(() => {
-    setSearchResults(null);
+    setSearchResults([]);
     clearCache('searchParams');
   }, []);
-
-
-
-
 
 
   // Note Management
@@ -712,7 +709,9 @@ export function ResearchAssistant() {
               // Document Viewer
               <DocumentViewer
                 document={activeDocument}
+
                 onClose={() => setActiveDocument(null)}
+                searchInResults={searchInDocumentResults}
               />
             ) : (
               // Empty State
@@ -739,12 +738,14 @@ export function ResearchAssistant() {
 
         toolbarContent={
           <ToolbarContainer
+            documents={documents}
             activeTool={activeTool}
             onToolSelect={handleToolSelect}
             document={activeDocument}
             results={searchResults}
             onSaveNote={handleSaveNote}
             onViewDocument={handleDocumentView}
+            onViewSearchResults={handleViewSearchResults}
             notes={notes}
             onNoteSelect={handleNoteSelect}
             isSearching={isSearching}
