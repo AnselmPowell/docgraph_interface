@@ -1,18 +1,28 @@
-// src/app/components/research/header/Header.client.jsx
+// src/app/components/header/Header.client.jsx
 'use client';
 
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { TabBar } from './TabBar.client';
 import Image from 'next/image';
+import ProfileSection from './ProfileSection';
 
 export function Header({ 
-  tabs,              // Array<Tab>
-  activeTab,         // string (tab.id)
-  onTabChange,       // (tabId: string) => void
-  onTabClose,        // (tabId: string) => void
+  authState,
+  tabs,
+  activeTab,
+  onTabChange,
+  onTabClose,
   selectedDocuments,
-  className         // string 
+  fetchDocs,
+  setUserData,
+  className
 }) {
+
+  useEffect(() => {
+    console.log("Header - Auth state changed:", authState);
+  }, [authState]);
+
   return (
     <motion.header 
       initial={{ opacity: 0, y: -20 }}
@@ -20,14 +30,14 @@ export function Header({
       className={`  
         bg-background
         ${activeTab && "border-b border-tertiary/10" }
-        z-10 flex items-center px-4 overflow-hidden 
+        z-50 flex items-center justify-between px-4 overflow-hidden 
         ${className}
-         h-16
+        h-16 pr-6
       `}
-     >
-      <div className="flex items-center gap-4 w-full">
-         {/* Logo Section */}
-         <div className="flex items-center gap-1">
+    >
+      <div className="flex items-center gap-4">
+        {/* Logo Section */}
+        <div className="flex items-center gap-1">
           <div className="relative w-16 h-16 p-3">
             <Image
               src="/docgraph_2_br.png"
@@ -51,9 +61,8 @@ export function Header({
           selectedDocuments={selectedDocuments}
         />
       </div>
+
+      <ProfileSection authState={authState} fetchDocs={fetchDocs} setUserData={setUserData} />
     </motion.header>
   );
 }
-
-
-

@@ -1,39 +1,39 @@
-export const dynamic = 'force-dynamic';
+// src/app/api/auth/user/route.js
+import { NextResponse } from 'next/server';
+import config from '../../../../config';
 
-import { cookies } from 'next/headers';
-import jwt from  'jsonwebtoken';
-import * as authSchema from '../../../../database/schema/authSchema';
+export async function GET(request) {
+    console.log("[GET] Fetching user profile");
+    const authHeader = request.headers.get('authorization');
+    console.log("[POST] Auth header:", authHeader);
+    
+    try {
+        const response = await fetch(`${config.backendApiUrl}auth/profile/`, {
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `${authHeader}`,
+            }
+        });
 
-const JWT_SECRET = process.env.JWT_SECRET;
+        if (!response.ok) {
+            console.log("[GET] Profile fetch failed:", response.status);
+            throw new Error('Failed to fetch user profile');
+        }
 
-export async function GET() {
-  const cookieStore = cookies();
-  const refreshToken = cookieStore.get('refreshToken')?.value;
-
-  if (!refreshToken) {
-    return new Response(JSON.stringify({ message: 'No user logged in' }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
-
-  try {
-    const decoded = jwt.verify(refreshToken, JWT_SECRET);
-    const user = await authSchema.findUserById(decoded.userId);
-    if (user) {
-     
-      return new Response(JSON.stringify(user), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    } else {
-      throw new Error('User not found');
+        const data = await response.json();
+        console.log("[GET] Profile data received:", data);
+        
+        return NextResponse.json({
+            user: data,
+            status: 'success'
+        });
+        
+    } catch (error) {
+        console.error('[GET] Profile error:', error);
+        return NextResponse.json(
+            { error: 'Not authenticated' },
+            { status: 401 }
+        );
     }
-  } catch (error) {
-    console.error('Error getting current user:', error);
-    return new Response(JSON.stringify({ message: 'No user logged in' }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
 }

@@ -13,7 +13,7 @@ import {
   BookOpen,
   Search,
   FileText
-} from 'lucide-react';
+} from 'lucide-react'; 
 
 export function SearchResults({ 
   documents,
@@ -22,12 +22,14 @@ export function SearchResults({
   onViewSearchResults,
   isLoading, 
   onRemoveResult,
+  onRemoveAllResult,
   isToolbarExpanded 
 }) {
   const [expandedResult, setExpandedResult] = useState(null);
   const [copiedSection, setCopiedSection] = useState(null);
   const [savedSection, setSavedSection] = useState(null);
-  const [activeMatchType, setActiveMatchType] = useState('all'); // 'all', 'context', 'keywords'
+  const [selectedResults, setSelectedResults] = useState([]);
+  const [activeMatchType, setActiveMatchType] = useState('all');// 'all', 'context', 'keywords'
 
   console.log("Search results: ", results)
 
@@ -38,6 +40,38 @@ export function SearchResults({
       </div>
     );
   }
+
+  // Handle select all
+  const handleSelectAll = () => {
+    if (selectedResults.length === results.length) {
+      setSelectedResults([]);
+    } else {
+      setSelectedResults(results.map(result => result.search_results_id));
+    }
+  };
+
+  // Handle single selection
+  const handleSelect = (resultId) => {
+    setSelectedResults(prev => {
+      if (prev.includes(resultId)) {
+        return prev.filter(id => id !== resultId);
+      }
+      return [...prev, resultId];
+    });
+  };
+
+   // Handle batch deletion
+   const handleRemoveSelected = async () => {
+    try {
+      // Call remove function for each selected result
+      await Promise.all(selectedResults.map(resultId => onRemoveResult(resultId)));
+      setSelectedResults([]); // Clear selection after deletion
+      
+    } catch (error) {
+      toast.error('Failed to remove selected results');
+    }
+  };
+
 
   // Handlers
   const handleCopyText = (text, sectionId) => {
@@ -54,16 +88,37 @@ export function SearchResults({
 
   return (
     <div className="relative h-full  overflow-y-auto">
-      {/* Header */}
-      <div className="shrink-0 px-4 pt-4 border-tertiary/10 bg-background/50 backdrop-blur-sm">
+       {/* Header */}
+       <div className="shrink-0 px-4 pt-4 border-tertiary/10 bg-background/50 backdrop-blur-sm">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-semibold text-primary flex items-center gap-2">
             <Sparkles className="w-5 h-5" />
             {isLoading ? "Analysing..." : "Search Results"}
           </h2>
-          <span className="text-sm text-tertiary">
-            {results.length} {results.length === 1 ? 'document' : 'documents'}
-          </span>
+          <div className="flex items-center gap-3">
+            {/* Selection Controls - Only show when results exist */}
+            {results.length > 0 && (
+              <>
+                <button
+                  onClick={handleSelectAll}
+                  className="text-sm text-tertiary hover:text-primary transition-colors"
+                >
+                  {selectedResults.length === results.length ? 'Deselect all' : 'Select all'}
+                </button>
+                {selectedResults.length > 0 && (
+                  <button
+                    onClick={handleRemoveSelected}
+                    className="text-sm text-red-500 hover:text-red-600 transition-colors"
+                  >
+                    Remove selected ({selectedResults.length})
+                  </button>
+                )}
+              </>
+            )}
+            <span className="text-sm text-tertiary">
+              {results.length} {results.length === 1 ? 'document' : 'documents'}
+            </span>
+          </div>
         </div>
 
         {/* Match Type Filters */}
@@ -100,13 +155,13 @@ export function SearchResults({
 
       {/* Results List */}
       <div className="">
-        {results.map((result) => (
+        {results.map((result, idx) => (
           <DocumentResult
-            key={result.question + result.title}
+            key={result.question + result.title + idx}
             result={result}
-            isExpanded={expandedResult === result.document_id}
+            isExpanded={expandedResult === result.search_results_id}
             onExpand={() => setExpandedResult(
-              expandedResult === result.document_id ? null : result.document_id
+              expandedResult === result.search_results_id ? null : result.search_results_id
             )}
             onRemove={onRemoveResult}
             documents={documents}
@@ -118,6 +173,9 @@ export function SearchResults({
             savedSection={savedSection}
             activeMatchType={activeMatchType}
             isToolbarExpanded={isToolbarExpanded}
+            // Add selection props
+            isSelected={selectedResults.includes(result.search_results_id)}
+            onSelect={() => handleSelect(result.search_results_id)}
           />
         ))}
       </div>
@@ -125,7 +183,7 @@ export function SearchResults({
   );
 }
 
-// Part 2 - Document Result Component
+//  Document Result Component
 function DocumentResult({
   result,
   isExpanded,
@@ -142,21 +200,24 @@ function DocumentResult({
   isToolbarExpanded
 }) {
   return (
-    <div className=" pb-3 border-b-2">
+    <div className=" pb-3 ">
       {/* Document Header */}
       <div className="flex group relative">
         <button
           onClick={onExpand}
-          className="w-full p-3 text-left hover:bg-tertiary/5 transition-colors"
+          className="w-full pt-3 p-2 text-left hover:bg-tertiary/5 transition-colors"
         >
           <div className="flex items-center justify-between mb-1">
             <div>
             <h4 className="font-medium text-primary text-sm truncate pr-4">
-              {isToolbarExpanded ? result.title : result.title.slice(0, 40)}
+              {isToolbarExpanded ? result.title.slice(0, 100) : result.title.slice(0, 45)}
             </h4>
-            <h4 className="font-small text-primary text-sm truncate pr-4">
-              Query: {isToolbarExpanded ? result.question : result.question.slice(0, 55)}
-            </h4>
+            <div className='flex gap-1 items-center py-1 '>
+              <Search className="w-3 h-3" />
+              <h4 className="font-small text-primary text-sm truncate pr-4">
+                {isToolbarExpanded ? result.question.slice(0, 80): result.question.slice(0, 38)}
+              </h4>
+            </div>
             </div>
           </div>
 
@@ -179,7 +240,7 @@ function DocumentResult({
                     }, 0)} matches
                   </span>
                   <span className="text-tertiary/50">•</span>
-                  <span>{result.matching_sections.length} sections</span>
+                  <span>From {result.matching_sections.length} Pages</span>
                 </div>
               )}
               {isExpanded ? 
@@ -193,9 +254,9 @@ function DocumentResult({
          <button
               onClick={(e) => {
                 e.stopPropagation();
-                onRemove(result.question, result.title);
+                onRemove(result.search_results_id);
               }}
-              className="p-1.5 mt-6 ml-5 rounded-md text-tertiary hover:text-primary 
+              className="p-1.5 mt-6 rounded-md text-tertiary hover:text-primary 
                 hover:bg-tertiary/10 mr-2 opacity-0 group-hover:opacity-100
                 transition-all duration-75"
               title="Remove result"
@@ -207,7 +268,7 @@ function DocumentResult({
 
       {/* Expanded Content */}
       {isExpanded && (
-        <div className="bg-tertiary/5 divide-y divide-tertiary/10">
+        <div className="bg-tertiary/5 ">
           {result.matching_sections.map((section, idx) => (
             <div key={idx} className="p-4 space-y-3">
               {/* Section Header */}

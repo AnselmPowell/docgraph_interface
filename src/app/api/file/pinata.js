@@ -35,6 +35,3 @@ export const deletePinataFile = async (file_id) => {
     return false;
   }
 };
-
-
-

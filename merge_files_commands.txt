@@ -1,0 +1,13 @@
+tree /F > structure.txt
+
+\\ Main files 
+bash merge_files.sh upload/route.js search/route.js documents/file/route.js research/ResearchAssistant.client.jsx layout/ResearchLayout.client.jsx DocumentManagement/DocumentSidebar.client.jsx DocumentManagement/DocumentList.client.jsx header/TabBar.client.jsx Search/SearchBar.client.jsx ToolbarContainer.client.jsx Toolbar/SearchResults.client.jsx 
+
+
+\\ Auth files 
+bash merge_files.sh AuthModal/index.jsx AuthModal/LoginForm.jsx AuthModal/RegisterForm.jsx auth/FormInput.jsx hooks/useAuth.js contexts/AuthContext.client.jsx lib/api.js lib/auth.js register/route.js login/route.js user/route.js
+
+
+\\ Social Auth files 
+bash merge_files.sh googleAuth.js microsoftAuth.js google/url/route.js google/callback/route.js microsoft/url/route.js microsoft/callback/route.js
+

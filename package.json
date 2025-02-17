@@ -14,13 +14,13 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@azure/msal-node": "^2.15.0",
+    "@azure/msal-node": "^2.16.2",
     "@neondatabase/serverless": "^0.10.1",
     "bcrypt": "^5.1.1",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "framer-motion": "^11.11.11",
-    "google-auth-library": "^9.14.2",
+    "google-auth-library": "^9.15.1",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.451.0",
     "mammoth": "^1.8.0",

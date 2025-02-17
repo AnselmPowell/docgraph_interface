@@ -11,11 +11,61 @@
     opacity: 0.8;     /* Start invisible */
     transition: opacity 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
-  
-  /* When active, show paths */
-  .docgraph.active path {
+
+  .docgraph {
+    position: absolute;
+    left: 50%; 
+    transform: translateX(-50%) translateY(0%) scale(1); /* Center it properly */
+    transition: opacity 0.7s ease-in-out;
+    /* width: 100vw;
+    height: 80vh; */
+    /* animation: shiftNScale 1.8s ease-in forwards 3.8s;  */
+}
+
+/* When active, show paths */
+.docgraph.active path {
     opacity: 1;
+}
+
+.docgraph.user {
+  animation: fadeOutAndReappear 2.2s ease-in-out forwards 5.3s;
+  opacity: 0.05;
+}
+
+@keyframes fadeOutAndReappear {
+  0% {
+      opacity: 0.05;
   }
+  8% {
+    opacity: 0.01;
+}
+  20% {
+      opacity: 0; /* Fade out smoothly */
+  }
+  50% {
+      opacity: 0; /* Stay invisible for a brief pause (2 seconds) */
+      transform: translateX(-99%) translateY(8%) scale(1.4); /* Instantly move to the new position */
+  }
+  100% {
+      opacity: 0.05; /* Fade back in smoothly */
+      transform: translateX(-99%) translateY(8%) scale(1.4);
+  }
+}
+
+/* Keyframes for smooth scaling + movement */
+/* @keyframes shiftNScale {
+    0% {
+        transform: translateX(-50%)  translateY(5%) scale(1); 
+        /* height: 80vh; */
+    /* }
+    100% {
+        transform: translateX(-99%) translateY(8%) scale(1.4); 
+        /* height: 130vh; */
+    /* }
+}   */
+
+    
+  
   
 /* When active, show paths */
 svg.active path {
@@ -24,28 +74,59 @@ opacity: 1;
 
  svg .svg-elem-1 {
     fill: transparent;
-    -webkit-transition: fill 1.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) 2.00005s;
-            transition: fill 1.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) 2.00005s;
+    -webkit-transition: fill 3.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) 2.80005s;
+            transition: fill 3.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) 2.80005s;
   }
   
   svg.active .svg-elem-1 {
     fill: rgb(0, 0, 0);
   }
   
+  /* BRAIN */
   svg .svg-elem-2 {
     fill: transparent;
-    -webkit-transition: fill 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) 2.4s;
-            transition: fill 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) 2.4s;
+    transform: translateY(0);
+    -webkit-transition: fill 2.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) 2.4s;
+            transition: fill 2.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) 2.4s;
+    
+  }
+
+  /* smoothFloat 3s cubic-bezier(0.4, 0, 0.6, 1) 5.1s 3; */
+  .animate-hover {
+    /* animation: smoothFloat 3s cubic-bezier(0.4, 0, 0.6, 1) 1.5s 3; */
+    animation: smoothFloat 3s cubic-bezier(0.4, 0, 0.6, 1) 3s 2;
   }
   
+
+  @keyframes fadeInRaise {
+    0% {
+      opacity: 1;
+      transform: translateY(500px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+    
+  @keyframes smoothFloat {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(50px);
+    }
+  }
+  
+
   svg.active .svg-elem-2 {
     fill: rgb(0, 0, 0);
   }
   
   svg .svg-elem-3 {
     fill: transparent;
-    -webkit-transition: fill 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) 2.8s;
-            transition: fill 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) 2.8s;
+    -webkit-transition: fill 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) 2.7s;
+            transition: fill 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) 2.7s;
   }
   
   svg.active .svg-elem-3 {
@@ -54,8 +135,8 @@ opacity: 1;
   
   svg .svg-elem-4 {
     fill: transparent;
-    -webkit-transition: fill 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) 3s;
-            transition: fill 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) 3s;
+    -webkit-transition: fill 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) 2.6s;
+            transition: fill 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) 2.6s;
   }
   
   svg.active .svg-elem-4 {
@@ -63,9 +144,10 @@ opacity: 1;
   }
   
   svg .svg-elem-5 {
+
     fill: transparent;
-    -webkit-transition: fill 2.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) 3.1s;
-            transition: fill 2.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) 3.1s;
+    -webkit-transition: fill 2.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) 2.8s;
+            transition: fill 2.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) 2.8s;
   }
   
   svg.active .svg-elem-5 {
@@ -84,8 +166,8 @@ opacity: 1;
   
   svg .svg-elem-7 {
     fill: transparent;
-    -webkit-transition: fill 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) 3.4000000000000004s;
-            transition: fill 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) 3.4000000000000004s;
+    -webkit-transition: fill 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) 2.7000000000000004s;
+            transition: fill 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) 2.7000000000000004s;
   }
   
   svg.active .svg-elem-7 {
@@ -122,6 +204,7 @@ opacity: 1;
     fill: rgb(0, 0, 0);
   }
   
+  /* TREE */
   svg .svg-elem-11 {
     fill: transparent;
     -webkit-transition: fill 4.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) 1.2s;
@@ -222,3 +305,4 @@ opacity: 1;
     fill: rgb(0, 0, 0);
   }
   
+

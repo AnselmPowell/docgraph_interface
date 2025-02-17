@@ -1,4 +1,3 @@
-
 // src/app/components/research/Search/SearchBar.client.jsx
 'use client';
 
@@ -97,10 +96,11 @@ export function SearchBar({
     if (!context.trim()) return;
     
     setIsProcessing(true); // Show loading in search button
+
     
     const searchParams = {
       context: context.trim(),
-      keywords
+      keywords: !keywords || keywords < 1 ? ["No Keywords Provided"] : keywords
     };
   
     onSearch?.(searchParams);
@@ -114,43 +114,6 @@ export function SearchBar({
     setKeywordInput('');
     onClose?.();
   }, [onClose]);
-
-
-
-// floating search button
-// if (!visible) {
-//   return (
-//     <button
-//   onClick={() => onToggleVisibility(true)}
-//   className={`fixed bottom-10 right-36 
-//     p-8
-//     rounded-full 
-//     bg-white/95
-//     shadow-[0_8px_30px_rgb(0,0,0,0.06)]
-//     border border-tertiary/20
-//     group 
-//     hover:bg-white
-//     hover:shadow-[0_20px_50px_rgb(0,0,0,0.12)]
-//     hover:border-primary/20
-//     hover:scale-105 
-//     transition-all duration-500 ease-out z-50
-//     ${selectedDocuments.length > 0 ? 'animate-[wiggle_1s_ease-in-out] brightness-110' : ''}
-//   `}
-// >
-//   <div className="relative flex items-center justify-center gap-4">
-//     <Sparkles 
-//       className={`absolute w-9 h-9 
-//         text-primary/10
-//         ${selectedDocuments.length > 0 ? 'opacity-80' : 'opacity-20'}
-//         group-hover:opacity-80 
-//         group-hover:rotate-6
-//         transition-all duration-500
-//       `} 
-//     />
-//   </div>
-// </button>
-//   );
-// }
 
 
 if (!visible) {
@@ -281,20 +244,20 @@ if (!visible) {
                 `}>
                   {documentsToSearch.length === 0 ? (
                     // Empty State
-                    <div className="p-4 flex flex-col items-center text-center">
-                      <div className="p-3 rounded-full bg-tertiary/5 mb-3">
+                    <div className=" p-5 flex flex-col items-center text-center">
+                      <div className=" rounded-full bg-tertiary/5 mb-1">
                         <FileText className="w-5 h-5 text-tertiary/50" />
                       </div>
                       <p className="text-sm text-primary/70">
                         Select documents to search through
                       </p>
-                      <p className="text-xs text-tertiary mt-1 max-w-[250px]">
-                        Click the "Select" button next to documents in the left sidebar
+                      <p className="text-xs text-tertiary max-w-[250px]">
+                        {"Click the 'Select' button next to documents in the left sidebar"}
                       </p>
                     </div>
-                  ) : (
+                  ) : ( 
                     // Selected Documents
-                    <div className="p-3">
+                    <div className="">
                       <div className="flex flex-wrap gap-2">
                         {documentsToSearch.map((docFileName) => (
                           <div
@@ -332,7 +295,7 @@ if (!visible) {
                       </div>
 
                       {/* Helpful hint */}
-                      <div className="mt-3 flex items-center gap-2 px-1">
+                      <div className="my-3 flex items-center gap-2 px-1">
                         <div className="relative flex h-1.5 w-1.5">
                           <span className="animate-ping absolute inline-flex h-full w-full 
                             rounded-full bg-primary/30"></span>

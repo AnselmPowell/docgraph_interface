@@ -28,8 +28,8 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/$
 
 
 export function DocumentViewer({ document, onClose, searchInResults, className = '' }) {
-  console.log('[DocumentViewer] Component mounted with document:', document);
-  console.log('[DocumentViewer] Document type:', document instanceof File ? 'File' : typeof document);
+  // console.log('[DocumentViewer] Component mounted with document:', document);
+  // console.log('[DocumentViewer] Document type:', document instanceof File ? 'File' : typeof document);
 
   // Viewer state
   const [numPages, setNumPages] = useState(null);
@@ -99,7 +99,7 @@ export function DocumentViewer({ document, onClose, searchInResults, className =
         }
 
         const blob = await response.blob();
-        console.log('[DocumentViewer] Created blob URL, size:', blob.size);
+        // console.log('[DocumentViewer] Created blob URL, size:', blob.size);
 
         return URL.createObjectURL(blob);
     } catch (error) {
@@ -190,7 +190,7 @@ export function DocumentViewer({ document, onClose, searchInResults, className =
 
   // Set document URL
   useEffect(() => {
-    console.log('[DocumentViewer] Document changed, initialising URL');
+    // console.log('[DocumentViewer] Document changed, initialising URL');
     let isMounted = true;
     
     const initializeDocument = async () => {
@@ -201,13 +201,13 @@ export function DocumentViewer({ document, onClose, searchInResults, className =
   
       try {
         const url = document.file_url;
-        console.log('[DocumentViewer] Using document URL:',  url);
+        // console.log('[DocumentViewer] Using document URL:',  url);
   
         // Get proxied URL
         const proxiedUrl = await getProxiedUrl(url);
-        console.log('[DocumentViewer] Created proxied URL:', proxiedUrl);
+        // console.log('[DocumentViewer] Created proxied URL:', proxiedUrl);
     
-        console.log('[DocumentViewer] Cached document URL:', document.file_name, proxiedUrl);
+        // console.log('[DocumentViewer] Cached document URL:', document.file_name, proxiedUrl);
   
         if (isMounted) {
           setDocumentUrl(proxiedUrl);
@@ -230,7 +230,7 @@ export function DocumentViewer({ document, onClose, searchInResults, className =
 
   // Reset state when document changes
   useEffect(() => {
-    console.log('[DocumentViewer] Resetting viewer state for new document');
+    // console.log('[DocumentViewer] Resetting viewer state for new document');
     setCurrentPage(1);
     setScale(1);
     setError(null);
@@ -252,7 +252,7 @@ export function DocumentViewer({ document, onClose, searchInResults, className =
 
 
   const handleLoadSuccess = ({ numPages }) => {
-    console.log('[DocumentViewer] Document loaded successfully, pages:', numPages);
+    // console.log('[DocumentViewer] Document loaded successfully, pages:', numPages);
     setNumPages(numPages);
     setIsLoading(false);
   };

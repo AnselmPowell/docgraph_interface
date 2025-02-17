@@ -1,7 +1,8 @@
 // src/app/components/research/DocumentManagement/DocumentSidebar.client.jsx
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import {  Trash2 } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import { 
   Upload, Loader2 
@@ -26,17 +27,17 @@ export function DocumentSidebar({
   onSelect,
   onView,
   onDelete,
+  onDeleteAll,
   onStagedUpload,
-  onUploadStaged,
+  isFetchingDocuments,
   onClose  
 }) {
   // Existing state
   const [isAllSelected, setIsAllSelected] = useState(false);
   const [deleteDocumentName, setDeleteDocumentName] = useState(null);
   const [documentDetails, setDocumentDetails] = useState(null);
-  const [showReferences, setShowReferences] = useState(null);
 
-  const [isUploading, setIsUploading] = useState(false);
+  const [isUploading, setIsUploading] = useState(isFetchingDocuments);
 
   const {
     cacheDocument,
@@ -87,7 +88,11 @@ export function DocumentSidebar({
       onSelect(selectableDocIds);
       setIsAllSelected(true);
     }
-  }, [documents, onSelect, isAllSelected]);
+  }, [documents, onSelect, isAllSelected]); 
+
+  useEffect(() => {
+   
+  }, [selectedDocuments]);
 
 
 
@@ -108,7 +113,7 @@ export function DocumentSidebar({
             ${isUploading ? 'bg-tertiary/5' : ''}
           `}
         >
-          {isUploading ? (
+          {isUploading && stagedDocuments > 0 ? (
             <>
               <Loader2 className="w-5 h-5 text-primary animate-spin" />
               <p className="text-sm text-tertiary text-center">
@@ -130,19 +135,34 @@ export function DocumentSidebar({
       </div>
 
       {/* Selection Header */}
+      {selectedDocuments.length > 0 &&
         <div className="px-4 py-2 border-b border-tertiary/10">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-medium text-primary">Documents  {selectedDocuments.length > 0 && (<span> Selected: {selectedDocuments.length}</span> )} </h2>
             {documents.length > 0 && (
-              <button
-                onClick={handleSelectAll}
-                className="text-sm text-tertiary hover:text-primary transition-colors"
-              >
-                {isAllSelected ? 'Deselect all' : 'Select all'}
+              <div className='flex' >
+                 <button
+                  onClick={handleSelectAll}
+                  className="text-sm text-tertiary hover:text-primary transition-colors"
+                >
+                  {isAllSelected ? 'Deselect all' : 'Select all'}
+                </button>
+                {selectedDocuments.length > 1 &&
+                <button
+                onClick={onDeleteAll}
+                className="text-sm ml-2 text-tertiary hover:text-primary transition-colors  text-red-800"
+                >
+               <Trash2 className="w-4 h-4" />
               </button>
+                }
+              
+              </div>
+             
+              
             )}
           </div>
         </div>
+        }
 
       {/* Dropzone Indicator */}
       {isDragActive && (
@@ -158,12 +178,12 @@ export function DocumentSidebar({
       <DocumentList
         documents={documents}
         stagedDocuments={stagedDocuments}
+        isLoading={isUploading}
         selectedDocuments={selectedDocuments}
         onSelect={onSelect}
         onView={onView}
         onDelete={setDeleteDocumentName}
         onDetails={setDocumentDetails}
-        onUploadStaged={onUploadStaged}
       />
 
       {/* Modals */}
@@ -182,6 +202,8 @@ export function DocumentSidebar({
     </div>
   );
 }
+
+
 
 
 

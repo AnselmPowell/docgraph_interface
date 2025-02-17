@@ -10,26 +10,75 @@ export async function GET(request) {
   if (!code) {
     return NextResponse.json({ error: 'No code provided' }, { status: 400 });
   }
-  
+  console.log("CALLBACK ")
   try {
-    const googleUser = await getGoogleUser(code);
-    const response = await googleLoginRegister(googleUser.email, googleUser.name);
-    const data = await response.json()
     const cookieStore = cookies();
-    cookieStore.set('refreshToken', data.user.refreshToken, {
+    const googleUser = await getGoogleUser(code);
+    console.log("CALLBACK Google response:", googleUser)
+    const { access_token, refresh_token, user} = await googleLoginRegister(googleUser.email, googleUser.name);
+    console.log("User logged In", user)
+
+        // Create response with user data and set cookies
+        // const res = NextResponse.json(
+        //     { user, message: 'Login successful' },
+        //     { status: 200 }
+        // );
+
+        // // Set cookies
+        // res.cookies.set('token', access_token, {
+        //     httpOnly: true,
+        //     secure: process.env.NODE_ENV === 'production',
+        //     sameSite: 'strict',
+        //     path: '/'
+        // });
+
+        // res.cookies.set('refreshToken', refresh_token, {
+        //     httpOnly: true,
+        //     secure: process.env.NODE_ENV === 'production',
+        //     sameSite: 'strict',
+        //     path: '/'
+        // });
+
+    // Store tokens in cookies (non-httpOnly for client access)
+    cookieStore.set('accessToken', access_token, {
+        httpOnly: false, // Allow access from JavaScript
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60,
+        path: '/',
+    });
+
+
+    // Set cookies
+    cookieStore.set('refreshToken', refresh_token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
-        
-        maxAge: 7 * 24 * 60 * 60, // 7 days
+        maxAge: 7 * 24 * 60 * 60,
         path: '/',
-      });
-    //  Redirect to the home page or dashboard
-    return NextResponse.redirect(new URL( config.redirectUrl, request.url));
-        
+    });
 
+    // Store user data in a non-httpOnly cookie so we can access it client-side
+    cookieStore.set('userData', JSON.stringify(user), {
+        httpOnly: false,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60,
+        path: '/',
+    });
+
+    cookieStore.delete('codeVerifier');
+
+    // Redirect to main application
+    return NextResponse.redirect(new URL(config.redirectUrl, request.url));
+   
+        
   } catch (error) {
-    console.error('Google authentication error:', error);
-    return NextResponse.json({ error: 'Authentication failed' }, { status: 500 });
-  }
+    console.error('Microsoft authentication error:', error);
+    
+    // Redirect to login with error
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('error', 'microsoft_auth_failed');
+    return NextResponse.redirect(new URL(config.redirectUrl, request.url));
+}
 }

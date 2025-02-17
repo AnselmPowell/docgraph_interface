@@ -18,7 +18,7 @@ export async function GET() {
             maxAge: 600,
             path: '/',
         });
-
+        console.log("Return URL:", url);
         return NextResponse.json({ url, codeVerifier });
     } catch (error) {
         console.error("Error generating Microsoft auth URL:", error);

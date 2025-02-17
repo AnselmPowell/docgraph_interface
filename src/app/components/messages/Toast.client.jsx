@@ -6,16 +6,16 @@ import { useEffect } from 'react';
 import { CheckCircle2, XCircle, AlertCircle, X } from 'lucide-react';
 
 export const toast = {
-  success: (message) => createToast(message, 'success'),
-  error: (message) => createToast(message, 'error'),
-  info: (message) => createToast(message, 'info'),
+  success: (message, time=6000) => createToast(message, 'success', time),
+  error: (message, time=6000) => createToast(message, 'error', time),
+  info: (message, time=6000) => createToast(message, 'info', time),
 };
 
 let toasts = new Set();
 const MAX_TOASTS = 5;
 const TOAST_SPACING = 16;
 
-function createToast(message, type) {
+function createToast(message, type, time) {
   const id = Date.now();
   const containerEl = document.createElement('div');
   containerEl.id = `toast-${id}`;
@@ -41,6 +41,7 @@ function createToast(message, type) {
 
   root.render(
     <ToastComponent 
+      time={time}
       message={message} 
       type={type} 
       position={position}
@@ -100,9 +101,9 @@ function getToastStyles(type) {
   return `${baseStyles} ${typeStyles[type]}`;
 }
 
-function ToastComponent({ message, type, onClose, id }) {
+function ToastComponent({ message, type, onClose, id, time=6000 }) {
   useEffect(() => {
-    const timer = setTimeout(onClose, 6000);
+    const timer = setTimeout(onClose, time);
     return () => clearTimeout(timer);
   }, [onClose]);
 

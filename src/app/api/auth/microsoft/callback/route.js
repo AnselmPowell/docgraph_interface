@@ -6,9 +6,70 @@ import { microsoftLoginRegister } from '../../../../../auth/core/auth';
 import { cookies } from 'next/headers';
 import config from '../../../../../config';
 
+// export async function GET(request) {
+//     const { searchParams } = new URL(request.url);
+//     console.log("CALLBACK  ", )
+//     const code = searchParams.get('code');
+//     console.log("CALLBACK  Code: ", code)
+
+//     if (!code) {
+//         return NextResponse.json({ error: 'No code provided' }, { status: 400 });
+//     }
+
+//     try {
+//         const cookieStore = cookies();
+//         const codeVerifier = cookieStore.get('codeVerifier')?.value;
+//         console.log("CALLBACK  Code Verifier: ", codeVerifier)
+//         if (!codeVerifier) {
+//             console.error('No code verifier found in cookies');
+//             return NextResponse.json({ error: 'Authentication failed', details: 'No code verifier found' }, { status: 400 });
+//         }
+
+//         const tokenRequest = {
+//             code,
+//             scopes: ["user.read", "openid", "profile", "email"],
+//             redirectUri: config.microsoftRedirectUri,
+//             codeVerifier: codeVerifier,
+//         };
+
+//         const response = await msalInstance.acquireTokenByCode(tokenRequest);
+//         console.log("CALLBACK  Mirosoft Repsonse: ", response)
+//         const { account } = response;
+
+//         const email = account.username || account.idTokenClaims.email;
+//         const name = account.name || `${account.given_name} ${account.family_name}`.trim();
+//         console.log("CALLBACK Send to backend ")
+//         const { accessToken, user, refreshToken } = await microsoftLoginRegister(email, name);
+        
+//         cookieStore.set('refreshToken', refreshToken, {
+//             httpOnly: true,
+//             secure: process.env.NODE_ENV === 'production',
+//             sameSite: 'lax',
+//             maxAge: 7 * 24 * 60 * 60,
+//             path: '/',
+//         });
+
+//         cookieStore.delete('codeVerifier');
+
+//         return NextResponse.redirect(new URL(config.redirectUrl, request.url));
+
+        
+//     } catch (error) {
+//         console.error('Microsoft authentication error:', error);
+//         return NextResponse.json({ error: 'Authentication failed', details: error.message }, { status: 500 });
+//     }
+// }
+
+
+
+
+
+// src/app/api/auth/microsoft/callback/route.js
 export async function GET(request) {
     const { searchParams } = new URL(request.url);
+    console.log("CALLBACK");
     const code = searchParams.get('code');
+    console.log("CALLBACK Code:", code);
 
     if (!code) {
         return NextResponse.json({ error: 'No code provided' }, { status: 400 });
@@ -17,28 +78,51 @@ export async function GET(request) {
     try {
         const cookieStore = cookies();
         const codeVerifier = cookieStore.get('codeVerifier')?.value;
+        console.log("CALLBACK Code Verifier:", codeVerifier);
 
         if (!codeVerifier) {
             console.error('No code verifier found in cookies');
-            return NextResponse.json({ error: 'Authentication failed', details: 'No code verifier found' }, { status: 400 });
+            return NextResponse.json(
+                { error: 'Authentication failed', details: 'No code verifier found' }, 
+                { status: 400 }
+            );
         }
 
         const tokenRequest = {
-            code,
-            scopes: ["user.read", "openid", "profile", "email"],
-            redirectUri: config.microsoftRedirectUri,
-            codeVerifier: codeVerifier,
-        };
-
+                        code,
+                        scopes: ["user.read", "openid", "profile", "email"],
+                        redirectUri: config.microsoftRedirectUri,
+                        codeVerifier: codeVerifier,
+                    };
+            
         const response = await msalInstance.acquireTokenByCode(tokenRequest);
+        console.log("CALLBACK  Mirosoft Repsonse: ", response)
         const { account } = response;
 
         const email = account.username || account.idTokenClaims.email;
-        const name = account.name || `${account.given_name} ${account.family_name}`.trim();
+        const name = account.name 
+        console.log("CALLBACK Send to backend ")
 
-        const { accessToken, user, refreshToken } = await microsoftLoginRegister(email, name);
-        
-        cookieStore.set('refreshToken', refreshToken, {
+        const { access_token, refresh_token, user}  = await microsoftLoginRegister(email, name);
+        console.log("User logged In", user)
+
+        // // Create response with user data and set cookies
+        // const res = NextResponse.json(
+        //     { user, message: 'Login successful' },
+        //     { status: 200 }
+        // );
+
+       // Store tokens in cookies (non-httpOnly for client access)
+        cookieStore.set('accessToken', access_token, {
+            httpOnly: false, // Allow access from JavaScript
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 7 * 24 * 60 * 60,
+            path: '/',
+        });
+
+        // Set cookies
+        cookieStore.set('refreshToken', refresh_token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
@@ -46,13 +130,31 @@ export async function GET(request) {
             path: '/',
         });
 
-        cookieStore.delete('codeVerifier');
+        // Store user data in a non-httpOnly cookie so we can access it client-side
+        cookieStore.set('userData', JSON.stringify(user), {
+            httpOnly: false,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 7 * 24 * 60 * 60,
+            path: '/',
+        });
 
-        return NextResponse.redirect(new URL(config.redirectUrl, request.url));
+    cookieStore.delete('codeVerifier');
 
+    // Redirect to main application
+    return NextResponse.redirect(new URL(config.redirectUrl, request.url));
         
+
     } catch (error) {
         console.error('Microsoft authentication error:', error);
-        return NextResponse.json({ error: 'Authentication failed', details: error.message }, { status: 500 });
+        
+        // Redirect to login with error
+        const loginUrl = new URL('/login', request.url);
+        loginUrl.searchParams.set('error', 'microsoft_auth_failed');
+        // return NextResponse.redirect(loginUrl);
+        return NextResponse.redirect(new URL(config.redirectUrl, request.url));
     }
+
 }
+
+

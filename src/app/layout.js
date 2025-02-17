@@ -5,6 +5,9 @@ import { Suspense } from 'react';
 import './styles/globals.css';
 import './styles/svg-animation.css';
 import { AuthProvider } from './contexts/AuthContext.client';
+
+
+
 import { AppProvider } from './contexts/AppContext.client';
 import ThemeScript from './contexts/ThemeScript';
 
@@ -20,6 +23,7 @@ export default function RootLayout({ children }) {
       <body suppressHydrationWarning>
         <AppProvider>
             <AuthProvider>
+           
               <Suspense fallback={<div>Loading...</div>}>
                 {children}
               </Suspense>

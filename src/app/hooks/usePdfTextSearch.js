@@ -24,7 +24,7 @@ export const usePdfTextSearch = (file, searchString) => {
         (_, pageNumber) => {
           return pdf.getPage(pageNumber + 1).then((page) => {
             return page.getTextContent().then((textContent) => {
-              console.log(`[usePdfTextSearch] Processing page ${pageNumber + 1}`);
+              // console.log(`[usePdfTextSearch] Processing page ${pageNumber + 1}`);
               return {
                 pageNumber: pageNumber + 1,
                 items: textContent.items.map((item, index) => ({

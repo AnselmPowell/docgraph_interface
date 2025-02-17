@@ -1,3 +1,5 @@
+// src/database/schema/authSchema.js 
+
 import sql from '../db';
 
 export const registerUser = async (username, email, hashedPassword, firstName, lastName, now) => {
@@ -135,3 +137,6 @@ export const findOrCreateMicrosoftUser = async (email, firstName, lastName, user
   `;
   return user;
 };
+
+
+

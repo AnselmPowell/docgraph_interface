@@ -38,6 +38,7 @@ export function ToolbarContainer({
   onToolSelect, 
   document,
   results,
+  onToggleSearchBarVisibility,
   onSaveNote,
   onViewDocument,
   onViewSearchResults,
@@ -45,6 +46,7 @@ export function ToolbarContainer({
   onNoteSelect,
   isSearching,
   onRemoveResult,
+  onRemoveAllResult,
   onClose,
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -65,12 +67,14 @@ export function ToolbarContainer({
           <SearchResults 
             documents={documents}
             results={results}
+
             onSaveNote={onSaveNote}
             onViewDocument={onViewDocument}
             onViewSearchResults={onViewSearchResults}
             isLoading={isSearching}
             onRemoveResult={onRemoveResult}
-            isExpanded={isExpanded}
+            onRemoveAllResult={onRemoveAllResult}
+            isToolbarExpanded={isExpanded}
           />
         );
       case 'document-details':
@@ -120,7 +124,7 @@ export function ToolbarContainer({
                 onClick={() => setIsExpanded(!isExpanded)}
                 className="p-1.5 rounded-lg 
                   text-tertiary hover:text-primary hover:bg-tertiary/5 
-                  transition-colors z-50"
+                  transition-colors"
               >
                 {isExpanded ? <ArrowRightFromLine className="w-6 h-6" /> : <ArrowLeftFromLine className="w-6 h-6" />}
               </button>
@@ -129,7 +133,7 @@ export function ToolbarContainer({
                 onClick={() => onToolSelect(null)}
                 className="p-1.5 rounded-lg 
                   text-tertiary hover:text-primary hover:bg-tertiary/5 
-                  transition-colors z-50"
+                  transition-colors "
               >
                 <X className="w-6 h-6" />
               </button>
@@ -141,7 +145,7 @@ export function ToolbarContainer({
     </AnimatePresence>
 
       {/* Tool Icons */}
-      <div className="w-16 relative right-2 h-full px-8 bg-tertiary/5 z-50">
+      <div className="w-16 relative right-2 h-full px-8 bg-tertiary/5 ">
         <div className="flex flex-col items-center py-4 gap-4">
           {tools.map(tool => {
             const Icon = tool.icon;

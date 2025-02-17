@@ -56,6 +56,9 @@ import { useDocumentCache } from '../../hooks/useDocumentCache';
 import { useSearchCache } from '../../hooks/useSearchCache';
 import { useUICache } from '../../hooks/useUICache';
 
+// User Authentication 
+import { useAuth } from '../../hooks/useAuth';
+
 /******************************************************************************
  * TYPE DEFINITIONS
  *****************************************************************************/
@@ -88,13 +91,20 @@ export function ResearchAssistant() {
 
   // UI States
   // Controls visibility and processing states for UI elements
+
+  // User Role Management State
+
+  const [userData, setUserData] = useState(); // Processed documents
   
+
   // Document Management States
   // Handles different states of documents in the system
   const [documents, setDocuments] = useState([]); // Processed documents
+  const [openSidebar, setOpenSidebar] = useState(true); // Processed documents
   const [selectedDocuments, setSelectedDocuments] = useState([]); // Selected for search
   const [activeDocument, setActiveDocument] = useState(null); // Currently viewed
   const [stagedDocuments, setStagedDocuments] = useState([]); // Pending upload
+  const [isProcessing, setIsProcessing] = useState(false);
   
   // Search & Results States
   // Manages search functionality and results
@@ -114,6 +124,8 @@ export function ResearchAssistant() {
    const [notes, setNotes] = useState([]);
 
 
+
+
   // Cache 
   // Cache System  Hooks 
   const { cacheDocument, getCachedDocument,cacheStagedDocuments, 
@@ -122,47 +134,127 @@ export function ResearchAssistant() {
   const { cacheUIPreferences } = useUICache();
 
 
-  const [isProcessing, setIsProcessing] = useState(false);
+  const { user, setUser, loading, error, login, register, logout, checkAuth, updateUser } = useAuth();
 
+  
   /**************************************************************************
    * EFFECTS
    **************************************************************************/
 
   // Initial Load Effect
-  // Clears expired documents and fetches existing ones
-  useEffect(() => {
-    storageManager.clearExpiredCachedDocuments();
-    fetchDocuments();
-  }, []);
+  const initializeFromCache = async () => {
+    // Restore staged documents
+    const staged = await getCachedStaged();
+      if (staged) {
+        console.log('cache manager: 5', staged )
+        setStagedDocuments(staged);
+    }
+    const cacheTabs = await getCacheTabDocuments();
+    if (cacheTabs) {
+         console.log("stored tabs:", cacheTabs)
+         setTabs(cacheTabs)
+    } else {setTabs([])}
 
-   // Initial Cache Effect
-   useEffect(() => {
-     const initializeFromCache = async () => {
-      // Restore staged documents
-      const staged = await getCachedStaged();
-        if (staged) {
-          console.log('cache manager: 5', staged )
-          setStagedDocuments(staged);
-      }
-      const cacheTabs = await getCacheTabDocuments();
-      if (cacheTabs) {
-           console.log("stored tabs:", cacheTabs)
-           setTabs(cacheTabs)
-      } else {setTabs([])}
+  };
 
+  
+  // Loadings user documents 
+  useEffect( () => {
+
+    const fetchUserData = async () => {
+    console.log("User Data:", user);
+    console.log("User Data (userData):", userData);
+
+    const savedUser = localStorage.getItem("user");  
+
+    let userDataCookie = await document.cookie
+        .split("; ")
+        .find(row => row.startsWith("userData="));
+
+    let accessTokenCookie = await document.cookie
+        .split("; ")
+        .find(row => row.startsWith("accessToken="));
+
+    let refreshTokenCookie = await document.cookie
+        .split("; ")
+        .find(row => row.startsWith("accessToken="));
+
+    if( accessTokenCookie && refreshTokenCookie) {
+      userDataCookie = await JSON.parse(decodeURIComponent(userDataCookie.split("=")[1]));
+      accessTokenCookie = await decodeURIComponent(accessTokenCookie.split("=")[1]);  // No JSON.parse()
+      refreshTokenCookie = await  decodeURIComponent(refreshTokenCookie.split("=")[1]); // No JSON.parse()
       
-      const results = await getCachedResults();
-      console.log("Get cache search results: ", results)
-      if(results) {
-        console.log("stored search results:", results.data)
-        setSearchResults(results.data)
-      }
+      await localStorage.setItem('user', JSON.stringify(userDataCookie));
+      await localStorage.setItem('accessToken', accessTokenCookie);
+      await localStorage.setItem('refreshToken', refreshTokenCookie );
+      console.log("refresh token cookie:", refreshTokenCookie)
 
+    }
 
+   const fetchData = () => {
+        fetchDocuments();
+        fetchSearchResult();
     };
 
-    initializeFromCache();
-  }, [getCachedDocument, getCachedStaged, getCacheTabDocuments, getCachedResults]);
+    if (user) {
+        console.log("[ResearchAssistant] Fetching documents for user:", user.email);
+        fetchData();
+        return;
+    }
+
+
+    if (userDataCookie) {
+        // const parsedUserData = JSON.parse(decodeURIComponent(userDataCookie.split("=")[1]));
+        await updateUser(userDataCookie);
+        await initializeFromCache();
+        // updateUser(userDataCookie);
+
+        // Clean up cookie
+        document.cookie = "userData=; Max-Age=0; path=/;";
+
+        // Clean up by removing the cookies after reading
+        document.cookie = 'userData=; Max-Age=0; path=/;';
+        document.cookie = 'accessToken=; Max-Age=0; path=/;';
+        document.cookie = 'refreshToken=; Max-Age=0; path=/;';
+    } else if (savedUser || userData) {
+        console.log("[ResearchAssistant] Fetching documents for saved user or userData:", userData?.email);
+        fetchData();
+    } else {
+        console.log("User not found, resetting state.");
+        setUserData("");
+        setDocuments([]);
+        setTabs([]);
+        setSearchResults([]);
+        setActiveDocument(null)
+        setActiveTab(null)
+        // fetchData();
+    }
+  }
+  fetchUserData()
+}, [user]);
+
+
+
+   // Initial Cache Effect
+  //  useEffect(() => {
+  //    const initializeFromCache = async () => {
+  //     // Restore staged documents
+  //     const staged = await getCachedStaged();
+  //       if (staged) {
+  //         console.log('cache manager: 5', staged )
+  //         setStagedDocuments(staged);
+  //     }
+  //     const cacheTabs = await getCacheTabDocuments();
+  //     if (cacheTabs) {
+  //          console.log("stored tabs:", cacheTabs)
+  //          setTabs(cacheTabs)
+  //     } else {setTabs([])}
+
+  //   };
+
+  //   initializeFromCache();
+  // }, [getCachedDocument, getCachedStaged, getCacheTabDocuments, getCachedResults]);
+
 
   // Search Parameters Cache Effect
   // Restores previous search parameters from cache
@@ -190,9 +282,47 @@ export function ResearchAssistant() {
   }, [activeDocument, searchResults]);
 
 
+  useEffect(() => {
+    const handleUserChange = (event) => {
+      console.log("user data state")
+      if(event.detail.user) {
+        console.log("user found")
+        
+        setUserData(event.detail.user)
+      } else {
+        console.log("user not found")
+        setUserData("")
+        handleDocumentView([])
+        setDocuments([])
+        setTabs([])
+        setSearchResults([])
+        setActiveDocument(null)
+        setActiveTab(null)
+        
+      }
+    };
+  
+    window.addEventListener('userStateChanged', handleUserChange);
+    return () => window.removeEventListener('userStateChanged', handleUserChange);
+  }, [ ]);
+
+
+   /**************************************************************************
+   * User Role MANAGEMENT
+   * Core functionality for handling User activity 
+   **************************************************************************/
+
+  const SetAuthUserData = async (userData) => {
+
+    if(userData){
+      console.log(" Set User Data {userData}:", userData )
+      setUserData(userData)
+    }
+
+  }
  
 
-/**************************************************************************
+  /**************************************************************************
    * DOCUMENT MANAGEMENT
    * Core functionality for handling document operations
    **************************************************************************/
@@ -203,21 +333,38 @@ export function ResearchAssistant() {
    */
   const fetchDocuments = async () => {
     try {
-      setIsProcessing(true);
-      const response = await fetch('/api/research/documents/upload');
-      const data = await response.json();
+        setIsProcessing(true);
+        const response = await fetch('/api/research/documents/upload', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+            },
+        });
+        const data = await response.json();
 
-      if (data.status === 'error') {
-        throw new Error(data.error);
-      }
-  
-      setDocuments(data.documents);
-      setIsProcessing(false);
+        if (data.status === 'error') {
+            console.error('[fetchDocuments] Error:', data.detail); 
+            throw new Error(data.message);
+        }
+    
+        // Set documents (might be empty array)
+        setDocuments(data.documents);
+
+        // Only show success toast if documents were actually found
+        if (data.documents.length > 0) {
+            toast.success('Documents loaded successfully');
+        } else {
+            // Optional: Show informative message for no documents
+            console.log('[fetchDocuments] No documents found');
+        }
+        setIsProcessing(false);
     } catch (error) {
-      console.error('Failed to fetch documents:', error);
-      toast.error('Failed to load documents');
+        console.error('[fetchDocuments] Critical error:', error); // Dev logging
+    } finally {
+        setIsProcessing(false);
     }
-  };
+};
 
 
   const handleUrlSubmit = useCallback(async (url) => {
@@ -240,6 +387,17 @@ export function ResearchAssistant() {
       toast.error(error.message || 'Failed to add document from URL');
     }
   }, []);
+
+  const handleOpenSidebar = useCallback(async (isOpen) => {
+    if(!isOpen){
+      setOpenSidebar(true)
+
+     } else {
+      setOpenSidebar(false)
+     }
+
+  }, []);
+
 
   /**************************************************************************
    * PINATA STORAGE INTEGRATION
@@ -270,6 +428,29 @@ export function ResearchAssistant() {
     const stagedDocument = data.documents[0];
 
     return stagedDocument;
+  };
+
+  const deleteFromPinata = async (document) => {
+    console.log("Document delete:", document)
+    let file_id = document.document_id
+
+
+    console.log('[handleDeleteDocument] Deleting file with fileId:', file_id);
+    
+    if (file_id) {
+      const response = await fetch('/api/research/documents/file', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ file_id })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to unpin file from Pinata');
+      }
+    }
   };
 
 
@@ -304,86 +485,17 @@ export function ResearchAssistant() {
       return newDocs;
     });
 
+
+
     toast.success(`${files.length} document${files.length !== 1 ? 's' : ''} staged`);
     const delayedUpload = async () => {
       await new Promise(resolve => setTimeout(resolve, 1500));
-      // Pass newDocs directly to ensure we have the latest data
+      // createTab(newDocs[0])
       await handleUploadStaged(newDocs);
     };
     
     await delayedUpload();
   }, [cacheStagedDocuments]);
-
-  /**
-   * Removes document 
-   * Flow: Staging Area → Remove → Update UI
-   */
-  const handleRemoveDocument = useCallback(async(document) => {
-  
-    await handleTabClose(document.document_id)
-    await removeCachedStaged(document)
-    await deleteFromPinata(document)
-    await deleteUploadedDocument(document)
-    await handleTabClose(document.document_id)
-    setDocuments(prev => 
-      prev.filter(file => file.document_id !== document.document_id)
-    );
-  }, []);
-
-
-  const deleteFromPinata = async (document) => {
-    console.log("Document delete:", document)
-    let file_id = document.document_id
-
-
-    console.log('[handleDeleteDocument] Deleting file with fileId:', file_id);
-    
-    if (file_id) {
-      const response = await fetch('/api/research/documents/file', {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ file_id })
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to unpin file from Pinata');
-      }
-    }
-  };
-
-  
-  const deleteUploadedDocument = async (document) => {
-      console.log("Document uploaded deleted:", document)
-      let document_id = document.document_id
-
-      console.log('[handleDeleteDocumentUpload] Deleting document:', document_id);
-      
-      if (document_id) {
-          try {
-              const response = await fetch('/api/research/documents/delete', {
-                  method: 'DELETE',
-                  headers: {
-                      'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify({ document_id }), // Send single ID
-              });
-
-              if (!response.ok) {
-                  const error = await response.json();
-                  throw new Error(error.error || 'Failed to delete document');
-              }
-
-              toast.success('Document deleted successfully');
-          } catch (error) {
-              console.error('Delete error:', error);
-              toast.error(error.message || 'Failed to delete document');
-          }
-          }
-      };
-
 
 
 
@@ -416,32 +528,159 @@ export function ResearchAssistant() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ files: filesData }),
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+      },
+      body: JSON.stringify({ files: filesData })
       });
+
+      
   
       const data = await response.json();
       console.log("data response: ", data)
   
       if (data.status === 'error') {
-        throw new Error(data.error);
-      }
-      const firstDocument = data.documents[0]
+        setIsProcessing(false);
+        console.error('[handleUploadStaged] Upload error:', data.detail); // Dev logging
+        throw new Error(data.message);
+    }
+
       
+      setIsProcessing(false);
       await setDocuments(prev => [...prev, ...data.documents]);
       await setStagedDocuments([]); // Clear staged documents
       await removeCachedStaged(...data.documents); 
-      // await handleDocumentView(firstDocument)
 
-      toast.success('Documents successfully Processed');
-      setIsProcessing(false);
+      toast.success(`${data.documents.length} document${data.documents.length !== 1 ? 's' : ''} processed successfully`);
   
     } catch (error) {
-      console.error('Upload error:', error);
-      toast.error(error.message || 'Failed to upload documents');
+      console.error('[handleUploadStaged] Processing error:', error); // Dev logging
+      toast.error('Unable to process documents. Please remove the document and try again');
     } finally {
+      setIsProcessing(false);
     }
   }, [stagedDocuments]);
+
+
+  /**
+   * Select documents 
+   * Flow: 
+   */
+  
+  const handleDocumentSelect = useCallback((documentFileName) => {
+    console.log("selected Docs:", documentFileName)
+    setSelectedDocuments(documentFileName);
+    setSearchBarVisible(documentFileName.length > 0);
+    // Cache selection state
+    cacheDocument({ type: 'selection', data: documentFileName });
+  }, [cacheDocument]);
+
+
+   /**
+   * Removes document 
+   * Flow: Staging Area → Remove → Update UI
+   */
+   const handleRemoveDocument = useCallback(async(document) => {
+
+    if(stagedDocuments){
+      setStagedDocuments(prev => 
+        prev.filter(file => file.document_id !== document.document_id)
+      );
+    }
+    setDocuments(prev => 
+      prev.filter(file => file.document_id !== document.document_id)
+    );
+    console.log("DETELE DOCUMENT")
+    await handleTabClose(document.document_id)
+    await setActiveDocument(null);
+    await removeCachedStaged(document)
+    await deleteFromPinata(document)
+    await deleteUploadedDocument(document)
+   
+  }, []);
+
+  const deleteUploadedDocument = async (document) => {
+    console.log("Document uploaded deleted:", document)
+    let document_id = document.document_id
+
+    console.log('[handleDeleteDocumentUpload] Deleting document:', document_id);
+
+    if(document.file_id) {
+      handleTabClose(document.file_id)
+    }
+    
+    
+    if (document_id) {
+        try {
+            const response = await fetch('/api/research/documents/upload', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+                },
+                body: JSON.stringify({ document_id }), // Send single ID
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to delete document');
+            }
+
+            toast.success('Document removed successfully', 6000);
+          } catch (error) {
+            console.error('[handleRemoveDocument] Deletion error:', error); // Dev logging
+            toast.error('Unable to remove document. Please try again');
+          }
+        }
+    };
+
+
+
+  const handleRemoveAllDocument = async () => {
+    console.log("[handleRemoveAllDocument] Starting batch deletion");
+    
+    console.log("[handleRemoveAllDocument]  Selected Documents: ", selectedDocuments);
+    // try {
+      const selectedDocs = documents.filter(doc => selectedDocuments.includes(doc.file_name));
+      let documentIds = []; 
+        selectedDocs.forEach(doc => {
+          if (doc.document_id) {
+              documentIds.push(doc.document_id);  // Use push instead of append
+              handleTabClose(doc.document_id)
+              removeCachedStaged(doc)
+              deleteFromPinata(doc)
+              setDocuments(prev => prev.filter(doc => !documentIds.includes(doc.document_id)));
+              setSelectedDocuments(prev => prev.filter(doc => !selectedDocuments.includes(doc.file_name)))
+              setActiveDocument(null);
+              setActiveTab(null);  
+              
+          }
+      });
+
+      
+        console.log("[handleRemoveAllDocument] Remove document Ids: ", documents);
+        
+        const response = await fetch('/api/research/documents/upload', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+            },
+            body: JSON.stringify({ document_ids: documentIds })
+        });
+
+        const result = await response.json();
+        console.log("[handleRemoveAllDocument] backend response ", result );  
+        
+        toast.success(`Successfully removed ${selectedDocuments.length} documents`);
+        return true;
+        
+
+    // } catch (error) {
+    //     console.error('[handleRemoveAllDocument] Batch deletion error:', error);
+    //     toast.error('Unable to remove documents. Please try again');
+    //     return false;
+    // }
+};
 
 
  /**************************************************************************
@@ -453,16 +692,6 @@ export function ResearchAssistant() {
    * Handles document selection for search
    * Flow: Selection → Search Visibility → UI Update
    */
-
-  const handleDocumentSelect = useCallback((documentFileName) => {
-    console.log("selected Docs:", documentFileName)
-    setSelectedDocuments(documentFileName);
-    setSearchBarVisible(documentFileName.length > 0);
-    // Cache selection state
-    cacheDocument({ type: 'selection', data: documentFileName });
-  }, [cacheDocument]);
-
-
 
   /**
    * Manages document viewing functionality
@@ -484,7 +713,6 @@ export function ResearchAssistant() {
       }
       setSelectedDocuments([document.file_name])
       const existingTab = tabs.find(t => t.id === tabId);
-
       console.log("all Tabs: ", tabs)
       
       if (existingTab) {
@@ -515,10 +743,15 @@ export function ResearchAssistant() {
   }, [searchInDocumentResults, handleDocumentView]);
 
 
+  /**************************************************************************
+   * TAB MANAGMENT 
+   * Manages all our tabs
+   **************************************************************************/
+
   // Tab Management
   const createTab =(document)=>{
     const newTab = {
-      id: document.document_id || document.file_id,
+      id: document?.document_id || document?.file_id,
       title:  document.file_name || document.title,
       type: 'document',
       document: document
@@ -532,7 +765,6 @@ export function ResearchAssistant() {
   
   } 
     
-
   // Tab Change Handler
   const handleTabChange = useCallback((tabId) => {
     setActiveTab(tabId);
@@ -579,24 +811,86 @@ export function ResearchAssistant() {
 
     // Toolbar Handlers
     const handleToolSelect = useCallback((toolId) => {
+      
       if (activeTool === toolId) {
         setActiveTool(null);
       } else {
         setActiveTool(toolId);
       }
+        handleSearchBarVisibility(false)
     }, [activeTool]);
 
 
-  
+
   /**************************************************************************
    * SEARCH FUNCTIONALITY
    * Manages document search and result handling
    **************************************************************************/
 
+  const fetchSearchResult = async () => {
+    if (!user && !userData) {
+        return;
+    }
+    try {
+    setIsSearching(true);
+    const cachedResults = await getCachedResults();
+    console.log("Get cache search results: ", cachedResults)
+    console.log("Get cache search results length: ", cachedResults.data.length)
+    if(cachedResults.data > 0) {
+      console.log("stored search results:", cachedResults.data)
+      setSearchResults(cachedResults.data)
+    await setIsSearching(false);  
+    } else {
+    setIsSearching(true);
+    console.log("USER FOUND FETCHING SEARCH RESULTS");
+
+        const response = await fetch('/api/research/documents/search', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+            },
+        });
+        console.log("Search Response:", response)
+        // Check if response is OK (status 200-299)
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        // Check if response has content
+        const text = await response.text();
+        if (!text) {
+            throw new Error("Empty response from server");
+        }
+
+        // Parse JSON safely
+        const data = JSON.parse(text);
+        console.log("FETCH SEARCH RESULTS: ", data);
+
+        setIsSearching(false);
+
+        if (data.status === 'error') {
+            throw new Error(data.error);
+        }
+
+        // setSearchResults(prev => [...prev, ...data.results]);
+        // cacheSearchResults([]);
+        cacheSearchResults([...data.results]);
+        setSearchResults(data.results)
+    }
+
+    } catch (error) {
+        console.error('Failed to fetch search results:', error);
+        setIsSearching(false);
+    }
+};
+
+
 
   const handleSearchBarVisibility = useCallback((visible) => {
     setSearchBarVisible(visible);
   }, []);
+  
 
   const handleSearch = useCallback(async (searchParams) => {
     try {
@@ -607,7 +901,10 @@ export function ResearchAssistant() {
       
       const response = await fetch('/api/research/documents/search', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+         },
         body: JSON.stringify({
           document_ids: selectedDocuments,
           context: searchParams.context,
@@ -617,36 +914,107 @@ export function ResearchAssistant() {
 
       const data = await response.json();
 
-      if (data.status === 'error') {
-        throw new Error(data.error);
+      if (response.status === 500) {
+        console.error('[handleSearch] Search error:', data.detail); // Dev logging
+        toast.info('Search timed out, please try again ');
+        throw new Error(response.error);
+      }
+
+      if (data.results.length === 0) {
+        toast.info('No matches found. Try adjusting your search terms', 8000);
+      } else {
+          toast.success(`Found ${data.results.length} matching result${data.results.length !== 1 ? 's' : ''}`);
       }
 
       await cacheSearchResults([...searchResults, ...data.results]);
       setSearchResults(prev=> [...prev, ...data.results]);
-      toast.success(`Found matches in ${data.results.length} documents`);
+      toast.success(`Found matches in ${data.results.length} documents`, 6000);
 
     } catch (error) {
-      console.error('Search error:', error);
-      toast.error(error.message || 'Failed to perform search');
-      setSearchResults(prev=> [...prev]);
+      console.error('[handleSearch] Search failure:', error); // Dev logging
+      toast.error('Search failed. Please try again');
+      setSearchResults(prev => [...prev]);
     } finally {
-      setIsSearching(false);
+        setIsSearching(false);
     }
+
   }, [selectedDocuments, cacheSearchResults]);
 
 
 
-  const handleRemoveSearchResult = useCallback((documentQuestion, documentTitle) => {
+  const handleRemoveSearchResult = useCallback(async (search_results_id) => {
+    console.log("Handle remove search result: ", search_results_id)
+    let newResults = []
     setSearchResults(prev => {
-      const newResults = prev.filter(result => 
+      newResults = prev.filter(result => 
         
-        
-        !(result.question == documentQuestion && result.title == documentTitle )
+        !(result.search_results_id == search_results_id )
       );
       removeCachedResults(newResults)
       return newResults;
     });
+    console.log("Fetch remove search result: ", search_results_id)
+    if (search_results_id) {
+      // try {
+          console.log("Fetch remove search result: Endpoint " )
+          const response = await fetch('/api/research/documents/search', {
+              method: 'DELETE',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+            },
+            body: JSON.stringify({ search_result_id: search_results_id })
+        });
+
+          if (!response.ok) {
+              const error = await response.json();
+              throw new Error(error.error || 'Failed to delete document');
+          }
+
+          toast.success('Document removed successfully', 6000);
+        // } catch (error) {
+        //   console.error('[handleRemoveDocument] Deletion error:', error); // Dev logging
+        //   toast.error('Unable to remove document. Please try again');
+        // }
+      }
   }, []);
+
+  const handleRemoveAllSearchResult = async (selectedSearchResults) => {
+    console.log("[handleRemoveAllSearchResult] Starting batch deletion searchResults");
+    
+    console.log("[handleRemoveAllSearchResult]  Selected Documents: ", selectedSearchResults);
+    // try {
+      let searchIds = []; 
+      selectedSearchResults.forEach(result => {
+          if (result.search_result_id) {
+            searchIds.push(result.search_result_id); 
+          }
+      });
+      
+        console.log("[handleRemoveAllSearchResult] Remove Search IDs: ", searchIds);
+        
+        const response = await fetch('/api/research/documents/search', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+            },
+            body: JSON.stringify({ search_result_ids: searchIds })
+        });
+
+        console.log("[handleRemoveAllSearchResult] backend response ", response );
+
+        const result = await response.json();
+        console.log("[handleRemoveAllSearchResult]  response OK  ", result );
+
+        return true;
+      }
+
+    // } catch (error) {
+    //     console.error('[handleRemoveAllDocument] Batch deletion error:', error);
+    //     toast.error('Unable to remove documents. Please try again');
+    //     return false;
+    // }
 
 
 
@@ -681,10 +1049,35 @@ export function ResearchAssistant() {
    * RENDER
    * Component render logic with conditional content display
    **************************************************************************/
+  
+  
 
   return (
     <> 
-      <ResearchLayout
+      <ResearchLayout 
+
+        onOpenSidebar={handleOpenSidebar}
+        isSidebarOpen={openSidebar}
+        tabs={tabs}
+        activeTab={activeTab}
+        activeTool={activeTool}
+        onTabChange={handleTabChange}
+        onTabClose={handleTabClose}
+        selectedDocuments={selectedDocuments}
+        fetchDocs={fetchDocuments}
+        setAuthUserData={SetAuthUserData}
+        onToggleSearchBarVisibility={handleSearchBarVisibility}
+
+
+        authState={{
+          user,
+          loading,
+          error, 
+          login,
+          logout,
+          
+        }}
+        
         // Sidebar Component - Document Management
         sidebarContent={
           <DocumentSidebar
@@ -693,10 +1086,12 @@ export function ResearchAssistant() {
             onSelect={handleDocumentSelect}
             onView={handleDocumentView}
             onDelete={handleRemoveDocument}
+            onDeleteAll={handleRemoveAllDocument}
             stagedDocuments={stagedDocuments}
             onStagedUpload={handleStagedUpload}
             onUploadStaged={handleUploadStaged}
             onUrlSubmit={handleUrlSubmit}
+            isFetchingDocuments={isProcessing}
           />
         }
 
@@ -704,7 +1099,7 @@ export function ResearchAssistant() {
         mainContent={
           <div className="relative min-h-full min-w-full border-emerald-600 ">
             {/* Conditional Content Rendering */}
-            <DocGraphLogo isAnimating={isProcessing} />
+            <DocGraphLogo isAnimating={isProcessing} hasUser={userData} />
             { activeDocument ? (
               // Document Viewer
               <DocumentViewer
@@ -717,7 +1112,7 @@ export function ResearchAssistant() {
               // Empty State
               <div className="flex items-center justify-center h-full text-tertiary">
                 {/* <NoResults /> */}
-                <DocGraphLogo isAnimating={isProcessing} />
+                {/* <DocGraphLogo isAnimating={isProcessing} /> */}
               </div>
             )}
           </div>
@@ -750,18 +1145,11 @@ export function ResearchAssistant() {
             onNoteSelect={handleNoteSelect}
             isSearching={isSearching}
             onRemoveResult={handleRemoveSearchResult}
+            onRemoveAllResult={handleRemoveAllSearchResult}
 
           />
         }
-
-        tabs={tabs}
-        activeTab={activeTab}
-        activeTool={activeTool}
-        onTabChange={handleTabChange}
-        onTabClose={handleTabClose}
-        selectedDocuments={selectedDocuments}
-
-        
+      
 
 
       />

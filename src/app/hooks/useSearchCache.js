@@ -26,7 +26,7 @@ export function useSearchCache() {
     return await getCache('search_params', CACHE_LEVELS.SESSION);
   }, [getCache]);
 
-  
+
   /**
    * Cache search results
    */
@@ -37,7 +37,7 @@ export function useSearchCache() {
       timestamp: Date.now()
     }, {
       level: CACHE_LEVELS.SESSION,
-      expiry: 30 * 60 * 1000 // 30 minutes
+      // expiry: 30 * 60 * 1000 // 30 minutes
     });
   }, [setCache]);
 
@@ -50,7 +50,7 @@ export function useSearchCache() {
 
 
   const removeCachedResults = async (newResults) => {
- 
+    console.log(" REMOVE SEARCH RESULTS ", newResults)
     cacheSearchResults(newResults)
 
     return true;

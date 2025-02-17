@@ -1,3 +1,4 @@
+// src/database/db.js 
 import { neon } from '@neondatabase/serverless';
 import config from '../config';
 

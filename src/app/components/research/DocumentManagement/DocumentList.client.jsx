@@ -1,4 +1,4 @@
-// src/app/components/research/Toolbar/DocumentList.client.jsx
+// src/app/components/research/DocumentManagement/DocumentList.client.jsx
 'use client';
 
 
@@ -12,6 +12,7 @@ import { DocumentActions } from './DocumentActions.client';
 export function DocumentList({
   documents = [],
   stagedDocuments = [],
+  isLoading,
   selectedDocuments = [],
   onSelect,
   onView,
@@ -24,12 +25,17 @@ export function DocumentList({
       {stagedDocuments.length > 0 && (
         <div className="border-b border-gray-200">
           <div className="px-4 py-3 bg-gray-50 flex items-center justify-between">
+          {stagedDocuments.length > 0 && isLoading ?
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-medium text-gray-900">
                 Processing Documents
               </h3>
               <Loader2 className="w-4 h-4 text-primary animate-spin" />
-            </div>
+            </div>  :
+            <h3 className="text-sm font-medium text-gray-900">
+            Staged Documents
+            </h3>
+          }
           </div>
           <div className="divide-y divide-gray-200">
             {stagedDocuments.map((doc) => (
@@ -83,6 +89,16 @@ export function DocumentList({
 
       {/* Processed Documents */}
       <div className="divide-y divide-gray-200">
+          {selectedDocuments.length > 0 && isLoading ?
+          <div className="px-4 py-3 bg-gray-50 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+              <h3 className="text-sm font-medium text-gray-900">
+                Documents
+                </h3>
+            </div>
+             </div>  :
+           null
+          }
     
       {documents.map((doc) => (
           <div
@@ -128,6 +144,7 @@ export function DocumentList({
               />
             </div>
           </div>
+          
         ))}
               
 

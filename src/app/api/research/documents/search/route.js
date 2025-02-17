@@ -1,3 +1,119 @@
+//  // src/app/api/research/documents/search/route.js
+
+
+// import { NextResponse } from 'next/server';
+// import config from '../../../../../config';
+
+// const DOCUMENT_SEARCH_URL = `${config.backendApiUrl}research/documents/search/`;
+
+// export async function POST(request) {
+//     console.log("[POST] Starting document search");
+    
+//     try {
+//         const data = await request.json();
+         
+//         // Validate required fields
+//         const { document_ids, context, keywords = [] } = data;
+        
+//         const file_name = document_ids
+//         if (!document_ids?.length) {
+//             return NextResponse.json({ 
+//                 status: 'error',
+//                 error: "No documents selected for search" 
+//             }, { status: 400 });
+//         }
+
+//         if (!context?.trim()) {
+//             return NextResponse.json({ 
+//                 status: 'error',
+//                 error: "Search context is required" 
+//             }, { status: 400 });
+//         }
+
+//         // Word count validation for context
+//         const wordCount = context.trim().split(/\s+/).length;
+//         if (wordCount > 200) {
+//             return NextResponse.json({ 
+//                 status: 'error',
+//                 error: "Context must be 200 words or less" 
+//             }, { status: 400 });
+//         }
+        
+//         const response = await fetch(DOCUMENT_SEARCH_URL, {
+//             method: 'POST',
+//             headers: { 
+//                 'Content-Type': 'application/json',
+//                 'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+//             },
+//             credentials: 'include',
+//             body: JSON.stringify({
+//                 file_name: data.document_ids,
+//                 context: data.context,
+//                 keywords: data.keywords
+//             })
+//         });
+
+//         const searchResults = await response.json();
+//         console.log('search results \n', searchResults)
+
+//         if (!response.ok) {
+//             throw new Error(searchResults.message || 'Failed to perform search');
+//         }
+
+
+//         console.log("[POST] Search complete");
+
+//         return NextResponse.json({
+//             status: 'success',
+//             results: searchResults.results.map(result => ({
+//                 document_id: result.document_id,
+//                 title: result.title,
+//                 question: result.question,
+//                 keywords: result.keywords,
+//                 authors: result.authors,
+//                 summary: result.summary,
+//                 relevance_score: result.relevance_score,
+//                 matching_sections: result.matching_sections.map(section => ({
+//                     section_id: section.section_id,
+//                     page_number: section.page_number,
+//                     start_text: section.start_text,
+//                     // Map each match type array
+//                     context_matches: section.context_matches?.map(match => ({
+//                         text: match.text,
+//                         citations: match.citations || []
+//                     })) || [],
+//                     keyword_matches: section.keyword_matches?.map(match => ({
+//                         keyword: match.keyword,
+//                         text: match.text
+//                     })) || [],
+//                     similar_matches: section.similar_matches?.map(match => ({
+//                         similar_keyword: match.similar_keyword,
+//                         text: match.text
+//                     })) || [],
+//                     // Keep any remaining metadata
+//                     citations: section.citations || []
+//                 }))
+//             })),
+//             metadata: {
+//                 total_results: searchResults.results.length,
+//                 search_params: {
+//                     context,
+//                     keywords,
+//                     document_count: document_ids.length
+//                 }
+//             }
+//         });
+
+//     } catch (error) {
+//         console.error('[POST] Search error:', error);
+//         return NextResponse.json({ 
+//             status: 'error',
+//             error: error.message || 'Failed to perform document search' 
+//         }, { status: 500 });
+//     }
+// }
+
+
 // // src/app/api/research/documents/search/route.js
 
 
@@ -8,7 +124,8 @@ const DOCUMENT_SEARCH_URL = `${config.backendApiUrl}research/documents/search/`;
 
 export async function POST(request) {
     console.log("[POST] Starting document search");
-    
+
+
     try {
         const data = await request.json();
          
@@ -38,21 +155,25 @@ export async function POST(request) {
                 error: "Context must be 200 words or less" 
             }, { status: 400 });
         }
-
+        
+        const authHeader = request.headers.get('authorization');
+        console.log("[POST] Sending Request to backend:", document_ids);
         // Send search request to backend
         const response = await fetch(DOCUMENT_SEARCH_URL, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `${authHeader}` },
             credentials: 'include',
             body: JSON.stringify({
                 file_name,
                 context: context.trim(),
-                keywords: keywords.filter(Boolean)
+                keywords: keywords
             })
         });
 
         const searchResults = await response.json();
-        console.log('search results \n', searchResults)
+        console.log("[POST] SEARCH RESULTS RESPONSE: \n",  searchResults);
 
         if (!response.ok) {
             throw new Error(searchResults.message || 'Failed to perform search');
@@ -61,8 +182,95 @@ export async function POST(request) {
         console.log("[POST] Search complete");
 
         return NextResponse.json({
+                        status: 'success',
+                        results: searchResults.results.map(result => ({
+                            search_results_id: result.search_results_id,
+                            document_id: result.document_id,
+                            title: result.title,
+                            question: result.question,
+                            keywords: result.keywords,
+                            authors: result.authors,
+                            summary: result.summary,
+                            relevance_score: result.relevance_score,
+                            matching_sections: result.matching_sections.map(section => ({
+                                section_id: section.section_id,
+                                page_number: section.page_number,
+                                start_text: section.start_text,
+                                // Map each match type array
+                                context_matches: section.context_matches?.map(match => ({
+                                    text: match.text,
+                                    citations: match.citations || []
+                                })) || [],
+                                keyword_matches: section.keyword_matches?.map(match => ({
+                                    keyword: match.keyword,
+                                    text: match.text
+                                })) || [],
+                                similar_matches: section.similar_matches?.map(match => ({
+                                    similar_keyword: match.similar_keyword,
+                                    text: match.text
+                                })) || [],
+                                // Keep any remaining metadata
+                                citations: section.citations || []
+                            }))
+                        })),
+                        metadata: {
+                            total_results: searchResults.results.length,
+                            search_params: {
+                                context,
+                                keywords,
+                                document_count: document_ids.length
+                            }
+                        }
+                    });
+
+    } catch (error) {
+        console.error('[POST] Search error:', error);
+        return NextResponse.json({ 
+            status: 'error',
+            error: error.message || 'Failed to perform document search' 
+        }, { status: 500 });
+    }
+}
+
+
+export async function GET(request) {
+    console.log("[GET] Fetching documents search results ");
+
+    const authHeader = request.headers.get('authorization');
+    console.log("[GET] Auth header:", authHeader);
+    
+    // try {
+      const response = await fetch(DOCUMENT_SEARCH_URL, {
+        method: 'GET',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `${authHeader}` },
+        credentials: 'include'
+      });
+        console.log(" [GET] RESPONSE GET SEARCH: ", response)
+
+        const searchResults = await response.json();
+        console.log(' [GET] Search results response: \n', searchResults)
+
+        if (!response.ok) {
+            throw new Error(searchResults.message || 'Failed to perform search');
+        }
+
+        // const data = await response.json();
+        // console.log('[GET] Search results:', data);
+
+        // return NextResponse.json({
+        //     status: 'success',
+        //     results: data.results,
+        //     total_matches: data.total_matches
+        // });
+
+        console.log("[GET] Search complete");
+
+        return NextResponse.json({
             status: 'success',
             results: searchResults.results.map(result => ({
+                search_results_id: result.search_results_id,
                 document_id: result.document_id,
                 title: result.title,
                 question: result.question,
@@ -94,32 +302,131 @@ export async function POST(request) {
             metadata: {
                 total_results: searchResults.results.length,
                 search_params: {
-                    context,
-                    keywords,
-                    document_count: document_ids.length
+                    context: searchResults.results.question,
+                    keywords: searchResults.results.keywords,
+                    document_count: searchResults.length
                 }
             }
         });
-
-    } catch (error) {
-        console.error('[POST] Search error:', error);
-        return NextResponse.json({ 
-            status: 'error',
-            error: error.message || 'Failed to perform document search' 
-        }, { status: 500 });
     }
-}
 
 
+    // export async function DELETE(request) {
+    //     console.log("Request Delete Route")
+    //     try {
+    //         const data = await request.json();
+    //         const authHeader = request.headers.get('authorization');
+    
+    //         const response = await fetch(DOCUMENT_SEARCH_URL, {
+    //             method: 'DELETE',
+    //             headers: {
+    //                 'Content-Type': 'application/json',
+    //                 'Authorization': `${authHeader}`,
+    //             },
+    //             body: JSON.stringify(data)
+    //         });
+    
+    //         if (!response.ok) {
+    //             const error = await response.json();
+    //             return NextResponse.json(
+    //                 { error: error.message || 'Failed to remove search result' },
+    //                 { status: response.status }
+    //             );
+    //         }
+    
+    //         const result = await response.json();
+    //         return NextResponse.json(result);
+    
+    //     } catch (error) {
+    //         console.error('[DELETE] Search result removal error:', error);
+    //         return NextResponse.json(
+    //             { error: 'Failed to remove search result' },
+    //             { status: 500 }
+    //         );
+    //     }
+    // }
 
 
+    export async function DELETE(request) {
+        console.log("Request Delete Route")
+        try {
+            const data = await request.json();
+            const searchId = data.search_result_id;
+            const searchIds = data.search_result_ids;  // New field for multiple files
+      
+            console.log("[DELETE]: searchId", searchId )
+            console.log("[DELETE]: searchIds", searchIds)
+      
+            const authHeader = request.headers.get('authorization');
 
+             // Handle single file deletion
+          if (searchId ) {
 
-
-
-
-
-
-
-
-
+            const response = await fetch(DOCUMENT_SEARCH_URL, {
+              method: 'DELETE',
+              headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `${authHeader}` },
+              credentials: 'include',
+              body: JSON.stringify({ search_result_id: searchId  })
+          });
+            
+            return NextResponse.json({
+                status: 'success',
+                message: 'Search Results Successfully Deleted'
+            });
+        }
+        if (searchIds) {
+            console.log('[DELETE] Attempting to unpin multiple files:', searchIds);
+            
+            const results = await Promise.all(
+                searchIds.map(async (id) => {
+                    try {
+                         await deleteFile(id);
+                        
+                         console.log("[DELETE] Deleting ID :", id)
+                         const response = await fetch(DOCUMENT_DELETE_URL, {
+                            method: 'DELETE',
+                            headers: { 
+                              'Content-Type': 'application/json',
+                              'Authorization': `${authHeader}` },
+                            credentials: 'include',
+                            body: JSON.stringify({ search_result_id: id })
+                        });
+              
+  
+  
+                    } catch (error) {
+                        console.error(`Failed to delete file ${id}:`, error);
+                        return false;
+                    }
+                })
+            );
+            
+          const successCount = results.filter(Boolean).length;
+  
+            return NextResponse.json({
+                status: 'success',
+                message: `Successfully removed ${successCount} of ${searchIds.length} results`,
+                details: {
+                    total: searchIds.length,
+                    successful: successCount,
+                    failed: searchIds.length - successCount
+                }
+            });
+        }
+        
+        return NextResponse.json({
+            status: 'error',
+            error: 'No result id provided'
+        }, { status: 400 });
+        
+    
+        } catch (error) {
+            console.error('[DELETE] Search result removal error:', error);
+            return NextResponse.json(
+                { error: 'Failed to remove search result' },
+                { status: 500 }
+            );
+        }
+    }
