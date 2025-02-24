@@ -231,13 +231,27 @@ function DocumentResult({
             <div className="flex gap-2 text-xs text-tertiary">
               {result.matching_sections.length > 0 && (
                 <div className="flex items-center gap-2">
-                  <span>
-                    {result.matching_sections.reduce((total, section) => {
-                      return total + 
-                        (section.context_matches?.length || 0) +
-                        (section.keyword_matches?.length || 0) +
-                        (section.similar_matches?.length || 0);
-                    }, 0)} matches
+                    <span>
+                    {activeMatchType === "all"
+                      ? result.matching_sections.reduce(
+                          (total, section) =>
+                            total +
+                            (section.context_matches?.length || 0) +
+                            (section.keyword_matches?.length || 0) +
+                            (section.similar_matches?.length || 0),
+                          0
+                        )
+                      : activeMatchType === "context"
+                      ? result.matching_sections.reduce(
+                          (total, section) => total + (section.context_matches?.length || 0),
+                          0
+                        )
+                      : result.matching_sections.reduce(
+                          (total, section) =>
+                            total + (section.keyword_matches?.length || 0) + (section.similar_matches?.length || 0),
+                          0
+                        )}{" "}
+                    matches
                   </span>
                   <span className="text-tertiary/50">•</span>
                   <span>From {result.matching_sections.length} Pages</span>

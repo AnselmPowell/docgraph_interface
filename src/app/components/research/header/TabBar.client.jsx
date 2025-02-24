@@ -14,7 +14,6 @@ export function TabBar({
 }) {
   const scrollRef = useRef(null);
   const [showScrollButtons, setShowScrollButtons] = useState(false);
-  console.log("tab selected", selectedDocuments)
   // Check if tabs overflow
   useEffect(() => {
     const checkScroll = () => {

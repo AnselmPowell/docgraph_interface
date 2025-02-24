@@ -105,7 +105,8 @@ function ToastComponent({ message, type, onClose, id, time=6000 }) {
   useEffect(() => {
     const timer = setTimeout(onClose, time);
     return () => clearTimeout(timer);
-  }, [onClose]);
+  }, [onClose, time]);
+  
 
   useEffect(() => {
     repositionToasts();

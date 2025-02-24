@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 
-import config from '../../../../config'
+import config from '../../../config'
 
 const DJANGO_API_URL = config.backendApiUrl;
 

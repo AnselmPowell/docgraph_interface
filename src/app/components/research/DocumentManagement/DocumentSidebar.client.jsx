@@ -94,6 +94,8 @@ export function DocumentSidebar({
    
   }, [selectedDocuments]);
 
+  console.log("selected Documents: ", selectedDocuments)
+
 
 
   return (
@@ -122,13 +124,15 @@ export function DocumentSidebar({
             </>
           ) : (
             <>
-              <Upload className="w-5 h-5 text-tertiary" />
-              <p className="text-sm text-tertiary text-center">
-                Drop files here or <span className="text-primary">browse</span>
+            
+            <Upload className="w-6 h-6 text-tertiary" />
+              <p className="text-sm font-medium text-tertiary text-center mt-2">
+                Drag & drop your file here
               </p>
-              <p className="text-xs text-tertiary/70">
-                Supports PDF, DOCX, DOC, TXT
+              <p className="text-xs text-tertiary/70 mt-1">
+                <span className="font-semibold">Only <strong>PDF</strong> files are supported</span>
               </p>
+            
             </>
           )}
         </div>

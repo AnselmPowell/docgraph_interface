@@ -20,7 +20,7 @@ export function Header({
 }) {
 
   useEffect(() => {
-    console.log("Header - Auth state changed:", authState);
+
   }, [authState]);
 
   return (

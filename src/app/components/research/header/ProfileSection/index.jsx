@@ -85,8 +85,6 @@ export default function ProfileSection({authState, fetchDocs, setUserData}) {
         );
     }
 
-    console.log("ProfileSection rendering with user:", currentUser);
-
     return (
         <>
         <div className="flex items-center gap-4">

@@ -11,3 +11,7 @@ bash merge_files.sh AuthModal/index.jsx AuthModal/LoginForm.jsx AuthModal/Regist
 \\ Social Auth files 
 bash merge_files.sh googleAuth.js microsoftAuth.js google/url/route.js google/callback/route.js microsoft/url/route.js microsoft/callback/route.js
 
+
+
+
+File not found

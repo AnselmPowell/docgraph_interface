@@ -28,7 +28,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/$
 
 
 export function DocumentViewer({ document, onClose, searchInResults, className = '' }) {
-  // console.log('[DocumentViewer] Component mounted with document:', document);
+  console.log('[DocumentViewer] Component mounted with document:', document);
   // console.log('[DocumentViewer] Document type:', document instanceof File ? 'File' : typeof document);
 
   // Viewer state
@@ -99,9 +99,9 @@ export function DocumentViewer({ document, onClose, searchInResults, className =
         }
 
         const blob = await response.blob();
-        // console.log('[DocumentViewer] Created blob URL, size:', blob.size);
 
         return URL.createObjectURL(blob);
+        
     } catch (error) {
         console.error('[DocumentViewer] Proxy error:', error);
         throw error;
@@ -109,9 +109,8 @@ export function DocumentViewer({ document, onClose, searchInResults, className =
 };
   
 
-
   const handleSearch = useCallback((query, isResults = false, pageNumber = 1) => {
-    console.log('[DocumentViewer] New search:', query);
+
     setSearchTerm(query);
     setCurrentMatchIndex(0);
     setIsSearchResults(isResults)
@@ -140,9 +139,6 @@ export function DocumentViewer({ document, onClose, searchInResults, className =
     },
     [resultsList]
   );
-  
-
-
   
 
   const customTextRenderer = useCallback(
@@ -205,11 +201,11 @@ export function DocumentViewer({ document, onClose, searchInResults, className =
   
         // Get proxied URL
         const proxiedUrl = await getProxiedUrl(url);
-        // console.log('[DocumentViewer] Created proxied URL:', proxiedUrl);
+        console.log('[DocumentViewer] Created proxied URL:', proxiedUrl);
     
-        // console.log('[DocumentViewer] Cached document URL:', document.file_name, proxiedUrl);
-  
+    
         if (isMounted) {
+          console.log('[DocumentViewer] Mount proxied URL');
           setDocumentUrl(proxiedUrl);
           setError(null);
         }
@@ -247,7 +243,7 @@ export function DocumentViewer({ document, onClose, searchInResults, className =
       const {text, page} = searchInResults
       handleSearch(text, isResults, page)
     }
-  }, [searchInResults]);
+  }, [searchInResults, handleSearch]);
 
 
 
@@ -474,7 +470,4 @@ export function DocumentViewer({ document, onClose, searchInResults, className =
     </div>
   );
 }
-
-
-
 

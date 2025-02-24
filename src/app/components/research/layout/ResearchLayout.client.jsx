@@ -40,7 +40,6 @@ const hoverTimerRef = useRef(null);
 const sidebarRef = useRef(null);
 
 const handleOpenSidebar = (isOpen)=> {
-      console.log(" OPEN SIDEBAR--------------------")
       setShowSidebar(isOpen);
       onOpenSidebar(isOpen)
 }

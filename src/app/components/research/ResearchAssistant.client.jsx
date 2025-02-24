@@ -25,38 +25,27 @@
  *****************************************************************************/
 
 // React Core
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react'; // Add useMemo
 
-
+// Layout/Core Components
 import { DocGraphLogo } from '../svg/DocGraphLogo.client';
-
-// Layout Components
 import { ResearchLayout } from './layout/ResearchLayout.client';
 
-
-// Document Management Components
+// Feature Components
 import { DocumentSidebar } from './DocumentManagement/DocumentSidebar.client';
 import { DocumentViewer } from './DocumentViewer/DocumentViewer.client';
-
-
-// Search Components
 import { SearchBar } from './Search/SearchBar.client';
+import { ToolbarContainer } from './ToolBar/ToolbarContainer.client';
 
-// ToolBar Component
-import {ToolbarContainer} from './ToolBar/ToolbarContainer.client'
-
-// UI Components
+// Utilities & Services
 import { toast } from '../messages/Toast.client';
-
-// Services & Utilities
 import { getCache, setCache, clearCache } from '../../services/caches';
-import { storageManager } from '../../services/storageManager';
 
+
+// Hooks
 import { useDocumentCache } from '../../hooks/useDocumentCache';
 import { useSearchCache } from '../../hooks/useSearchCache';
 import { useUICache } from '../../hooks/useUICache';
-
-// User Authentication 
 import { useAuth } from '../../hooks/useAuth';
 
 /******************************************************************************
@@ -99,6 +88,7 @@ export function ResearchAssistant() {
 
   // Document Management States
   // Handles different states of documents in the system
+  const [isDocumentFetched,  setIsDocumentsFetched] = useState(false)
   const [documents, setDocuments] = useState([]); // Processed documents
   const [openSidebar, setOpenSidebar] = useState(true); // Processed documents
   const [selectedDocuments, setSelectedDocuments] = useState([]); // Selected for search
@@ -191,13 +181,14 @@ export function ResearchAssistant() {
 
     }
 
-   const fetchData = () => {
-        fetchDocuments();
-        fetchSearchResult();
+   const fetchData = async () => {
+        await fetchDocuments();
+        // setIsDocumentsFetched(true)
+        await fetchSearchResult();
     };
 
     if (user) {
-        console.log("[ResearchAssistant] Fetching documents for user:", user.email);
+      
         fetchData();
         return;
     }
@@ -218,7 +209,7 @@ export function ResearchAssistant() {
         document.cookie = 'refreshToken=; Max-Age=0; path=/;';
     } else if (savedUser || userData) {
         console.log("[ResearchAssistant] Fetching documents for saved user or userData:", userData?.email);
-        fetchData();
+        // fetchData();
     } else {
         console.log("User not found, resetting state.");
         setUserData("");
@@ -230,6 +221,7 @@ export function ResearchAssistant() {
         // fetchData();
     }
   }
+
   fetchUserData()
 }, [user]);
 
@@ -284,7 +276,6 @@ export function ResearchAssistant() {
 
   useEffect(() => {
     const handleUserChange = (event) => {
-      console.log("user data state")
       if(event.detail.user) {
         console.log("user found")
         
@@ -331,7 +322,11 @@ export function ResearchAssistant() {
    * Fetches processed documents from backend
    * Data Flow: API → documents state → DocumentSidebar
    */
-  const fetchDocuments = async () => {
+  const fetchDocuments = useMemo(() => async () => {
+    if(isDocumentFetched){
+      console.log("Documents already fetched")
+      return
+    }
     try {
         setIsProcessing(true);
         const response = await fetch('/api/research/documents/upload', {
@@ -350,6 +345,7 @@ export function ResearchAssistant() {
     
         // Set documents (might be empty array)
         setDocuments(data.documents);
+        setIsDocumentsFetched(true);
 
         // Only show success toast if documents were actually found
         if (data.documents.length > 0) {
@@ -363,8 +359,9 @@ export function ResearchAssistant() {
         console.error('[fetchDocuments] Critical error:', error); // Dev logging
     } finally {
         setIsProcessing(false);
+        
     }
-};
+  }, []);
 
 
   const handleUrlSubmit = useCallback(async (url) => {
@@ -581,6 +578,7 @@ export function ResearchAssistant() {
    */
    const handleRemoveDocument = useCallback(async(document) => {
 
+    const updates = () => {
     if(stagedDocuments){
       setStagedDocuments(prev => 
         prev.filter(file => file.document_id !== document.document_id)
@@ -589,12 +587,15 @@ export function ResearchAssistant() {
     setDocuments(prev => 
       prev.filter(file => file.document_id !== document.document_id)
     );
+    }
+
     console.log("DETELE DOCUMENT")
+    updates();
     await handleTabClose(document.document_id)
-    await setActiveDocument(null);
     await removeCachedStaged(document)
     await deleteFromPinata(document)
     await deleteUploadedDocument(document)
+
    
   }, []);
 
@@ -730,7 +731,9 @@ export function ResearchAssistant() {
       console.error('[ResearchAssistant] Error viewing document:', error);
       toast.error('Failed to prepare document for viewing');
     }
-  }, [tabs]);
+  }, []);
+
+ 
 
 
   const handleViewSearchResults = useCallback(async (text, document, page) => { 
@@ -749,7 +752,7 @@ export function ResearchAssistant() {
    **************************************************************************/
 
   // Tab Management
-  const createTab =(document)=>{
+  const createTab = useCallback((document) => {
     const newTab = {
       id: document?.document_id || document?.file_id,
       title:  document.file_name || document.title,
@@ -763,7 +766,7 @@ export function ResearchAssistant() {
     })
     setActiveTab(document.document_id);
   
-  } 
+  }, [cacheTabDocuments]); 
     
   // Tab Change Handler
   const handleTabChange = useCallback((tabId) => {
@@ -827,15 +830,14 @@ export function ResearchAssistant() {
    * Manages document search and result handling
    **************************************************************************/
 
-  const fetchSearchResult = async () => {
+  const fetchSearchResult = useMemo(() => async () => {
     if (!user && !userData) {
         return;
     }
     try {
     setIsSearching(true);
     const cachedResults = await getCachedResults();
-    console.log("Get cache search results: ", cachedResults)
-    console.log("Get cache search results length: ", cachedResults.data.length)
+
     if(cachedResults.data > 0) {
       console.log("stored search results:", cachedResults.data)
       setSearchResults(cachedResults.data)
@@ -883,7 +885,7 @@ export function ResearchAssistant() {
         console.error('Failed to fetch search results:', error);
         setIsSearching(false);
     }
-};
+  }, [user, userData, getCachedResults, cacheSearchResults]);
 
 
 
@@ -1064,7 +1066,7 @@ export function ResearchAssistant() {
         onTabChange={handleTabChange}
         onTabClose={handleTabClose}
         selectedDocuments={selectedDocuments}
-        fetchDocs={fetchDocuments}
+        // fetchDocs={fetchDocuments}
         setAuthUserData={SetAuthUserData}
         onToggleSearchBarVisibility={handleSearchBarVisibility}
 
@@ -1103,11 +1105,10 @@ export function ResearchAssistant() {
             { activeDocument ? (
               // Document Viewer
               <DocumentViewer
-                document={activeDocument}
-
-                onClose={() => setActiveDocument(null)}
-                searchInResults={searchInDocumentResults}
-              />
+              document={activeDocument}
+              onClose={() => setActiveDocument(null)}
+              searchInResults={searchInDocumentResults}
+            />
             ) : (
               // Empty State
               <div className="flex items-center justify-center h-full text-tertiary">
