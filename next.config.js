@@ -192,7 +192,7 @@ const nextConfig = {
   async rewrites() {
     const isProduction = process.env.IS_PRODUCTION_BACKEND === 'true';
     const baseUrl = isProduction
-      ? process.env.BACKEND_BASE_URL || 'https://basedatastorev2-production.up.railway.app'
+      ? process.env.BACKEND_BASE_URL || 'docgraphapi.up.railway.app'
       : process.env.BACKEND_BASE_URL_DEV || 'http://localhost:8001';
     
     return [
