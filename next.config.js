@@ -192,9 +192,8 @@ const nextConfig = {
   async rewrites() {
     const isProduction = process.env.IS_PRODUCTION_BACKEND === 'true';
     const baseUrl = isProduction
-      ? process.env.BACKEND_BASE_URL || 'docgraphapi.up.railway.app'
-      : process.env.BACKEND_BASE_URL_DEV || 'http://localhost:8001';
-    
+  ? process.env.BACKEND_BASE_URL || 'https://docgraphapi.up.railway.app'
+  : process.env.BACKEND_BASE_URL_DEV || 'http://localhost:8001';
     return [
       // PDF proxy route - handle locally
       {

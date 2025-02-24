@@ -14,4 +14,6 @@ bash merge_files.sh googleAuth.js microsoftAuth.js google/url/route.js google/ca
 
 
 
+bash merge_files.sh next.config.js postcss.config.js src/config.js 
+
 File not found
