@@ -34,7 +34,7 @@ import { ResearchLayout } from './layout/ResearchLayout.client';
 // Feature Components
 import { DocumentSidebar } from './DocumentManagement/DocumentSidebar.client';
 import { DocumentViewer } from './DocumentViewer/DocumentViewer.client';
-import { SearchBar } from './Search/SearchBar.client';
+import { SearchBar } from './Search/SearchBar.client.jsx';
 import { ToolbarContainer } from './ToolBar/ToolbarContainer.client';
 
 // Utilities & Services
