@@ -113,6 +113,7 @@ COPY package*.json ./
 
 # Install dependencies using production flag and cache
 RUN npm ci --production=false
+RUN npm install sharp
 
 # Copy the rest of your app's source code
 COPY . .
@@ -129,4 +130,4 @@ RUN npm run build
 EXPOSE 3000
 
 # Start the app
-CMD ["npm", "start"]
+CMD ["node", ".next/standalone/server.js"]
