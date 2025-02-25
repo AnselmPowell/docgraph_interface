@@ -65,7 +65,7 @@ const nextConfig = {
     domains: [
       'teal-ready-mouse-587.mypinata.cloud',
       'localhost',
-      'basedatastorev2-production.up.railway.app'
+      'docgraphapi.up.railway.app'
     ],
     remotePatterns: [
       {
