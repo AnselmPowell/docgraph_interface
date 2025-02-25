@@ -1071,7 +1071,6 @@ export function ResearchAssistant() {
         onTabChange={handleTabChange}
         onTabClose={handleTabClose}
         selectedDocuments={selectedDocuments}
-        // fetchDocs={fetchDocuments}
         setAuthUserData={SetAuthUserData}
         onToggleSearchBarVisibility={handleSearchBarVisibility}
 
