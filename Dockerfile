@@ -36,6 +36,7 @@ COPY package*.json ./
 # Install dependencies using production flag and cache
 RUN npm ci --production=false
 RUN npm install sharp
+RUN cp -r public .next/standalone/public
 
 # Copy the rest of your app's source code
 COPY . .
