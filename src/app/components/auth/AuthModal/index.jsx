@@ -6,7 +6,7 @@ import { X, Github, Mail } from 'lucide-react';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
 
-export function AuthModal({ isOpen, onClose, fetchDocs, initialView = 'login' }) {
+export function AuthModal({ isOpen, onClose, initialView = 'login' }) {
   const [view, setView] = useState(initialView);
 
   useEffect(() => {
@@ -85,8 +85,8 @@ export function AuthModal({ isOpen, onClose, fetchDocs, initialView = 'login' })
           {/* Form Container */}
           <div className="p-6  max-h-[60%]" >
             {view === 'login' 
-              ? <LoginForm onClose={onClose} fetchDocs={fetchDocs} /> 
-              : <RegisterForm onClose={onClose} fetchDocs={fetchDocs} />
+              ? <LoginForm onClose={onClose}  /> 
+              : <RegisterForm onClose={onClose}  />
             }
           </div>
 

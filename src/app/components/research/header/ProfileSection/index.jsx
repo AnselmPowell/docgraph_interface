@@ -9,7 +9,7 @@ import SignInButton from './SignInButton.client';
 import UserDropdown from './UserDropdown.client';
 import { AuthModal } from '../../../auth/AuthModal';
 
-export default function ProfileSection({authState, fetchDocs, setUserData}) {
+export default function ProfileSection({authState, setUserData}) {
     // const { user, loading, error, logout } = useAuth();
     const { user, loading, error, logout } = authState;
 
@@ -102,7 +102,7 @@ export default function ProfileSection({authState, fetchDocs, setUserData}) {
         </div>
          <AuthModal 
          isOpen={modalState.isOpen}
-         fetchDocs={fetchDocs}
+
          initialView={modalState.view}
          onClose={closeAuthModal}
        />

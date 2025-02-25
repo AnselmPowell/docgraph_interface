@@ -21,7 +21,6 @@ export function ResearchLayout({
   onTabChange,
   onTabClose,
   selectedDocuments,
-  fetchDocs,
   setAuthUserData,
   onToggleSearchBarVisibility
 }) {
@@ -108,7 +107,6 @@ const handleClickOutside =(event)=> {
     onTabChange={onTabChange}
     onTabClose={onTabClose}
     selectedDocuments={selectedDocuments}
-    fetchDocs={fetchDocs}
     setUserData={setAuthUserData}
     className={` ${showSidebar || activeTool ? "border-b border-tertiary/10" : "" }`}
   />

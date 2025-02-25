@@ -14,7 +14,6 @@ export function Header({
   onTabChange,
   onTabClose,
   selectedDocuments,
-  fetchDocs,
   setUserData,
   className
 }) {
@@ -40,7 +39,7 @@ export function Header({
         <div className="flex items-center gap-1">
           <div className="relative w-16 h-16 p-3">
             <Image
-              src="./docgraph_2_br.png"
+              src="/docgraph_2_br.png"
               alt="DocGraph Logo"
               fill
               className="object-contain"
@@ -62,7 +61,7 @@ export function Header({
         />
       </div>
 
-      <ProfileSection authState={authState} fetchDocs={fetchDocs} setUserData={setUserData} />
+      <ProfileSection authState={authState} setUserData={setUserData} />
     </motion.header>
   );
 }

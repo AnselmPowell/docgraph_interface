@@ -1,220 +1,414 @@
 
---- Start of next.config.js ---
+--- Start of googleAuth.js ---
+// src/auth/social/googleAuth.js
+import config from '../../config'
 
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  reactStrictMode: true,
+export function getGoogleAuthUrl() {
+  const scopes = [
+    'https://www.googleapis.com/auth/userinfo.email',
+    'https://www.googleapis.com/auth/userinfo.profile',
+  ];
 
-  // Configure headers for CORS
-  async headers() {
-    return [
-      {
-        // Headers for PDF proxy
-        source: '/api/file/pdf/proxy',
-        headers: [
-          { key: 'Access-Control-Allow-Credentials', value: 'true' },
-          { key: 'Access-Control-Allow-Origin', value: '*' },
-          { key: 'Access-Control-Allow-Methods', value: 'GET, OPTIONS' },
-          { key: 'Access-Control-Allow-Headers', value: 'Content-Type, Authorization, X-Requested-With' },
-        ],
-      },
-    ];
-  },
+  const params = new URLSearchParams({
+    client_id: config.googleClientId,
+    redirect_uri: config.googleRedirectUri,
+    response_type: 'code',
+    scope: scopes.join(' '),
+    access_type: 'offline',
+    prompt: 'consent'
+  });
 
-  // API and page rewrites
-  async rewrites() {
-    const isProduction = process.env.IS_PRODUCTION_BACKEND === 'true';
-    const baseUrl = isProduction
-  ? process.env.BACKEND_BASE_URL || 'https://docgraphapi.up.railway.app'
-  : process.env.BACKEND_BASE_URL_DEV || 'http://localhost:8001';
-    return [
-      // PDF proxy route - handle locally
-      {
-        source: '/api/file/pdf/proxy',
-        destination: '/api/file/pdf/proxy'
-      },
-      // Handle all other API routes
-      {
-        source: '/api/:path*',
-        destination: `${baseUrl}/api/:path*`
-      },
-      // Page routes
-      {
-        source: '/login',
-        destination: '/pages/login',
-      },
-      {
-        source: '/register',
-        destination: '/pages/register',
-      }
-    ];
-  },
-
-  // WebPack configuration for PDF.js
-  webpack: (config) => {
-    config.resolve.alias.canvas = false;
-    config.resolve.fallback = {
-      ...config.resolve.fallback,
-      fs: false,
-      path: false,
-      crypto: false,
-    };
-    return config;
-  },
-
-  // Image domains configuration
-  images: {
-    domains: [
-      'teal-ready-mouse-587.mypinata.cloud',
-      'localhost',
-      'docgraphapi.up.railway.app'
-    ],
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '**.mypinata.cloud',
-        port: '',
-        pathname: '/files/**',
-      },
-    ],
-  },
-
-  // Environment variables
-  env: {
-    CSRF_SECRET: process.env.CSRF_SECRET,
-  },
-
-  // Experimental features
-  experimental: {
-    // Enable if needed
-    // esmExternals: true,
-    // serverComponents: true,
-  },
-
-  // Compiler options
-  compiler: {
-    // Remove console logs in production
-    removeConsole: process.env.NODE_ENV === 'production',
-  },
-
-  // Enable strict mode for better error catching
-  typescript: {
-    ignoreBuildErrors: false,
-  },
-
-  // Output configuration
-  output: 'standalone',
-
-  // Disable x-powered-by header
-  poweredByHeader: false,
-
-  // Configure compression
-  compress: true,
-
-  // Configure asset prefix if needed
-  // assetPrefix: process.env.NEXT_PUBLIC_CDN_URL,
-
-  // Configure base path if needed
-  // basePath: '',
-
-  // Disable image optimization if using external service
-  // images: { unoptimized: true },
-};
-
-module.exports = nextConfig;
---- End of next.config.js ---
-
---- Start of postcss.config.js ---
-
-module.exports = {
-  plugins: {
-    tailwindcss: {},
-    autoprefixer: {},
-  },
+  return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
 }
---- End of postcss.config.js ---
 
---- Start of src/config.js ---
-const isProductionFrontend = process.env.IS_PRODUCTION_FRONTEND === 'true';
-const isProductionBackend = process.env.IS_PRODUCTION_BACKEND === 'true';
-  
-const config = {
-  isProductionFrontend,
-  isProductionBackend,
-  backendBaseUrl: isProductionBackend 
-    ? process.env.BACKEND_BASE_URL
-    : process.env.BACKEND_BASE_URL_DEV,
-  backendApiUrl: isProductionBackend 
-    ? process.env.BACKEND_API_URL
-    : process.env.BACKEND_API_URL_DEV,
-  redirectUrl: isProductionFrontend 
-    ? process.env.FRONTEND_BASE_URL
-    : process.env.FRONTEND_BASE_URL_DEV,
-  databaseUrl: isProductionBackend
-    ? process.env.POSTGRES_URL
-    : process.env.POSTGRES_URL_DEV,
-  googleClientId: process.env.GOOGLE_CLIENT_ID,
-  googleSecretId: process.env.GOOGLE_CLIENT_SECRET,
-  googleRedirectUri: isProductionFrontend
-    ? process.env.GOOGLE_CALLBACK_URL
-    : process.env.GOOGLE_CALLBACK_URL_DEV,
-  microsoftClientId: process.env.MICROSOFT_CLIENT_ID,
-  microsoftRedirectUri: isProductionFrontend
-    ? process.env.MICROSOFT_CALLBACK_URL
-    : process.env.MICROSOFT_CALLBACK_URL_DEV,
-    
-};
+export async function getGoogleUser(code) {
+  console.log("[googleAuth] Exchanging code for tokens");
 
-module.exports = config;
---- End of src/config.js ---
+  try {
+    // Exchange code for tokens
+    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        code,
+        client_id: config.googleClientId,
+        client_secret: config.googleSecretId,
+        redirect_uri: config.googleRedirectUri,
+        grant_type: 'authorization_code',
+      }),
+    });
 
---- Start of jsconfig.json ---
-{
-  "compilerOptions": {
-    "paths": {
-      "@/*": ["./src/*"]
+    if (!tokenResponse.ok) {
+      throw new Error('Failed to exchange code for tokens');
     }
+
+    const tokens = await tokenResponse.json();
+    console.log("[googleAuth] Token exchange successful");
+
+    // Get user info using access token
+    const userResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: {
+        Authorization: `Bearer ${tokens.access_token}`,
+      },
+    });
+
+    if (!userResponse.ok) {
+      throw new Error('Failed to get user info');
+    }
+
+    const userData = await userResponse.json();
+    console.log("[googleAuth] User info retrieved successfully");
+
+    return {
+      email: userData.email,
+      name: userData.name,
+      given_name: userData.given_name,
+      family_name: userData.family_name,
+      picture: userData.picture
+    };
+
+  } catch (error) {
+    console.error('[googleAuth] Error:', {
+      name: error.name,
+      message: error.message,
+      code: error.code
+    });
+    throw error;
   }
 }
---- End of jsconfig.json ---
 
---- Start of postcss.config.js ---
+--- End of googleAuth.js ---
 
-module.exports = {
-  plugins: {
-    tailwindcss: {},
-    autoprefixer: {},
-  },
-}
---- End of postcss.config.js ---
+--- Start of microsoftAuth.js ---
+import config from '../../config'
+import { PublicClientApplication, CryptoProvider } from '@azure/msal-node';
 
---- Start of tailwind.config.js ---
-/** @type {import('tailwindcss').Config} */
-module.exports = {
-  content: [
-    "./src/**/*.{js,jsx,ts,tsx}",
-    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
-  ],
-  theme: {
-    extend: {
-      colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
-      },
-      keyframes: {
-        wiggle: {
-          '0%, 100%': { transform: 'rotate(0deg)' },
-          '25%': { transform: 'rotate(-3deg)' },
-          '75%': { transform: 'rotate(3deg)' },
-        }
-      },
-      animation: {
-        wiggle: 'wiggle 1s ease-in-out',
-      }
+const msalConfig = {
+    auth: {
+        clientId: config.microsoftClientId,
+        authority: 'https://login.microsoftonline.com/consumers',
     },
-  },
-  plugins: [],
 };
 
---- End of tailwind.config.js ---
+export const msalInstance = new PublicClientApplication(msalConfig);
+
+
+export async function getMicrosoftAuthUrl() {
+  console.log("Inside Microsoft")
+  const cryptoProvider = new CryptoProvider();
+  const { verifier, challenge } = await cryptoProvider.generatePkceCodes();
+
+  const scopes = ['user.read', 'openid', 'profile', 'email'];
+  const redirectUri = config.microsoftRedirectUri;
+  console.log("Inside Microsoft redirect url: ", redirectUri)
+  if (!redirectUri) {
+    throw new Error('Redirect URI is not set in environment variables');
+  }
+
+  try {
+    const authCodeUrlParameters = {
+      scopes: scopes,
+      redirectUri: redirectUri,
+      codeChallenge: challenge,
+      codeChallengeMethod: 'S256',
+    };
+
+    const response = await msalInstance.getAuthCodeUrl(authCodeUrlParameters);
+    
+    console.log("Inside Microsoft response url: ", response)
+    console.log("Inside Microsoft response verifier: ", verifier)
+    return { url: response, codeVerifier: verifier };
+  } catch (error) {
+    console.error("Error generating auth URL:", error);
+    throw error;
+  }
+}
+
+// export async function getMicrosoftAuthUrl() {
+//   console.log("Initiating Microsoft auth URL generation");
+  
+//   try {
+//       // Generate PKCE codes
+//       const cryptoProvider = new CryptoProvider();
+//       const { verifier, challenge } = await cryptoProvider.generatePkceCodes();
+
+//       const scopes = ['user.read', 'openid', 'profile', 'email', 'offline_access'];
+//       const redirectUri = config.microsoftRedirectUri;
+
+//       // Build auth URL manually
+//       const params = new URLSearchParams({
+//           client_id: config.microsoftClientId,
+//           response_type: 'code',
+//           redirect_uri: redirectUri,
+//           scope: scopes.join(' '),
+//           response_mode: 'query',
+//           code_challenge: challenge,
+//           code_challenge_method: 'S256',
+//           prompt: 'select_account'
+//       });
+
+//       const authUrl = `https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?${params.toString()}`;
+      
+//       console.log("Microsoft Auth - Initialization successful", {
+//           redirectUri,
+//           scopes: scopes.join(' '),
+//           verifierLength: verifier.length,
+//           challengeLength: challenge.length
+//       });
+
+//       return { 
+//           url: authUrl, 
+//           codeVerifier: verifier 
+//       };
+
+//   } catch (error) {
+//       console.error("Microsoft Auth - URL generation error:", error);
+//       throw error;
+//   }
+// }
+--- End of microsoftAuth.js ---
+
+--- Start of google/url/route.js ---
+import { getGoogleAuthUrl } from '../../../../../auth/social/googleAuth';
+
+export async function GET() {
+  const url = getGoogleAuthUrl();
+  return new Response(JSON.stringify({ url }), {
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
+
+
+
+
+
+--- End of google/url/route.js ---
+
+--- Start of google/callback/route.js ---
+
+import { NextResponse } from 'next/server';
+import { getGoogleUser } from '../../../../../auth/social/googleAuth';
+import { googleLoginRegister } from '../../../../../auth/core/auth';
+import { cookies } from 'next/headers';
+import config from '../../../../../config';
+
+export async function GET(request) {
+  const code = request.nextUrl.searchParams.get('code');
+  if (!code) {
+    return NextResponse.json({ error: 'No code provided' }, { status: 400 });
+  }
+  console.log("CALLBACK ")
+  try {
+    const cookieStore = cookies();
+    const googleUser = await getGoogleUser(code);
+    console.log("CALLBACK Google response:", googleUser)
+    const { access_token, refresh_token, user} = await googleLoginRegister(googleUser.email, googleUser.name);
+    console.log("User logged In", user)
+
+        // Create response with user data and set cookies
+        // const res = NextResponse.json(
+        //     { user, message: 'Login successful' },
+        //     { status: 200 }
+        // );
+
+        // // Set cookies
+        // res.cookies.set('token', access_token, {
+        //     httpOnly: true,
+        //     secure: process.env.NODE_ENV === 'production',
+        //     sameSite: 'strict',
+        //     path: '/'
+        // });
+
+        // res.cookies.set('refreshToken', refresh_token, {
+        //     httpOnly: true,
+        //     secure: process.env.NODE_ENV === 'production',
+        //     sameSite: 'strict',
+        //     path: '/'
+        // });
+
+    // Store tokens in cookies (non-httpOnly for client access)
+    cookieStore.set('accessToken', access_token, {
+        httpOnly: false, // Allow access from JavaScript
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60,
+        path: '/',
+    });
+
+
+    // Set cookies
+    cookieStore.set('refreshToken', refresh_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60,
+        path: '/',
+    });
+
+    // Store user data in a non-httpOnly cookie so we can access it client-side
+    cookieStore.set('userData', JSON.stringify(user), {
+        httpOnly: false,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60,
+        path: '/',
+    });
+
+    // Redirect to main application
+    return NextResponse.redirect(new URL(config.redirectUrl, request.url));
+   
+        
+  } catch (error) {
+    console.error('Google authentication error:', error);
+    
+    // Redirect to login with error
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('error', 'google_auth_failed');
+    return NextResponse.redirect(new URL(config.redirectUrl, request.url));
+}
+}
+--- End of google/callback/route.js ---
+
+--- Start of microsoft/url/route.js ---
+export const dynamic = 'force-dynamic';
+
+import { NextResponse } from 'next/server';
+import { getMicrosoftAuthUrl } from '../../../../../auth/social/microsoftAuth';
+import { cookies } from 'next/headers';
+
+export async function GET() {
+    console.log("Initiating Microsoft auth URL generation");
+    
+    try {
+        const { url, codeVerifier } = await getMicrosoftAuthUrl();
+
+        const cookieStore = cookies();
+        cookieStore.set('codeVerifier', codeVerifier, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 600,
+            path: '/',
+        });
+        console.log("Return URL:", url);
+        return NextResponse.json({ url, codeVerifier });
+    } catch (error) {
+        console.error("Error generating Microsoft auth URL:", error);
+        return NextResponse.json({ error: 'Failed to generate auth URL' }, { status: 500 });
+    }
+}
+
+--- End of microsoft/url/route.js ---
+
+--- Start of microsoft/callback/route.js ---
+export const dynamic = 'force-dynamic';
+
+import { NextResponse } from 'next/server';
+import { msalInstance } from '../../../../../auth/social/microsoftAuth';
+import { microsoftLoginRegister } from '../../../../../auth/core/auth';
+import { cookies } from 'next/headers';
+import config from '../../../../../config';
+
+
+
+
+// src/app/api/auth/microsoft/callback/route.js
+export async function GET(request) {
+    const { searchParams } = new URL(request.url);
+    console.log("CALLBACK");
+    const code = searchParams.get('code');
+    console.log("CALLBACK Code:", code);
+
+    if (!code) {
+        return NextResponse.json({ error: 'No code provided' }, { status: 400 });
+    }
+
+    try {
+        const cookieStore = cookies();
+        const codeVerifier = cookieStore.get('codeVerifier')?.value;
+        console.log("CALLBACK Code Verifier:", codeVerifier);
+
+        if (!codeVerifier) {
+            console.error('No code verifier found in cookies');
+            return NextResponse.json(
+                { error: 'Authentication failed', details: 'No code verifier found' }, 
+                { status: 400 }
+            );
+        }
+
+        const tokenRequest = {
+                        code,
+                        scopes: ["user.read", "openid", "profile", "email"],
+                        redirectUri: config.microsoftRedirectUri,
+                        codeVerifier: codeVerifier,
+                    };
+            
+        const response = await msalInstance.acquireTokenByCode(tokenRequest);
+        console.log("CALLBACK  Mirosoft Repsonse: ", response)
+        const { account } = response;
+
+        const email = account.username || account.idTokenClaims.email;
+        const name = account.name 
+        console.log("CALLBACK Send to backend ")
+
+        const { access_token, refresh_token, user}  = await microsoftLoginRegister(email, name);
+        console.log("User logged In", user)
+
+        // // Create response with user data and set cookies
+        // const res = NextResponse.json(
+        //     { user, message: 'Login successful' },
+        //     { status: 200 }
+        // );
+
+       // Store tokens in cookies (non-httpOnly for client access)
+        cookieStore.set('accessToken', access_token, {
+            httpOnly: false, // Allow access from JavaScript
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 7 * 24 * 60 * 60,
+            path: '/',
+        });
+
+        // Set cookies
+        cookieStore.set('refreshToken', refresh_token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 7 * 24 * 60 * 60,
+            path: '/',
+        });
+
+        // Store user data in a non-httpOnly cookie so we can access it client-side
+        cookieStore.set('userData', JSON.stringify(user), {
+            httpOnly: false,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 7 * 24 * 60 * 60,
+            path: '/',
+        });
+
+    cookieStore.delete('codeVerifier');
+
+    // Redirect to main application
+    return NextResponse.redirect(new URL(config.redirectUrl, request.url));
+        
+
+    } catch (error) {
+        console.error('Microsoft authentication error:', error);
+        
+        // Redirect to login with error
+        const loginUrl = new URL('/login', request.url);
+        loginUrl.searchParams.set('error', 'microsoft_auth_failed');
+        // return NextResponse.redirect(loginUrl);
+        return NextResponse.redirect(new URL(config.redirectUrl, request.url));
+    }
+
+}
+
+
+
+--- End of microsoft/callback/route.js ---
 

@@ -13,7 +13,7 @@ import { useAuth } from '../../../hooks/useAuth';
 import { FormInput } from '../FormInput';
 import  {toast} from '../../messages/Toast.client'
 
-export default function RegisterForm({ onClose, fetchDocs }) {
+export default function RegisterForm({ onClose }) {
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -83,7 +83,6 @@ export default function RegisterForm({ onClose, fetchDocs }) {
         toast.success('Account created successfully! Welcome to DocGraph');
         
         await onClose();
-        // await fetchDocs();
     } catch (error) {
         console.error("[RegisterForm] Registration error:", error); // Dev logging
         

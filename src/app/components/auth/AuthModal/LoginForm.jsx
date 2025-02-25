@@ -9,13 +9,12 @@ import { BsGithub, BsMicrosoft, BsApple } from 'react-icons/bs';
 import { IoMailOutline } from 'react-icons/io5';
 import { RiLockPasswordLine } from 'react-icons/ri';
 import { Loader2 } from 'lucide-react';
-// import { useAuth } from '../../../hooks/useAuth';
 import { useAuth } from '../../../contexts/AuthContext.client'
 import { FormInput } from '../FormInput';
 import { toast } from '../../messages/Toast.client';
 
 
-export default function LoginForm({ onClose, fetchDocs }) {
+export default function LoginForm({ onClose }) {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);;
@@ -37,7 +36,6 @@ const handleSubmit = async (e) => {
       setTimeout(() => {
         onClose();
       }, 100);
-      await fetchDocs();
       
     } catch (error) {
       console.error("[LoginForm] Login failed:", error);
