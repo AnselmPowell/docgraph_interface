@@ -84,7 +84,7 @@ ENV PORT=8080
 RUN npm run build
 
 # Copy public directory to the standalone server
-RUN cp -r public .next/standalone/public
+# RUN cp -r public .next/standalone/public
 
 # Expose the port Next.js runs on
 EXPOSE 8080

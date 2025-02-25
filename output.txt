@@ -1,0 +1,1277 @@
+
+--- Start of AuthModal/index.jsx ---
+// src/app/components/auth/AuthModal/index.jsx
+'use client';
+
+import { useEffect, useState } from 'react';
+import { X, Github, Mail } from 'lucide-react';
+import LoginForm from './LoginForm';
+import RegisterForm from './RegisterForm';
+
+export function AuthModal({ isOpen, onClose, fetchDocs, initialView = 'login' }) {
+  const [view, setView] = useState(initialView);
+
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center h-screen">
+      {/* Backdrop */}
+      <div 
+        className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div className="relative w-full max-w-md mx-4 animate-in fade-in zoom-in duration-200">
+        <div className="bg-background rounded-xl shadow-2xl border border-tertiary/10 overflow-hidden">
+          {/* Close Button */}
+          <button
+            onClick={onClose}
+            className="absolute right-4 top-4 p-2 rounded-full
+                     text-tertiary hover:text-primary hover:bg-tertiary/10 
+                     transition-all duration-200"
+          >
+            <X className="w-4 h-4" />
+          </button>
+
+          {/* Header */}
+          <div className="px-6 pt-8 pb-4">
+            <h2 className="text-2xl font-semibold text-primary text-center">
+              {view === 'login' ? 'Welcome back' : 'Create an account'}
+            </h2>
+            <p className="text-sm text-tertiary text-center mt-1">
+              {view === 'login' 
+                ? 'Sign in to continue to DocGraph' 
+                : 'Start your research journey with DocGraph'}
+            </p>
+          </div>
+
+
+          {/* Auth Tabs */}
+          <div className="px-6">
+            <div className="flex p-1 gap-1 bg-tertiary/5 rounded-lg">
+              <button
+                onClick={() => setView('login')}
+                className={`flex-1 px-4 py-2.5 text-sm font-medium rounded-md
+                          transition-all duration-200 ${
+                  view === 'login' 
+                    ? 'bg-background text-primary shadow-sm' 
+                    : 'text-tertiary hover:text-primary'
+                }`}
+              >
+                Sign In
+              </button>
+              <button
+                onClick={() => setView('register')}
+                className={`flex-1 px-4 py-2.5 text-sm font-medium rounded-md
+                          transition-all duration-200 ${
+                  view === 'register' 
+                    ? 'bg-background text-primary shadow-sm' 
+                    : 'text-tertiary hover:text-primary'
+                }`}
+              >
+                Create Account
+              </button>
+            </div>
+          </div>
+
+
+          {/* Form Container */}
+          <div className="p-6  max-h-[60%]" >
+            {view === 'login' 
+              ? <LoginForm onClose={onClose} fetchDocs={fetchDocs} /> 
+              : <RegisterForm onClose={onClose} fetchDocs={fetchDocs} />
+            }
+          </div>
+
+
+          {/* Footer */}
+          <div className="px-6 pb-6 text-center">
+            <p className="text-sm text-tertiary">
+              {view === 'login' ? (
+                <>
+                  Don{`'`}t have an account?{' '}
+                  <button 
+                    onClick={() => setView('register')}
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Sign up
+                  </button>
+                </>
+              ) : (
+                <>
+                  Already have an account?{' '}
+                  <button 
+                    onClick={() => setView('login')}
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Sign in
+                  </button>
+                </>
+              )}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+--- End of AuthModal/index.jsx ---
+
+--- Start of AuthModal/LoginForm.jsx ---
+
+// src/app/components/auth/AuthModal/LoginForm.jsx
+'use client';
+
+import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { FcGoogle } from 'react-icons/fc';
+import { BsGithub, BsMicrosoft, BsApple } from 'react-icons/bs';
+import { IoMailOutline } from 'react-icons/io5';
+import { RiLockPasswordLine } from 'react-icons/ri';
+import { Loader2 } from 'lucide-react';
+// import { useAuth } from '../../../hooks/useAuth';
+import { useAuth } from '../../../contexts/AuthContext.client'
+import { FormInput } from '../FormInput';
+import { toast } from '../../messages/Toast.client';
+
+
+export default function LoginForm({ onClose, fetchDocs }) {
+  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);;
+
+  const { login, updateUser } = useAuth();
+  const router = useRouter();
+
+
+const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setErrors({}); // Clear previous errors
+
+    try {
+      const result = await login(formData);
+      console.log("[LoginForm] Login successful:", result.user.email);
+      updateUser(result.user);
+      toast.success('Welcome back!');
+      setTimeout(() => {
+        onClose();
+      }, 100);
+      await fetchDocs();
+      
+    } catch (error) {
+      console.error("[LoginForm] Login failed:", error);
+      // Extract the error message safely
+      const errorMessage = error?.message || String(error);
+      setErrors(errorMessage)
+      if(["Failed to fetch"].includes(errorMessage)) {
+        toast.error("Unable to log in, try again later"); 
+      } else {
+        toast.error(errorMessage); 
+
+      }
+  } finally {
+      setIsLoading(false);
+  }
+};
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    setErrors(prev => ({ ...prev, [name]: '', form: '' }));
+  };
+
+
+  
+   // Handle Google login
+   const handleGoogleLogin = async () => {
+    setIsLoading(true);
+    try {
+      console.log(" google auth")
+      const response = await fetch('/api/auth/google/url');
+      const { url } = await response.json();
+      console.log(" google redirct url: ", url )
+      router.push(url);
+    } catch (error) {
+      console.error('Failed to get Google Auth URL', error);
+      setError('Failed to initialize Microsoft login');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle Microsoft login
+  const handleMicrosoftLogin = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/auth/microsoft/url');
+      const { url } = await response.json();
+      window.location.href = url;
+    } catch (error) {
+      console.error('Failed to get Microsoft Auth URL', error);
+      setError('Failed to initialize Microsoft login');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
+  
+
+  return (
+    <div className="space-y-6">
+
+      {/* Social Login Buttons */}
+      <div className="space-y-3">
+        <button  
+        onClick={handleGoogleLogin}
+        
+        className="w-full flex items-center justify-start gap-3 px-8 py-2.5 
+                         border border-gray-300 rounded-lg text-sm font-medium text-gray-700
+                         hover:bg-gray-50 transition-colors">
+          <FcGoogle className="w-5 h-5" />
+          Continue with Google
+        </button>
+        <button 
+        onClick={handleMicrosoftLogin}
+        className="w-full flex items-center justify-start gap-3 px-8 py-2.5 
+                         border border-gray-300 rounded-lg text-sm font-medium text-gray-700
+                         hover:bg-gray-50 transition-colors">
+          <BsMicrosoft className="w-5 h-5 text-blue-500" />
+          Continue with Microsoft Account
+        </button>
+        <button className="w-full flex items-center justify-start gap-3 px-8 py-2.5 
+                         border border-gray-300 rounded-lg text-sm font-medium text-gray-700
+                         hover:bg-gray-50 transition-colors">
+          <BsGithub className="w-5 h-5" />
+          Continue with Github
+        </button>
+      </div>
+
+      {/* Divider */}
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-200"></div>
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="px-2 bg-white text-gray-500">or continue with email</span>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        
+    
+
+    <div className="space-y-4">
+      
+      <FormInput
+        icon={IoMailOutline}
+        type="email"
+        name="email"
+        placeholder="Email address"
+        value={formData.email}
+        onChange={handleChange}
+        error={errors.email}
+        disabled={isLoading}
+        required
+      />
+
+      <FormInput
+        icon={RiLockPasswordLine}
+        type="password"
+        name="password"
+        placeholder="Password"
+        value={formData.password}
+        onChange={handleChange}
+        error={errors.password}
+        disabled={isLoading}
+        required
+      />
+    </div>
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="remember"
+              className="w-4 h-4 rounded border-gray-300 text-emerald-500 
+                       focus:ring-emerald-500"
+            />
+            <label htmlFor="remember" className="ml-2 text-sm text-gray-600">
+              Remember me
+            </label>
+          </div>
+          <button type="button" className="text-sm text-emerald-600 hover:text-emerald-500">
+            Forgot password?
+          </button>
+        </div>
+
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="w-full h-12 bg-emerald-500 text-white font-medium rounded-lg
+                   hover:bg-emerald-600 focus:ring-4 focus:ring-emerald-100
+                   transition-all duration-200 disabled:opacity-50"
+        >
+          {isLoading ? (
+            <span className="flex items-center justify-center gap-2">
+              <Loader2 className="w-5 h-5 animate-spin" />
+              Signing in...
+            </span>
+          ) : (
+            'Continue'
+          )}
+        </button>
+      </form>
+    </div>
+  );
+}
+--- End of AuthModal/LoginForm.jsx ---
+
+--- Start of AuthModal/RegisterForm.jsx ---
+
+// src/app/components/auth/AuthModal/RegisterForm.jsx
+'use client';
+
+import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { FcGoogle } from 'react-icons/fc';
+import { BsGithub, BsMicrosoft, BsApple } from 'react-icons/bs';
+import { IoMailOutline, IoPersonOutline } from 'react-icons/io5';
+import { RiLockPasswordLine } from 'react-icons/ri';
+import { Loader2 } from 'lucide-react';
+import { useAuth } from '../../../hooks/useAuth';
+import { FormInput } from '../FormInput';
+import  {toast} from '../../messages/Toast.client'
+
+export default function RegisterForm({ onClose, fetchDocs }) {
+  const [formData, setFormData] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
+  const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const { register } = useAuth();
+
+  const router = useRouter();
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.first_name.trim()) {
+      newErrors.first_name = 'First name is required';
+    }
+
+    if (!formData.last_name.trim()) {
+      newErrors.last_name = 'Last name is required';
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email';
+    }
+
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters';
+    } else if (!/(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])/.test(formData.password)) {
+      newErrors.password = 'Password must include uppercase, lowercase, and numbers';
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+
+    return newErrors;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const validationErrors = validateForm();
+
+    if (Object.keys(validationErrors).length > 0) {
+        setErrors(validationErrors);
+        return;
+    }
+
+    setIsLoading(true);
+
+    try {
+         await register({
+            first_name: formData.first_name.trim(),
+            last_name: formData.last_name.trim(),
+            email: formData.email.trim(),
+            password: formData.password,
+            confirm_password: formData.password,
+        });
+        
+        console.log("[RegisterForm] Registration successful"); // Dev logging
+        toast.success('Account created successfully! Welcome to DocGraph');
+        
+        await onClose();
+        // await fetchDocs();
+    } catch (error) {
+        console.error("[RegisterForm] Registration error:", error); // Dev logging
+        
+        // User-friendly error messages based on error type
+        if (error.message.includes('email already exists')) {
+            setErrors({
+                form: 'This email is already registered'
+            });
+        } else if (error.message.includes('validation')) {
+            setErrors({
+                form: 'Please check all required fields'
+            });
+        } 
+    } finally {
+        setIsLoading(false);
+    }
+};
+
+// Handle Google login
+const handleGoogleLogin = async () => {
+  setIsLoading(true);
+  try {
+    console.log(" google auth")
+    const response = await fetch('/api/auth/google/url');
+    const { url } = await response.json();
+    console.log(" google redirct url: ", url )
+    router.push(url);
+  } catch (error) {
+    console.error('Failed to get Google Auth URL', error);
+    setError('Failed to initialize Microsoft login');
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+// Handle Microsoft login
+const handleMicrosoftLogin = async () => {
+  setIsLoading(true);
+  try {
+    const response = await fetch('/api/auth/microsoft/url');
+    const { url } = await response.json();
+    window.location.href = url;
+  } catch (error) {
+    console.error('Failed to get Microsoft Auth URL', error);
+    setError('Failed to initialize Microsoft login');
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    setErrors(prev => ({ ...prev, [name]: '', form: '' }));
+  };
+
+  return (
+    <div className="space-y-6">
+       {/* Social Login Buttons */}
+       <div className="space-y-3">
+        <button  
+        onClick={handleGoogleLogin}
+        
+        className="w-full flex items-center justify-start gap-3 px-8 py-2.5 
+                         border border-gray-300 rounded-lg text-sm font-medium text-gray-700
+                         hover:bg-gray-50 transition-colors">
+          <FcGoogle className="w-5 h-5" />
+          Continue with Google
+        </button>
+        <button 
+        onClick={handleMicrosoftLogin}
+        className="w-full flex items-center justify-start gap-3 px-8 py-2.5 
+                         border border-gray-300 rounded-lg text-sm font-medium text-gray-700
+                         hover:bg-gray-50 transition-colors">
+          <BsMicrosoft className="w-5 h-5 text-blue-500" />
+          Continue with Microsoft Account
+        </button>
+        <button className="w-full flex items-center justify-start gap-3 px-8 py-2.5 
+                         border border-gray-300 rounded-lg text-sm font-medium text-gray-700
+                         hover:bg-gray-50 transition-colors">
+          <BsGithub className="w-5 h-5" />
+          Continue with Github
+        </button>
+      </div>
+
+      {/* Divider */}
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-200"></div>
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="px-2 bg-white text-gray-500">or continue with email</span>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {errors.form && (
+          <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm 
+                        animate-in fade-in slide-in-from-top duration-200">
+            {errors.form}
+          </div>
+        )}
+
+        {/* Name Fields */}
+        <div className="grid grid-cols-2 gap-3">
+          <FormInput
+            icon={IoPersonOutline}
+            name="first_name"
+            placeholder="First name"
+            value={formData.first_name}
+            onChange={handleChange}
+            error={errors.first_name}
+            disabled={isLoading}
+            required
+            className="h-12"
+          />
+
+          <FormInput
+            icon={IoPersonOutline}
+            name="last_name"
+            placeholder="Last name"
+            value={formData.last_name}
+            onChange={handleChange}
+            error={errors.last_name}
+            disabled={isLoading}
+            required
+            className="h-12"
+          />
+        </div>
+
+        {/* Email Field */}
+        <FormInput
+          icon={IoMailOutline}
+          type="email"
+          name="email"
+          placeholder="Email address"
+          value={formData.email}
+          onChange={handleChange}
+          error={errors.email}
+          disabled={isLoading}
+          required
+          className="h-12"
+        />
+
+        {/* Password Fields */}
+        <div className="space-y-3">
+          <FormInput
+            icon={RiLockPasswordLine}
+            type="password"
+            name="password"
+            placeholder="Create password"
+            value={formData.password}
+            onChange={handleChange}
+            error={errors.password}
+            disabled={isLoading}
+            required
+            className="h-12"
+          />
+
+          <FormInput
+            icon={RiLockPasswordLine}
+            type="password"
+            name="confirmPassword"
+            placeholder="Confirm password"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            error={errors.confirmPassword}
+            disabled={isLoading}
+            required
+            className="h-12"
+          />
+        </div>
+
+        {/* Password Requirements */}
+        {formData.password && (
+          <div className="text-xs text-gray-500 space-y-1">
+            <p className={formData.password.length >= 8 ? 'text-emerald-600' : ''}>
+              • At least 8 characters
+            </p>
+            <p className={/[A-Z]/.test(formData.password) ? 'text-emerald-600' : ''}>
+              • One uppercase letter
+            </p>
+            <p className={/[a-z]/.test(formData.password) ? 'text-emerald-600' : ''}>
+              • One lowercase letter
+            </p>
+            <p className={/[0-9]/.test(formData.password) ? 'text-emerald-600' : ''}>
+              • One number
+            </p>
+          </div>
+        )}
+
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="w-full h-12 bg-emerald-500 text-white font-medium rounded-lg
+                   hover:bg-emerald-600 focus:ring-4 focus:ring-emerald-100
+                   transition-all duration-200 disabled:opacity-50"
+        >
+          {isLoading ? (
+            <span className="flex items-center justify-center gap-2">
+              <Loader2 className="w-5 h-5 animate-spin" />
+              Creating account...
+            </span>
+          ) : (
+            'Create account'
+          )}
+        </button>
+
+        <p className="text-xs text-gray-500 text-center">
+          By creating an account, you agree to our{' '}
+          <a href="#" className="text-emerald-600 hover:underline">Terms of Service</a>
+          {' '}and{' '}
+          <a href="#" className="text-emerald-600 hover:underline">Privacy Policy</a>
+        </p>
+      </form>
+    </div>
+  );
+}
+--- End of AuthModal/RegisterForm.jsx ---
+
+--- Start of auth/FormInput.jsx ---
+// src/app/components/auth/FormInput.jsx
+export function FormInput({
+  icon: Icon,
+  type = 'text',
+  error,
+  disabled,
+  className = '',
+  ...props
+}) {
+  return (
+      <div className="space-y-1">
+          <div className="relative group">
+              {/* Icon */}
+              {Icon && (
+                  <div className={`
+                      absolute left-3 top-1/2 -translate-y-1/2 
+                      transition-colors duration-200
+                      ${error 
+                          ? 'text-red-500' 
+                          : disabled
+                              ? 'text-tertiary/50'
+                              : 'text-tertiary group-focus-within:text-primary'
+                      }
+                  `}>
+                      <Icon className="w-5 h-5" />
+                  </div>
+              )}
+
+              {/* Input */}
+              <input
+                  type={type}
+                  disabled={disabled}
+                  className={`
+                      w-full rounded-lg px-4 py-2.5
+                      ${Icon ? 'pl-10' : ''}
+                      bg-background
+                      border transition-all duration-200
+                      disabled:opacity-60 disabled:cursor-not-allowed
+                      ${error 
+                          ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
+                          : 'border-tertiary/20 focus:border-primary focus:ring-primary/20'
+                      }
+                      focus:outline-none focus:ring-2
+                      ${disabled ? 'bg-tertiary/5' : 'hover:border-tertiary/30'}
+                      ${className}
+                  `}
+                  {...props}
+              />
+
+              {/* Password Toggle Button (if type is password) */}
+              {type === 'password' && (
+                  <button
+                      type="button"
+                      className={`
+                          absolute right-3 top-1/2 -translate-y-1/2
+                          p-1 rounded-md
+                          text-tertiary hover:text-primary
+                          transition-colors duration-200
+                          ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
+                      `}
+                      onClick={() => {
+                          const input = document.querySelector(`input[name="${props.name}"]`);
+                          if (input) {
+                              input.type = input.type === 'password' ? 'text' : 'password';
+                          }
+                      }}
+                      disabled={disabled}
+                  >
+                      {type === 'password' ? (
+                          <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                          >
+                              <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
+                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                              />
+                              <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
+                                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                              />
+                          </svg>
+                      ) : (
+                          <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                          >
+                              <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
+                                  d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                              />
+                          </svg>
+                      )}
+                  </button>
+              )}
+          </div>
+
+          {/* Error Message */}
+          {error && (
+              <p className="text-sm text-red-500 pl-1 animate-in fade-in slide-in-from-top duration-200">
+                  {error}
+              </p>
+          )}
+      </div>
+  );
+}
+--- End of auth/FormInput.jsx ---
+
+--- Start of hooks/useAuth.js ---
+// hooks/useAuth.js
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import { fetchApi } from '../../lib/api';
+import { getCsrfToken } from '../../lib/auth';
+
+export function useAuth() {
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    
+    // Initialize user from localStorage on client-side
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const savedUser = localStorage.getItem('user');
+            console.log("Saved User: ", JSON.parse(savedUser))
+            if (savedUser) {
+                try {
+                    updateUser(JSON.parse(savedUser));
+                } catch (e) {
+                    console.error('Error parsing saved user:', e);
+                    localStorage.removeItem('user');
+                }
+            }
+            setLoading(false);
+        }
+    }, []);
+
+    
+
+
+   const updateUser = useCallback((newUser) => {
+        console.log("Updating user state:", newUser);
+        setUser(newUser);
+        if (typeof window !== 'undefined') {
+            if (newUser) {
+                document.documentElement.classList.add('user');
+                // Dispatch custom event
+                window.dispatchEvent(new CustomEvent('userStateChanged', {
+                    detail: { user: newUser }
+                }));
+
+                localStorage.setItem('user', JSON.stringify(newUser));
+                
+            
+            } else {
+                document.documentElement.classList.remove('user');
+                window.dispatchEvent(new CustomEvent('userStateChanged', {
+                    detail: { user: null }
+                }));
+                
+                localStorage.removeItem('user');
+            }
+        }
+    }, []);
+
+    const login = useCallback(async ({ email, password }) => {
+        console.log("Login - Starting");
+        setLoading(true);
+        setError(null); 
+        try {
+            const data = await fetchApi('auth/login/', {
+                method: 'POST',
+                body: JSON.stringify({ email, password })
+            });
+            console.log("Login - Success:", data.user);
+            updateUser(data.user);
+
+            if (data.access_token && typeof window !== 'undefined') {
+                localStorage.setItem('accessToken', data.access_token);
+                if (data.refresh_token) {
+                    localStorage.setItem('refreshToken', data.refresh_token);
+                }
+            }
+            return data;
+        } catch (error) {
+            console.error("Login - Error:", error);
+            // Handle specific "User not found" errors from backend
+        if (error.message.includes("User not found") || error.message.includes("No user exists")) {
+            setError("No account found with this email/password. Please check your credentials or sign up.");
+        } else {
+            setError(error.message);
+        }
+        
+            throw error;
+        } finally {
+            setLoading(false);
+            console.log("Login - Completed");
+        }
+    }, [updateUser]);
+
+    const register = useCallback(async ({ email, password, first_name, last_name, confirm_password }) => {
+        console.log("sign up: ", email )
+        setLoading(true);
+        // try {
+            const csrfToken = await getCsrfToken();
+            const data = await fetchApi('auth/register/', {
+                method: 'POST',
+                body: JSON.stringify({
+                    email,
+                    password,
+                    confirm_password,
+                    first_name,
+                    last_name,
+                    csrfToken
+                })
+            });
+
+            console.log("Registration response:", data);
+           
+
+            // Store tokens if they're in the response
+            if (data.access_token && typeof window !== 'undefined') {
+                localStorage.setItem('accessToken', data.access_token);
+                if (data.refresh_token) {
+                    localStorage.setItem('refreshToken', data.refresh_token);
+                }
+            }
+            updateUser(data.user);
+            setLoading(false);
+
+            return data;
+        // } catch (error) {
+        //     console.error('Registration error:', error);
+        //     setError(error.message);
+        //     throw error;
+        // } finally {
+            setLoading(false);
+        // }
+    }, [updateUser]);
+
+    const logout = useCallback(async () => {
+        console.log("[useAuth] Starting logout");
+        setLoading(true);
+        try {
+            // Get token for logging
+            const token = localStorage.getItem('accessToken');
+            console.log("[useAuth] Found token:", !!token);
+    
+            await fetchApi('auth/logout/', { 
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+                },
+            });
+            
+    
+            // Clear all auth data
+            if (typeof window !== 'undefined') {
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('refreshToken');
+                localStorage.removeItem('user');
+            }
+    
+            // Update state
+            updateUser(null);
+            console.log("[useAuth] Logout successful");
+    
+        } catch (error) {
+            console.error("[useAuth] Logout error:", error);
+            // Still clear data even if backend logout fails
+            if (typeof window !== 'undefined') {
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('refreshToken');
+                localStorage.removeItem('user');
+            }
+            updateUser(null);
+            setError(error.message);
+        } finally {
+            setLoading(false);
+        }
+    }, [updateUser]);
+
+    const checkAuth = useCallback(async () => {
+        if (!user && typeof window !== 'undefined' && localStorage.getItem('accessToken')) {
+            setLoading(true);
+            try {
+                console.log("[useAuth] Checking authentication");
+                const response = await fetch('/api/auth/user', {
+                    method: 'GET',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+                  },
+                  });
+                const data = await response.json();
+                
+                console.log("[useAuth] Auth check response:", data);
+                
+                if (data.status === 'success') {
+                    updateUser(data.user);
+                    console.log("[useAuth] User updated:", data.user);
+                } else {
+                    throw new Error('Auth check failed');
+                }
+                
+            } catch (error) {
+                console.error('[useAuth] Auth check error:', error);
+                updateUser(null);
+                // Clear invalid tokens
+                if (typeof window !== 'undefined') {
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
+                }
+            } finally {
+                setLoading(false);
+            }
+        }
+    }, [user, updateUser]);
+
+    const googleLogin = async (code) => {
+    
+        try {
+          const response = await fetch(`/api/auth/google/callback?code=${code}`, {
+          method: 'GET',
+          credentials: 'include'
+          });
+          
+          const data = await response.json();
+          setUser(data.user);
+          return data.user
+    
+        } catch (error) {
+          console.error('Google login error', error);
+          throw error;
+        }
+      };
+    
+    
+      const microsoftLogin = async () => {
+        try {
+          const response = await fetch('/api/auth/microsoft/url');
+          const { url } = await response.json();
+          window.location.href = url;
+        } catch (error) {
+          console.error('Microsoft login error', error);
+          throw error;
+        }
+      };
+
+    // Setup token refresh interval
+    useEffect(() => {
+        // if (user && typeof window !== 'undefined') {
+        //     const refreshToken = localStorage.getItem('refreshToken');
+        //     if (!refreshToken) return;
+
+        //     const refreshInterval = setInterval(async () => {
+        //         try {
+        //             const response = await fetchApi('auth/token/refresh/', {
+        //                 method: 'POST',
+        //                 body: JSON.stringify({ refresh_token: refreshToken })
+        //             });
+
+        //             if (response.access_token) {
+        //                 localStorage.setItem('accessToken', response.access_token);
+        //                 if (response.refresh_token) {
+        //                     localStorage.setItem('refreshToken', response.refresh_token);
+        //                 }
+        //             }
+        //         } catch (error) {
+        //             console.error('Token refresh error:', error);
+        //             // If refresh fails, log out the user
+        //             await logout();
+        //         }
+        //     }, 14 * 60 * 1000); // Refresh every 14 minutes
+
+        //     return () => clearInterval(refreshInterval);
+        // }
+    }, [user, logout]);
+
+    // Initial auth check
+    useEffect(() => {
+        checkAuth();
+    }, [checkAuth]);
+
+    return {
+        user,
+        setUser,
+        loading,
+        error,
+        login,
+        register,
+        logout,
+        checkAuth,
+        updateUser,
+        googleLogin,
+        microsoftLogin
+    };
+}
+
+
+
+
+--- End of hooks/useAuth.js ---
+
+--- Start of contexts/AuthContext.client.jsx ---
+// contexts/AuthContext.client.jsx
+'use client';
+
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useAuth as useAuthHook } from '../hooks/useAuth';
+
+const AuthContext = createContext(null);
+
+export function AuthProvider({ children }) {
+    const [mounted, setMounted] = useState(false);
+    
+    // Get auth functionality from hook
+    const auth = useAuthHook();
+    
+    // Only render after initial mount
+    useEffect(() => {
+        setMounted(true);
+        console.log("AuthProvider mounted");
+    }, []);
+
+    // Debug logs for auth state changes
+    useEffect(() => {
+        console.log("AuthProvider - auth state changed:", {
+            user: auth.user,
+            loading: auth.loading
+        });
+    }, [auth.user, auth.loading]);
+
+    // Don't render anything until after client-side hydration
+    if (!mounted) {
+        return null;
+    }
+
+    return (
+        <AuthContext.Provider value={auth}>
+            {children}
+        </AuthContext.Provider>
+    );
+}
+
+export const useAuth = () => {
+    const context = useContext(AuthContext);
+    if (!context) {
+        throw new Error('useAuth must be used within an AuthProvider');
+    }
+    return context;
+};
+--- End of contexts/AuthContext.client.jsx ---
+
+--- Start of lib/api.js ---
+// // src/lib/api.js
+
+
+import config from "../config"
+import {getAuthTokens} from "./auth"
+
+const backendApiUrl = config.backendApiUrl
+
+
+export const fetchApi = async (endpoint, options = {}) => {
+    try {
+     // Get auth token from localStorage
+     const accessToken = localStorage.getItem('accessToken');
+        
+     // Set up headers with token if available
+     const headers = {
+         'Content-Type': 'application/json',
+         ...(accessToken && { 'Authorization': `Bearer ${accessToken}` }),
+         ...options.headers
+     };
+
+     console.log(`[fetchApi] Sending request to ${endpoint}`, { 
+         headers, 
+         method: options.method 
+     });
+
+        console.log("Config path endpoint: ", backendApiUrl )
+        console.log("fetch--- endpoint :", `http://localhost:8001/api/${endpoint}`)
+        const response = await fetch(`http://localhost:8001/api/${endpoint}`, {
+            ...options,
+                headers,
+                credentials: 'include'
+            });
+
+            // For 204 No Content response (like logout)
+            if (response.status === 400) {
+                const error = await response.json();
+                throw new Error(error.message || 'No Account Found');
+            }
+
+            if (response.status === 401) {
+                const error = await response.json();
+                throw new Error(error.message || 'Invalid Password Please Try Again');
+            }
+
+            if (response.status === 404) {
+                const error = await response.json();
+                throw new Error(error.message || 'No account found');
+            }
+
+            if (response.status === 429) {
+                const error = await response.json();
+                throw new Error(error.message || 'Too Many Attempts Try Again Later');
+            }
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Request failed');
+            }
+
+            // For 204 No Content response (like logout)
+            if (response.status === 204) {
+                return null;
+            }
+
+        return response.json();
+    } catch (error) {
+        console.error(`[fetchApi] Error in ${endpoint}:`, error);
+        throw error;
+    }
+}
+
+
+
+--- End of lib/api.js ---
+
+--- Start of lib/auth.js ---
+// src/lib/auth.js
+// Auth utility functions
+import { fetchApi } from './api';
+
+export async function getUserFromToken() {
+    try {
+        const data = await fetchApi('auth/user');
+        return data.user;
+    } catch (error) {
+        return null;
+    }
+}
+
+export async function getCsrfToken() {
+  try {
+      const response = await fetch('/api/auth/csrf');
+      const data = await response.json();
+      return data.csrfToken; // May be null, that's OK for new sessions
+  } catch (error) {
+      console.error('Failed to get CSRF token:', error);
+      return null;
+  }
+}
+
+export const setAuthTokens = (accessToken, refreshToken) => {
+    localStorage.setItem('accessToken', accessToken);
+    localStorage.setItem('refreshToken', refreshToken);
+};
+
+export const getAuthTokens = () => ({
+    accessToken: localStorage.getItem('accessToken'),
+    refreshToken: localStorage.getItem('refreshToken')
+});
+
+export const clearAuthTokens = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+};
+--- End of lib/auth.js ---
+
+File not found: register/route.js
+File not found: login/route.js
+--- Start of user/route.js ---
+// src/app/api/auth/user/route.js
+import { NextResponse } from 'next/server';
+import config from '../../../../config';
+
+export async function GET(request) {
+    console.log("[GET] Fetching user profile");
+    const authHeader = request.headers.get('authorization');
+    console.log("[POST] Auth header:", authHeader);
+    
+    try {
+        const response = await fetch(`${config.backendApiUrl}auth/profile/`, {
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `${authHeader}`,
+            }
+        });
+
+        if (!response.ok) {
+            console.log("[GET] Profile fetch failed:", response.status);
+            throw new Error('Failed to fetch user profile');
+        }
+
+        const data = await response.json();
+        console.log("[GET] Profile data received:", data);
+        
+        return NextResponse.json({
+            user: data,
+            status: 'success'
+        });
+        
+    } catch (error) {
+        console.error('[GET] Profile error:', error);
+        return NextResponse.json(
+            { error: 'Not authenticated' },
+            { status: 401 }
+        );
+    }
+}
+--- End of user/route.js ---
+

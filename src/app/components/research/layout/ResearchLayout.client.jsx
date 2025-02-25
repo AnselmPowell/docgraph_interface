@@ -144,7 +144,7 @@ const handleClickOutside =(event)=> {
                 type: "spring",
                 stiffness: 250, 
                 damping: 30,     
-                duration: 0.6 
+                duration: 4.6 
               }}
               className="shrink-0 h-full w-[320px] border-r border-tertiary/10 z-50 bg-white  relative"
             >
