@@ -44,7 +44,12 @@ const handleSubmit = async (e) => {
       // Extract the error message safely
       const errorMessage = error?.message || String(error);
       setErrors(errorMessage)
-      toast.error(errorMessage); 
+      if(["Failed to fetch"].includes(errorMessage)) {
+        toast.error("Unable to log in, try again later"); 
+      } else {
+        toast.error(errorMessage); 
+
+      }
   } finally {
       setIsLoading(false);
   }
