@@ -103,6 +103,8 @@ const nextConfig = {
   // Output configuration
   output: 'standalone',
 
+  trailingSlash: true,
+
   // Disable x-powered-by header
   poweredByHeader: false,
 
