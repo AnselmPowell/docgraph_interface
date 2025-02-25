@@ -28,5 +28,6 @@ RUN cp -R public .next/standalone/public
 # Expose the port Next.js runs on
 EXPOSE 3000
 
+
 # Start the app
 CMD ["node", ".next/standalone/server.js"]
