@@ -270,10 +270,10 @@ export function useAuth() {
         // }
     }, [user, logout]);
 
-    // Initial auth check
-    useEffect(() => {
-        checkAuth();
-    }, [checkAuth]);
+    // // Initial auth check
+    // useEffect(() => {
+    //     checkAuth();
+    // }, [checkAuth]);
 
     return {
         user,
