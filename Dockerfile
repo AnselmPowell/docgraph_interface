@@ -125,6 +125,7 @@ ENV IS_PRODUCTION_BACKEND=true
 
 # Build your Next.js app
 RUN npm run build
+RUN cp -r public .next/standalone/public
 
 # Expose the port Next.js runs on
 EXPOSE 3000
