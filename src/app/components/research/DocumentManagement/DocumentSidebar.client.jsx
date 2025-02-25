@@ -115,7 +115,7 @@ export function DocumentSidebar({
             ${isUploading ? 'bg-tertiary/5' : ''}
           `}
         >
-          {isUploading && stagedDocuments > 0 ? (
+          {isUploading ? (
             <>
               <Loader2 className="w-5 h-5 text-primary animate-spin" />
               <p className="text-sm text-tertiary text-center">
