@@ -115,7 +115,7 @@ const nextConfig = {
   // assetPrefix: process.env.NEXT_PUBLIC_CDN_URL,
 
   // Configure base path if needed
-  // basePath: '',
+   basePath: process.env.NODE_ENV === 'production' ? '' : '',
 
   // Disable image optimization if using external service
   // images: { unoptimized: true },
