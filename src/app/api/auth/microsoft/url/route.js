@@ -11,10 +11,17 @@ export async function GET() {
         const { url, codeVerifier } = await getMicrosoftAuthUrl();
 
         const cookieStore = cookies();
+        // cookieStore.set('codeVerifier', codeVerifier, {
+        //     httpOnly: true,
+        //     secure: process.env.NODE_ENV === 'production',
+        //     sameSite: 'lax',
+        //     maxAge: 600,
+        //     path: '/',
+        // });
         cookieStore.set('codeVerifier', codeVerifier, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
+            secure: true,  // Always set to true in production
+            sameSite: 'none',  // Change from 'lax' to 'none' for cross-domain requests
             maxAge: 600,
             path: '/',
         });
