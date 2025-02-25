@@ -67,18 +67,16 @@ export async function GET(request) {
         path: '/',
     });
 
-    cookieStore.delete('codeVerifier');
-
     // Redirect to main application
     return NextResponse.redirect(new URL(config.redirectUrl, request.url));
    
         
   } catch (error) {
-    console.error('Microsoft authentication error:', error);
+    console.error('Google authentication error:', error);
     
     // Redirect to login with error
     const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('error', 'microsoft_auth_failed');
+    loginUrl.searchParams.set('error', 'google_auth_failed');
     return NextResponse.redirect(new URL(config.redirectUrl, request.url));
 }
 }
