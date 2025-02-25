@@ -35,6 +35,7 @@ COPY package*.json ./
 
 # Install dependencies using production flag and cache
 RUN npm ci --production=false
+RUN npm install sharp
 
 # Copy the rest of your app's source code
 COPY . .
@@ -44,6 +45,8 @@ ENV NODE_ENV=production
 ENV IS_PRODUCTION_FRONTEND=true
 ENV IS_PRODUCTION_BACKEND=true
 
+
+
 # Build your Next.js app
 RUN npm run build
 
@@ -51,4 +54,4 @@ RUN npm run build
 EXPOSE 3000
 
 # Start the app
-CMD ["npm", "start"]
+CMD ["node", ".next/standalone/server.js"]
