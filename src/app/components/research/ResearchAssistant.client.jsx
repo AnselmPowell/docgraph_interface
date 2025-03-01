@@ -568,13 +568,23 @@ export function ResearchAssistant() {
    * Flow: 
    */
   
-  const handleDocumentSelect = useCallback((documentFileName) => {
+  const handleSelectDocuments = useCallback((documentFileName) => {
     console.log("selected Docs:", documentFileName)
     setSelectedDocuments(documentFileName);
     setSearchBarVisible(documentFileName.length > 0);
     // Cache selection state
     cacheDocument({ type: 'selection', data: documentFileName });
   }, [cacheDocument]);
+
+  
+  const handleSelectAllDocuments = () => {
+
+    const selectableDocIds = documents
+      .filter(doc => doc.processing_status === 'completed')
+      .map(doc => doc.file_name);
+
+      handleSelectDocuments(selectableDocIds);
+} 
 
 
    /**
@@ -765,10 +775,15 @@ export function ResearchAssistant() {
       document: document
     };
     console.log("New tab:", newTab)
-    setTabs(prev => {
-      cacheTabDocuments([...prev, newTab]);
-      return [...prev, newTab];
-    })
+    setTabs((prev) => {
+      const tabExists = prev.some(tab => tab.id === newTab.id);
+      if (!tabExists) {
+        cacheTabDocuments([...prev, newTab]); 
+        return [...prev, newTab];
+      }
+      
+      return prev; 
+    });
     setActiveTab(document.document_id);
   
   }, [cacheTabDocuments]); 
@@ -1089,7 +1104,8 @@ export function ResearchAssistant() {
           <DocumentSidebar
             documents={documents}
             selectedDocuments={selectedDocuments}
-            onSelect={handleDocumentSelect}
+            onSelect={handleSelectDocuments}
+            onSelectAll={handleSelectAllDocuments}
             onView={handleDocumentView}
             onDelete={handleRemoveDocument}
             onDeleteAll={handleRemoveAllDocument}
@@ -1132,7 +1148,7 @@ export function ResearchAssistant() {
           selectedDocuments={selectedDocuments}
           onToggleVisibility={handleSearchBarVisibility}
           isSearching={isSearching}
-          onSelect={handleDocumentSelect}
+          onSelect={handleSelectDocuments}
         />
         }
 

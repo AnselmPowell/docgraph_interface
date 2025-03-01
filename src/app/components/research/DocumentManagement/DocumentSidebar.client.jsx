@@ -25,6 +25,7 @@ export function DocumentSidebar({
   selectedDocuments = [],
   stagedDocuments = [],
   onSelect,
+  onSelectAll,
   onView,
   onDelete,
   onDeleteAll,
@@ -77,18 +78,15 @@ export function DocumentSidebar({
   });
 
   // handle select all
-   const handleSelectAll = useCallback(() => {
+   const handleSelectAll = () => {
     if (isAllSelected) {
-      onSelect([]);
+      // onSelect([]);
       setIsAllSelected(false);
     } else {
-      const selectableDocIds = documents
-        .filter(doc => doc.processing_status === 'completed')
-        .map(doc => doc.file_name);
-      onSelect(selectableDocIds);
+      onSelectAll()
       setIsAllSelected(true);
     }
-  }, [documents, onSelect, isAllSelected]); 
+  }; 
 
   useEffect(() => {
    
@@ -146,7 +144,13 @@ export function DocumentSidebar({
             {documents.length > 0 && (
               <div className='flex' >
                  <button
-                  onClick={handleSelectAll}
+                  onClick={()=>{
+                    if(isAllSelected){
+                      onSelect([])
+                    } else {
+                      handleSelectAll()
+                    }
+                  }}
                   className="text-sm text-tertiary hover:text-primary transition-colors"
                 >
                   {isAllSelected ? 'Deselect all' : 'Select all'}
