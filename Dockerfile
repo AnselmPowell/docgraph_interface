@@ -32,6 +32,11 @@
 # # Start the app
 # CMD ["node", ".next/standalone/server.js"]
 
+
+
+
+
+
 # Use the official Node.js 18 image as a parent image
 FROM node:18-alpine
 
@@ -64,4 +69,4 @@ EXPOSE 3000
 
 
 # Start the app
-CMD ["node", ".next/standalone/server.js"]
+CMD node .next/standalone/server.js
