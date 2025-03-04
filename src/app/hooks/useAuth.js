@@ -2,7 +2,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { fetchApi } from '../../lib/api';
 import { getCsrfToken } from '../../lib/auth';
 
 import config from "../../config"
