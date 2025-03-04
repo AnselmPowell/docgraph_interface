@@ -5,6 +5,76 @@ import { useState, useEffect, useCallback } from 'react';
 import { fetchApi } from '../../lib/api';
 import { getCsrfToken } from '../../lib/auth';
 
+import config from "../../config"
+
+const backendApiUrl = config.backendApiUrl
+
+export const fetchAuth = async (endpoint, options = {}) => {
+
+    // try {
+     // Get auth token from localStorage
+     const accessToken = localStorage.getItem('accessToken');
+        
+     // Set up headers with token if available
+     const headers = {
+         'Content-Type': 'application/json',
+         ...(accessToken && { 'Authorization': `Bearer ${accessToken}` }),
+         ...options.headers
+     };
+
+     console.log(`[fetchAuth] Sending request to ${endpoint}`, { 
+         headers, 
+         method: options.method 
+     });
+
+        console.log("Config endpoint: ", config )
+        console.log("Inside Auth path endpoint: ", backendApiUrl )
+        const response = await fetch(`${backendApiUrl}${endpoint}`, {
+            ...options,
+                headers,
+                credentials: 'include'
+            });
+
+            // For 204 No Content response (like logout)
+            if (response.status === 400) {
+                const error = await response.json();
+                throw new Error(error.message || 'No Account Found');
+            }
+
+            if (response.status === 401) {
+                const error = await response.json();
+                throw new Error(error.message || 'Invalid Password Please Try Again');
+            }
+
+            if (response.status === 404) {
+                const error = await response.json();
+                throw new Error(error.message || 'No account found');
+            }
+
+            if (response.status === 429) {
+                const error = await response.json();
+                throw new Error(error.message || 'Too Many Attempts Try Again Later');
+            }
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Request failed');
+            }
+
+            // For 204 No Content response (like logout)
+            if (response.status === 204) {
+                return null;
+            }
+
+        return response.json();
+    // } catch (error) {
+    //     console.error(`[fetchAuth] Error in ${endpoint}:`, error);
+    //     throw error;
+    // }
+}
+
+
+
 export function useAuth() {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -60,7 +130,7 @@ export function useAuth() {
         setLoading(true);
         setError(null); 
         try {
-            const data = await fetchApi('auth/login/', {
+            const data = await fetchAuth('auth/login/', {
                 method: 'POST',
                 body: JSON.stringify({ email, password })
             });
@@ -95,7 +165,7 @@ export function useAuth() {
         setLoading(true);
         // try {
             const csrfToken = await getCsrfToken();
-            const data = await fetchApi('auth/register/', {
+            const data = await fetchAuth('auth/register/', {
                 method: 'POST',
                 body: JSON.stringify({
                     email,
@@ -138,7 +208,7 @@ export function useAuth() {
             const token = localStorage.getItem('accessToken');
             console.log("[useAuth] Found token:", !!token);
     
-            await fetchApi('auth/logout/', { 
+            await fetchAuth('auth/logout/', { 
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -248,7 +318,7 @@ export function useAuth() {
 
         //     const refreshInterval = setInterval(async () => {
         //         try {
-        //             const response = await fetchApi('auth/token/refresh/', {
+        //             const response = await fetchAuth('auth/token/refresh/', {
         //                 method: 'POST',
         //                 body: JSON.stringify({ refresh_token: refreshToken })
         //             });

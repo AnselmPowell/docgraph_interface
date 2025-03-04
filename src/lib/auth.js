@@ -1,15 +1,5 @@
 // src/lib/auth.js
 // Auth utility functions
-import { fetchApi } from './api';
-
-export async function getUserFromToken() {
-    try {
-        const data = await fetchApi('auth/user');
-        return data.user;
-    } catch (error) {
-        return null;
-    }
-}
 
 export async function getCsrfToken() {
   try {
