@@ -160,7 +160,7 @@ const handleMicrosoftLogin = async () => {
                          border border-gray-300 rounded-lg text-sm font-medium text-gray-700
                          hover:bg-gray-50 transition-colors">
           <BsMicrosoft className="w-5 h-5 text-blue-500" />
-          Continue with Microsoft Account
+          Continue with Microsoft
         </button>
         <button className="w-full flex items-center justify-start gap-3 px-8 py-2.5 
                          border border-gray-300 rounded-lg text-sm font-medium text-gray-700

@@ -14,7 +14,9 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     console.log("CALLBACK");
     const code = searchParams.get('code');
+    const state = searchParams.get('state');
     console.log("CALLBACK Code:", code);
+    console.log("CALLBACK URL State:", state);
 
     if (!code) {
         return NextResponse.json({ error: 'No code provided' }, { status: 400 });
@@ -25,12 +27,14 @@ export async function GET(request) {
         const codeVerifier = cookieStore.get('codeVerifier')?.value;
         console.log("CALLBACK Code Verifier:", codeVerifier);
 
-        if (!codeVerifier) {
-            console.error('No code verifier found in cookies');
-            return NextResponse.json(
-                { error: 'Authentication failed', details: 'No code verifier found' }, 
-                { status: 400 }
-            );
+        // If not found, try to get from state
+        if (!codeVerifier && state) {
+            try {
+                const stateData = JSON.parse(Buffer.from(state, 'base64').toString());
+                codeVerifier = stateData.codeVerifier;
+            } catch (error) {
+                console.error('Failed to parse state parameter', error);
+            }
         }
 
         const tokenRequest = {

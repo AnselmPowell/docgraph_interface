@@ -10,6 +10,10 @@ export async function GET() {
     try {
         const { url, codeVerifier } = await getMicrosoftAuthUrl();
 
+        const state = Buffer.from(JSON.stringify({ codeVerifier })).toString('base64');
+
+        const urlWithState = `${url}&state=${state}`;
+
         const cookieStore = cookies();
         // cookieStore.set('codeVerifier', codeVerifier, {
         //     httpOnly: true,
@@ -26,7 +30,7 @@ export async function GET() {
             path: '/',
         });
         console.log("Return URL:", url);
-        return NextResponse.json({ url, codeVerifier });
+        return NextResponse.json({ url: urlWithState, codeVerifier });
     } catch (error) {
         console.error("Error generating Microsoft auth URL:", error);
         return NextResponse.json({ error: 'Failed to generate auth URL' }, { status: 500 });
