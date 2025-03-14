@@ -24,7 +24,7 @@ export async function GET(request) {
 
     try {
         const cookieStore = cookies();
-        const codeVerifier = cookieStore.get('codeVerifier')?.value;
+        let codeVerifier = cookieStore.get('codeVerifier')?.value;
         console.log("CALLBACK Code Verifier:", codeVerifier);
 
         // If not found, try to get from state
