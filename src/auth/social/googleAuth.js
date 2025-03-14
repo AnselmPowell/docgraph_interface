@@ -20,7 +20,12 @@ export function getGoogleAuthUrl() {
 }
 
 export async function getGoogleUser(code) {
-  console.log("[googleAuth] Exchanging code for tokens");
+  console.log("[googleAuth] Exchanging code for tokens: ", code);
+  console.log('[googleAuth] Config check:', {
+    clientIdLength: config.googleClientId?.length || 0,
+    clientSecretLength: config.googleSecretId?.length || 0,
+    redirectUri: config.googleRedirectUri
+  });
 
   try {
     // Exchange code for tokens
@@ -39,7 +44,13 @@ export async function getGoogleUser(code) {
     });
 
     if (!tokenResponse.ok) {
-      throw new Error('Failed to exchange code for tokens');
+      const errorBody = await tokenResponse.text();
+      console.error('[googleAuth] Token exchange failed:', {
+        status: tokenResponse.status,
+        statusText: tokenResponse.statusText,
+        body: errorBody
+      });
+      throw new Error(`Failed to exchange code for tokens: ${tokenResponse.status} ${tokenResponse.statusText} - ${errorBody}`);
     }
 
     const tokens = await tokenResponse.json();

@@ -50,6 +50,7 @@ const config = {
   googleRedirectUri: isProductionFrontend
     ? process.env.NEXT_PUBLIC_GOOGLE_CALLBACK_URL
     : process.env.NEXT_PUBLIC_GOOGLE_CALLBACK_URL_DEV,
+  googleSecretId: process.env.GOOGLE_CLIENT_SECRET,
   microsoftClientId: process.env.NEXT_PUBLIC_MICROSOFT_CLIENT_ID,
   microsoftRedirectUri: isProductionFrontend
     ? process.env.NEXT_PUBLIC_MICROSOFT_CALLBACK_URL

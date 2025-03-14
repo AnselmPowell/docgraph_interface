@@ -68,7 +68,7 @@ export async function googleLoginRegister(email, name) {
         provider: 'google'
       })
     });
-    console.log("Return Social Auth:", response )
+    console.log("Return Google Social Auth:", response )
 
     if (!response.ok) {
       // If registration fails, try login instead (user might already exist)

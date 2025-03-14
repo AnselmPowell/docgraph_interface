@@ -47,7 +47,7 @@ export function Header({
             />
           </div>
           <span className="text-xl font-semibold text-gray-800">
-            DocGraph-
+            DocGraph---
           </span>
         </div>
 
