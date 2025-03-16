@@ -105,14 +105,16 @@ export function SearchResults({
   const pendingCount = pendingSearches?.length || 0;
   
   return (
-    <div className="relative h-full overflow-y-auto">
+    <div className="relative  overflow-y-auto">
       {/* Header */}
       <div className="shrink-0 px-4 pt-4 border-tertiary/10 bg-background/50 backdrop-blur-sm">
-        <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-semibold text-primary flex items-center gap-2">
             <Sparkles className="w-5 h-5" />
             {isLoading ? "Analysing..." : "Search Results"}
           </h2>
+      
+
           <div className="flex relative items-center gap-3 pb-2">
             {/* Selection Controls - Only show when results exist */}
             {results.length > 0 && (
@@ -138,6 +140,7 @@ export function SearchResults({
             </span>
           </div>
         </div>
+        </div>
 
         {/* Match Type Filters - Only show when we have results */}
         {results.length > 0 && (
@@ -159,7 +162,7 @@ export function SearchResults({
             </div>
           </div>
         )}
-      </div>
+      
 
       {/* Main Search Status Indicator */}
       {isLoading && (
@@ -614,9 +617,9 @@ function DocumentResult({
             }
             
             return (
-              <div key={idx} className="p-4 space-y-3">
+              <div key={idx} className="px-4 py-1 space-y-3">
                 {/* Section Header */}
-                <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center justify-between text-sm font-semibold">
                   <div className="flex items-center gap-2">
                     <span className="text-tertiary">Page {section.page_number}</span>
                   </div>
@@ -692,9 +695,9 @@ function MatchSection({
   isSaved 
 }) {
   return (
-    <div className="relative group border-b border-tertiary/10 pb-3">
+    <div className="relative group border-b border-tertiary/10 pb-5">
       {/* Action Buttons */}
-      <div className="absolute top-4 right-0 flex items-center gap-2">
+      <div className="absolute top-1 right-0 flex items-center gap-2">
         <button
             onClick={() =>{
               const document = documents.filter(file => file.document_id == current_document_id)
@@ -725,7 +728,7 @@ function MatchSection({
             {isSaved && <span className="text-xs">Saved!</span>}
           </button>
         </div>
-      <div className="bg-background rounded-md pt-10 ">
+      <div className="bg-background rounded-md pt-3 ">
         {/* Match Type Indicator */}
         <div className="mb-2">
           <span className={`text-xs px-2 py-1 rounded-full text-gray-800
