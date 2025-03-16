@@ -1,7 +1,7 @@
 tree /F > structure.txt
 
 \\ Main files 
-bash merge_files.sh upload/route.js search/route.js documents/file/route.js research/ResearchAssistant.client.jsx layout/ResearchLayout.client.jsx DocumentManagement/DocumentSidebar.client.jsx DocumentManagement/DocumentList.client.jsx header/TabBar.client.jsx Search/SearchBar.client.jsx ToolbarContainer.client.jsx Toolbar/SearchResults.client.jsx 
+bash merge_files.sh upload/route.js search/route.js documents/file/route.js research/ResearchAssistant.client.jsx layout/ResearchLayout.client.jsx DocumentManagement/DocumentSidebar.client.jsx DocumentManagement/DocumentList.client.jsx header/TabBar.client.jsx Search/SearchBar.client.jsx ToolbarContainer.client.jsx ToolBar/SearchResults.client.jsx 
 
 
 \\ Auth files 
