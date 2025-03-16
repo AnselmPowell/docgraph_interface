@@ -37,6 +37,7 @@ export function ToolbarContainer({
   onToolSelect, 
   document,
   results,
+  pendingSearches,
   onToggleSearchBarVisibility,
   onSaveNote,
   onViewDocument,
@@ -102,6 +103,7 @@ export function ToolbarContainer({
           <SearchResults 
             documents={documents}
             results={results}
+            pendingSearches={pendingSearches}
             onSaveNote={onSaveNote}
             onViewDocument={onViewDocument}
             onViewSearchResults={onViewSearchResults}
@@ -123,7 +125,7 @@ export function ToolbarContainer({
         return null;
     }
   };
-
+  
   return (
     <div className="flex w-auto h-full overflow-hidden">
       
@@ -133,15 +135,15 @@ export function ToolbarContainer({
           className={`flex-1 relative mr-2 
             ${activeTool 
               ? isExpanded 
-                ? 'w-[700px] min-w-[400px]' 
-                : 'w-[400px] min-w-[300px]' 
+                ?  `${ !results?.length && activeTool == 'search-results' ? 'w-[400px] min-w-[400px]' : 'w-[740px] min-w-[600px]'  } `
+                : `${ !results?.length && activeTool == 'search-results' ? 'w-[400px] min-w-[400px]' : 'w-[500px] min-w-[400px]'  } `
               : 'w-[0px] pr-0'
             } 
             overflow-hidden transition-all duration-300`}
         >
           {/* Fixed Buttons Container */}
           {activeTool && (
-            <div className="absolute top-0 left-0 right-0 z-10 flex items-center ">
+            <div className="absolute top-0 left-1 right-0 z-10 flex items-center ">
               {/* Expand Button */}
               <button
                 onClick={() => setIsExpanded(!isExpanded)}

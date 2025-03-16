@@ -278,6 +278,7 @@ export function useAuth() {
             }
         }
     }, [user, updateUser]);
+    
 
     const googleLogin = async (code) => {
     

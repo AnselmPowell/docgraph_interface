@@ -16,14 +16,14 @@ import { DeleteDocumentModal } from './DeleteDocumentModal.client';
 import { DocumentDetailsModal } from './DocumentDetailsModal.client';
 import {ReferencesModal} from '../ToolBar/ReferenceList.client'
 import { toast } from '../../messages/Toast.client';
-import { useDocumentCache } from '../../../hooks/useDocumentCache';
-import { X } from 'lucide-react'; 
+
 
 
 export function DocumentSidebar({
   documents = [],
   selectedDocuments = [],
   stagedDocuments = [],
+  pendingDocuments = [],
   onSelect,
   onSelectAll,
   onView,
@@ -40,9 +40,7 @@ export function DocumentSidebar({
 
   const [isUploading, setIsUploading] = useState(isFetchingDocuments);
 
-  const {
-    cacheDocument,
-  } = useDocumentCache();
+
 
 
   // URL submission handler
@@ -137,11 +135,13 @@ export function DocumentSidebar({
       </div>
 
       {/* Selection Header */}
-      {selectedDocuments.length > 0 &&
-        <div className="px-4 py-2 border-b border-tertiary/10">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-medium text-primary">Documents  {selectedDocuments.length > 0 && (<span> Selected: {selectedDocuments.length}</span> )} </h2>
-            {documents.length > 0 && (
+      {documents.length > 0 && (
+          <div className="px-4 py-2 border-b border-tertiary/10">
+           <div className="flex items-center justify-between">
+              <h3 className="text-sm font-medium text-gray-900">
+                Documents {selectedDocuments.length > 0 && (<span> Selected: {selectedDocuments.length}</span> )} 
+              </h3>
+              {documents.length > 0 && (
               <div className='flex' >
                  <button
                   onClick={()=>{
@@ -168,9 +168,10 @@ export function DocumentSidebar({
              
               
             )}
+            </div>
           </div>
-        </div>
-        }
+        )}
+
 
       {/* Dropzone Indicator */}
       {isDragActive && (
@@ -184,15 +185,16 @@ export function DocumentSidebar({
 
       {/* Document Lists */}
       <DocumentList
-        documents={documents}
-        stagedDocuments={stagedDocuments}
-        isLoading={isUploading}
-        selectedDocuments={selectedDocuments}
-        onSelect={onSelect}
-        onView={onView}
-        onDelete={setDeleteDocumentName}
-        onDetails={setDocumentDetails}
-      />
+      documents={documents}
+      stagedDocuments={stagedDocuments}
+      pendingDocuments={pendingDocuments} 
+      isLoading={isUploading}
+      selectedDocuments={selectedDocuments}
+      onSelect={onSelect}
+      onView={onView}
+      onDelete={setDeleteDocumentName}
+      onDetails={setDocumentDetails}
+    />
 
       {/* Modals */}
       <DeleteDocumentModal

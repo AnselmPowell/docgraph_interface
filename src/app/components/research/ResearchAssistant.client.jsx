@@ -100,6 +100,9 @@ export function ResearchAssistant() {
   const [activeDocument, setActiveDocument] = useState(null); // Currently viewed
   const [stagedDocuments, setStagedDocuments] = useState([]); // Pending upload
   const [isProcessing, setIsProcessing] = useState(false);
+
+  const [pendingDocuments, setPendingDocuments] = useState([]);
+  const [statusCheckInterval, setStatusCheckInterval] = useState(null);
   
   // Search & Results States
   // Manages search functionality and results
@@ -107,6 +110,9 @@ export function ResearchAssistant() {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchInDocumentResults, setSearchInDocumentResults] = useState({});
+
+  const [pendingSearches, setPendingSearches] = useState([]);
+  const [searchStatusInterval, setSearchStatusInterval] = useState(null);
  
 
   // States for Document Status
@@ -232,6 +238,32 @@ export function ResearchAssistant() {
 
 
 
+
+useEffect(() => {
+  const handleUserChange = (event) => {
+    if(event.detail.user) {
+      console.log("user found")
+      
+      setUserData(event.detail.user)
+    } else {
+      console.log("user not found")
+      setUserData("")
+      handleDocumentView([])
+      setDocuments([])
+      setTabs([])
+      setSearchResults([])
+      setActiveDocument(null)
+      setActiveTab(null)
+      
+    }
+  };
+
+  window.addEventListener('userStateChanged', handleUserChange);
+  return () => window.removeEventListener('userStateChanged', handleUserChange);
+}, [ ]);
+
+
+
    // Initial Cache Effect
   //  useEffect(() => {
   //    const initializeFromCache = async () => {
@@ -279,32 +311,71 @@ export function ResearchAssistant() {
   }, [activeDocument, searchResults]);
 
 
+
+
+  // Add useEffect for status checking
   useEffect(() => {
-    const handleUserChange = (event) => {
-      if(event.detail.user) {
-        console.log("user found")
-        
-        setUserData(event.detail.user)
-      } else {
-        console.log("user not found")
-        setUserData("")
-        handleDocumentView([])
-        setDocuments([])
-        setTabs([])
-        setSearchResults([])
-        setActiveDocument(null)
-        setActiveTab(null)
-        
+    console.log("[StatusCheck] Pending documents:", pendingDocuments.length);
+    
+    // Clear any existing interval
+    if (statusCheckInterval) {
+      clearInterval(statusCheckInterval);
+      setStatusCheckInterval(null);
+    }
+    
+    // Set up new interval if we have pending documents
+    if (pendingDocuments.length > 0) {
+      console.log("[StatusCheck] Setting up status check interval");
+      const interval = setInterval(() => {
+        const docIds = pendingDocuments.map(doc => doc.document_id);
+        console.log("[StatusCheck] Checking status for:", docIds);
+        checkDocumentStatus(docIds);
+      }, 5000); // Check every 5 seconds
+      
+      setStatusCheckInterval(interval);
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      if (statusCheckInterval) {
+        console.log("[StatusCheck] Clearing interval on cleanup");
+        clearInterval(statusCheckInterval);
       }
     };
-  
-    window.addEventListener('userStateChanged', handleUserChange);
-    return () => window.removeEventListener('userStateChanged', handleUserChange);
-  }, [ ]);
+  }, [pendingDocuments]);
 
+
+
+  useEffect(() => {
+    // Clean up any existing interval
+    if (searchStatusInterval) {
+      clearInterval(searchStatusInterval);
+      setSearchStatusInterval(null);
+    }
+    
+    // Set up interval if we have pending searches
+    if (pendingSearches.length > 0) {
+      console.log("[StatusCheck] Setting up search status check interval");
+      const interval = setInterval(() => {
+        const searchIds = pendingSearches.map(search => search.search_results_id);
+        console.log("[StatusCheck] Checking status for searches:", searchIds);
+        checkSearchStatus(searchIds);
+      }, 5000); // Check every 3 seconds
+      
+      setSearchStatusInterval(interval);
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      if (searchStatusInterval) {
+        console.log("[StatusCheck] Clearing search interval on cleanup");
+        clearInterval(searchStatusInterval);
+      }
+    };
+  }, [pendingSearches]);
 
    /**************************************************************************
-   * User Role MANAGEMENT
+   * USER ROLE MANAGEMENT
    * Core functionality for handling User activity 
    **************************************************************************/
 
@@ -467,37 +538,32 @@ export function ResearchAssistant() {
    * Flow: Files → Staging Area → Upload Queue
    */
 
-  const handleStagedUpload = useCallback(async (files) => {
+  const handleStagedDocuments = useCallback(async (files) => {
     console.log('Staging documents:', files);
-    setIsProcessing(true);
+  setIsProcessing(true);
 
-    const stagedDocuments = [];
-    for (const file of files) {
-        const stagedDocument = await storeToPinata(file);
-        stagedDocuments.push(stagedDocument)
-    }
+  let newDocs = [];
+  const stagedDocuments = [];
+  for (const file of files) {
+      const stagedDocument = await storeToPinata(file);
+      stagedDocuments.push(stagedDocument);
+      await setStagedDocuments(prev => {
+        newDocs = [...prev, stagedDocument];
+        cacheStagedDocuments(newDocs);
+        return newDocs;
+      });
+  }
 
-    console.log('All documents staged:', stagedDocuments);
-    let newDocs = [];
-    await setStagedDocuments(prev => {
-      newDocs = [...prev, ...stagedDocuments];
-      // Add cache update
-      console.log('cache manager: 0-', {newDocs} )
-      cacheStagedDocuments(newDocs);
-      return newDocs;
-    });
+  console.log('All documents staged:', stagedDocuments);
+  
 
-
-
-    toast.success(`${files.length} document${files.length !== 1 ? 's' : ''} staged`);
-    const delayedUpload = async () => {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      // createTab(newDocs[0])
-      await handleUploadStaged(newDocs);
-    };
-    
-    await delayedUpload();
-  }, [cacheStagedDocuments]);
+  const delayedUpload = async () => {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    await handleUploadStaged(stagedDocuments);
+  };
+  
+  await delayedUpload();
+}, [cacheStagedDocuments]);
 
 
 
@@ -506,68 +572,155 @@ export function ResearchAssistant() {
    * Flow: Staging → Processing → Upload → Storage
    */
 
-  const handleUploadStaged = useCallback(async (stagedDocuments) => {
-    console.log("Upload Staged document!!!:", stagedDocuments)
-    if (stagedDocuments.length === 0) return;
-    console.log("Number of staged docs:", stagedDocuments.length)
-  
-    try {
-  
-      const filesData = stagedDocuments.map(file => ({
-        file_name: file.file_name,
-        file_url: file.file_url,
-        file_id: file.file_id,
-        file_type: file.file_type,
-        file_size: file.file_size,
-        file_cid: file.file_cid,
-      }));
-  
-      console.log('Uploading staged documents:', filesData);
+  // Updated handleUploadStaged to properly handle response and pending docs
+const handleUploadStaged = useCallback(async (stagedDocuments) => {
+  console.log("Upload Staged document:", stagedDocuments);
+  if (stagedDocuments.length === 0) return;
+  setStagedDocuments([]);
+  setPendingDocuments(stagedDocuments);
 
-      toast.success(`Now processing documents ...`);
-  
-      const response = await fetch('/api/research/documents/upload', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+  try {
+    const filesData = stagedDocuments.map(file => ({
+      file_name: file.file_name,
+      file_url: file.file_url,
+      file_id: file.file_id,
+      file_type: file.file_type,
+      file_size: file.file_size,
+      file_cid: file.file_cid,
+    }));
+
+    console.log('Uploading staged documents:', filesData);
+    toast.info(`Processing ${filesData.length} documents...`);
+    setIsProcessing(true);
+
+    const response = await fetch('/api/research/documents/upload', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
       },
       body: JSON.stringify({ files: filesData })
-      });
+    });
 
-      
-  
-      const data = await response.json();
-      console.log("data response: ", data)
-  
-      if (data.status === 'error') {
-        setIsProcessing(false);
-        console.error('[handleUploadStaged] Upload error:', data.detail); // Dev logging
-        throw new Error(data.message);
+    const data = await response.json();
+    console.log("Upload response:", data);
+
+    if (data.status === 'error') {
+      throw new Error(data.message || data.error);
     }
 
+    // Add pending documents to state for status tracking
+    if (Array.isArray(data.documents) && data.documents.length > 0) {
+      console.log("Adding pending documents:", data.documents.length);
       
-      setIsProcessing(false);
-      await setDocuments(prev => [...prev, ...data.documents]);
-      await setStagedDocuments([]); // Clear staged documents
-      await removeCachedStaged(...data.documents); 
-
-      toast.success(`${data.documents.length} document${data.documents.length !== 1 ? 's' : ''} processed successfully`);
-  
-    } catch (error) {
-      console.error('[handleUploadStaged] Processing error:', error); // Dev logging
-      toast.error('Unable to process documents. Please remove the document and try again');
-    } finally {
-      setIsProcessing(false);
+      // Make sure we have the expected document structure
+      const validPendingDocs = data.documents.filter(doc => doc.document_id && doc.processing_status);
+      
+      // Update pending documents state to trigger status checking
+      setPendingDocuments(validPendingDocs);
+      await removeCachedStaged(...data.documents);
+      
+      toast.success(`Started processing ${validPendingDocs.length} document${validPendingDocs.length !== 1 ? 's' : ''}`);
+    } else {
+      console.error("Invalid or empty document data in response");
+      toast.error("Received invalid response from server");
     }
-  }, [stagedDocuments]);
+
+  } catch (error) {
+    console.error('[handleUploadStaged] Processing error:', error);
+    toast.error('Unable to process documents. Please try again.');
+  } finally {
+    setIsProcessing(false);
+  }
+}, [removeCachedStaged, toast]);
 
 
-  /**
-   * Select documents 
-   * Flow: 
-   */
+
+
+ // Updated version of checkDocumentStatus in ResearchAssistant.client.jsx
+
+const checkDocumentStatus = useCallback(async (documentIds) => {
+  if (!documentIds || documentIds.length === 0) return;
   
+  console.log("[checkDocumentStatus] Checking status for documents:", documentIds);
+  
+  try {
+    const response = await fetch('/api/research/documents/upload', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+      },
+      body: JSON.stringify({
+        document_ids: documentIds
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Status check failed: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log("[checkDocumentStatus] Response data:", data);
+    
+    if (data.status === 'success' && Array.isArray(data.documents)) {
+      // Process completed documents first
+      const completedDocs = data.documents.filter(doc => 
+        doc.processing_status === 'completed' || doc.processing_status === 'failed'
+      );
+      
+      console.log("[checkDocumentStatus] Completed documents:", completedDocs.length);
+      
+      if (completedDocs.length > 0) {
+        // Add completed documents to the main document list
+        setDocuments(prevDocuments => {
+          // Filter out documents that are already in the list
+          const newDocs = completedDocs.filter(
+            newDoc => !prevDocuments.some(doc => doc.document_id === newDoc.document_id)
+          );
+          
+          
+          // Return combined list if we have new docs
+          return newDocs.length > 0 ? [...prevDocuments, ...newDocs] : prevDocuments;
+        });
+        
+        // Remove completed documents from pending list
+        setPendingDocuments(prevPending => 
+          prevPending.filter(pendingDoc => 
+            !completedDocs.some(doc => doc.document_id === pendingDoc.document_id)
+          )
+        );
+      }
+      
+      // Update status for documents still in progress
+      const inProgressDocs = data.documents.filter(doc => 
+        doc.processing_status === 'pending' || doc.processing_status === 'processing'
+      );
+      
+      if (inProgressDocs.length > 0) {
+        setPendingDocuments(prevPending => {
+          const updatedPending = [...prevPending];
+          
+          // Update each pending document with latest status
+          inProgressDocs.forEach(updatedDoc => {
+            const index = updatedPending.findIndex(doc => doc.document_id === updatedDoc.document_id);
+            if (index !== -1) {
+              updatedPending[index] = updatedDoc;
+            }
+          });
+          
+          return updatedPending;
+        });
+      }
+    }
+  } catch (error) {
+    console.error('[checkDocumentStatus] Error:', error);
+  }
+}, [setDocuments, setPendingDocuments]);
+
+
+  
+
   const handleSelectDocuments = useCallback((documentFileName) => {
     console.log("selected Docs:", documentFileName)
     setSelectedDocuments(documentFileName);
@@ -659,6 +812,9 @@ export function ResearchAssistant() {
     // try {
       const selectedDocs = documents.filter(doc => selectedDocuments.includes(doc.file_name));
       let documentIds = []; 
+      setSelectedDocuments([])
+      setActiveTab(null);  
+      setActiveDocument(null);
         selectedDocs.forEach(doc => {
           if (doc.document_id) {
               documentIds.push(doc.document_id);  // Use push instead of append
@@ -666,9 +822,6 @@ export function ResearchAssistant() {
               removeCachedStaged(doc)
               deleteFromPinata(doc)
               setDocuments(prev => prev.filter(doc => !documentIds.includes(doc.document_id)));
-              setSelectedDocuments(prev => prev.filter(doc => !selectedDocuments.includes(doc.file_name)))
-              setActiveDocument(null);
-              setActiveTab(null);  
               
           }
       });
@@ -927,53 +1080,152 @@ export function ResearchAssistant() {
   }, []);
   
 
-  const handleSearch = useCallback(async (searchParams) => {
+// Update handleSearch function
+const handleSearch = useCallback(async (searchParams) => {
+  try {
+    setIsSearching(true);
+    
+    // Show toolbar and search results immediately
+    setActiveTool('search-results');
+    
+    const response = await fetch('/api/research/documents/search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+      },
+      body: JSON.stringify({
+        document_ids: selectedDocuments,
+        context: searchParams.context,
+        keywords: searchParams.keywords
+      })
+    });
+
+    const data = await response.json();
+
+    if (response.status === 500) {
+      console.error('[handleSearch] Search error:', data.detail);
+      toast.error('Search failed. Please try again');
+      throw new Error(data.error);
+    }
+
+    if (data.results.length === 0) {
+      toast.info('No matches found. Try adjusting your search terms', 8000);
+    } else {
+      toast.success(`Started search in ${data.results.length} document${data.results.length !== 1 ? 's' : ''}`);
+      
+      // Add pending searches
+      const pendingSearchResults = data.results.filter(result => 
+        result.processing_status === 'pending' || result.processing_status === 'processing'
+      );
+      
+      if (pendingSearchResults.length > 0) {
+        setPendingSearches(prev => [...prev, ...pendingSearchResults]);
+      }
+      
+      // Add completed results directly
+      const completedResults = data.results.filter(result => 
+        result.processing_status === 'completed'
+      );
+      
+      if (completedResults.length > 0) {
+        setSearchResults(prev => [...prev, ...completedResults]);
+      }
+    }
+
+  } catch (error) {
+    console.error('[handleSearch] Search failure:', error);
+    toast.error('Search failed. Please try again');
+  } finally {
+    setIsSearching(false);
+  }
+}, [selectedDocuments]);
+
+
+
+  const checkSearchStatus = useCallback(async (searchIds) => {
+    if (!searchIds || searchIds.length === 0) return;
+    
     try {
-      setIsSearching(true);
-      
-      // Show toolbar and search results immediately
-      setActiveTool('search-results');
-      
       const response = await fetch('/api/research/documents/search', {
-        method: 'POST',
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-         },
+        },
         body: JSON.stringify({
-          document_ids: selectedDocuments,
-          context: searchParams.context,
-          keywords: searchParams.keywords
+          search_ids: searchIds
         })
       });
-
+  
+      if (!response.ok) {
+        throw new Error(`Status check failed: ${response.statusText}`);
+      }
+  
       const data = await response.json();
-
-      if (response.status === 500) {
-        console.error('[handleSearch] Search error:', data.detail); // Dev logging
-        toast.info('Search timed out, please try again ');
-        throw new Error(response.error);
+      
+      if (data.status === 'success') {
+        // Process completed searches
+        const completedSearches = data.results.filter(search => 
+          search.processing_status === 'completed' || search.processing_status === 'failed'
+        );
+        
+        if (completedSearches.length > 0) {
+          // Update search results
+          setSearchResults(prev => {
+            // Create a map of existing results for quick lookup
+            const existingResultsMap = new Map(prev.map(result => [result.search_results_id, result]));
+            
+            // Add completed searches to results
+            completedSearches.forEach(search => {
+              if (search.processing_status === 'completed') {
+                existingResultsMap.set(search.search_results_id, search);
+              } else {
+                // Remove failed searches from the map - we don't want to show them
+                existingResultsMap.delete(search.search_results_id);
+                toast.error(`Search failed for ${search.title}: ${search.error_message || 'Unknown error'}`);
+              }
+            });
+            
+            return Array.from(existingResultsMap.values());
+          });
+          
+          // Remove completed searches from pending
+          setPendingSearches(prev => 
+            prev.filter(pendingSearch => 
+              !completedSearches.some(search => search.search_results_id === pendingSearch.search_results_id)
+            )
+          );
+        }
+        
+        // Update status for searches still in progress
+        const inProgressSearches = data.results.filter(search => 
+          search.processing_status === 'pending' || search.processing_status === 'processing'
+        );
+        
+        if (inProgressSearches.length > 0) {
+          setPendingSearches(prev => {
+            const updatedPending = [...prev];
+            
+            inProgressSearches.forEach(updatedSearch => {
+              const index = updatedPending.findIndex(search => 
+                search.search_results_id === updatedSearch.search_results_id
+              );
+              
+              if (index !== -1) {
+                updatedPending[index] = updatedSearch;
+              }
+            });
+            
+            return updatedPending;
+          });
+        }
       }
-
-      if (data.results.length === 0) {
-        toast.info('No matches found. Try adjusting your search terms', 8000);
-      } else {
-          toast.success(`Found ${data.results.length} matching result${data.results.length !== 1 ? 's' : ''}`);
-      }
-
-      await cacheSearchResults([...searchResults, ...data.results]);
-      setSearchResults(prev=> [...prev, ...data.results]);
-      toast.success(`Found matches in ${data.results.length} documents`, 6000);
-
     } catch (error) {
-      console.error('[handleSearch] Search failure:', error); // Dev logging
-      toast.error('Search failed. Please try again');
-      setSearchResults(prev => [...prev]);
-    } finally {
-        setIsSearching(false);
+      console.error('[checkSearchStatus] Error:', error);
     }
+  }, []);
 
-  }, [selectedDocuments, cacheSearchResults]);
 
 
 
@@ -1013,6 +1265,7 @@ export function ResearchAssistant() {
         // }
       }
   }, []);
+
 
   const handleRemoveAllSearchResult = async (selectedSearchResults) => {
     console.log("[handleRemoveAllSearchResult] Starting batch deletion searchResults");
@@ -1061,6 +1314,22 @@ export function ResearchAssistant() {
     setSearchResults([]);
     clearCache('searchParams');
   }, []);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
   // Note Management
@@ -1123,7 +1392,8 @@ export function ResearchAssistant() {
             onDelete={handleRemoveDocument}
             onDeleteAll={handleRemoveAllDocument}
             stagedDocuments={stagedDocuments}
-            onStagedUpload={handleStagedUpload}
+            pendingDocuments={pendingDocuments} 
+            onStagedUpload={handleStagedDocuments}
             onUploadStaged={handleUploadStaged}
             onUrlSubmit={handleUrlSubmit}
             isFetchingDocuments={isProcessing}
@@ -1169,6 +1439,7 @@ export function ResearchAssistant() {
           <ToolbarContainer
             documents={documents}
             activeTool={activeTool}
+            pendingSearches={pendingSearches}
             onToolSelect={handleToolSelect}
             document={activeDocument}
             results={searchResults}

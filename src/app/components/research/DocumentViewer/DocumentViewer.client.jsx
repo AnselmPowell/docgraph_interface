@@ -8,8 +8,6 @@ import 'react-pdf/dist/Page/TextLayer.css';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import { SearchToolbar } from './SearchToolbar.client';
 import { usePdfTextSearch } from '../../../hooks/usePdfTextSearch'
-import { useDocumentCache } from '../../../hooks/useDocumentCache'
-import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -51,7 +49,6 @@ export function DocumentViewer({ document, onClose, searchInResults, className =
   const [containerWidth, setContainerWidth] = useState(0);
   const containerRef = useRef(null);
 
-  const {cacheDocumentViewUrl, getCacheDocumentViewUrl } = useDocumentCache();
   
   const { resultsList, isSearching } = usePdfTextSearch(documentUrl, searchTerm);
 
