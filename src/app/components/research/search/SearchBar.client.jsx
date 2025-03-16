@@ -144,7 +144,7 @@ if (!visible) {
     )}
 
       {/* Search Button */}
-      <button
+      {/* <button
         onClick={() => onToggleVisibility(true)}
         className={`fixed bottom-10 right-36 
           p-8
@@ -173,7 +173,55 @@ if (!visible) {
             `} 
           />
         </div>
-      </button>
+      </button> */}
+
+      {/* Search Button with Selection Counter */}
+        <button
+          onClick={() => onToggleVisibility(true)}
+          className={`fixed bottom-10 right-36 
+            p-8
+            rounded-full 
+            bg-white/95
+            shadow-[0_8px_30px_rgb(0,0,0,0.06)]
+            border border-tertiary/20
+            group 
+            hover:bg-white
+            hover:shadow-[0_20px_50px_rgb(0,0,0,0.12)]
+            hover:border-primary/20
+            hover:scale-105 
+            transition-all duration-500 ease-out z-50
+            ${selectedDocuments.length > 0 ? 'animate-[wiggle_1s_ease-in-out] brightness-110' : ''}
+          `}
+          title={`${selectedDocuments.length} document${selectedDocuments.length !== 1 ? 's' : ''} selected`}
+        >
+          <div className="relative flex items-center justify-center gap-4">
+            <Sparkles 
+              className={`absolute w-9 h-9 
+                text-primary/10
+                ${selectedDocuments.length > 0 ? 'opacity-80' : 'opacity-20'}
+                group-hover:opacity-80 
+                group-hover:rotate-6
+                transition-all duration-500
+              `} 
+            />
+            
+            {/* Document Selection Counter Badge */}
+            {selectedDocuments.length > 0 && (
+              <div className="absolute bottom-3 left-4 flex items-center justify-center
+                min-w-8 min-h-8 px-1.5
+                rounded-full
+                text-gray-500
+                text-m font-bold
+                bg-gray-300
+                border-2 border-gray-300
+                shadow-s
+                "
+              >
+                {selectedDocuments.length}
+              </div>
+            )}
+          </div>
+        </button>
     </div>
   );
 }
@@ -391,6 +439,10 @@ if (!visible) {
                       <Tag className="w-4 h-4" />
                       Keywords
                     </h3>
+                    <p className="text-xs text-tertiary flex items-center pt-1 pl-2 gap-1">
+                    Press <span className="font-medium px-1 py-0.5 bg-tertiary/10 rounded-md">⏎ Enter</span> 
+                    to add keywords
+                   </p>
                     <div className="bg-tertiary/5 rounded-lg p-3">
                       <div className="flex flex-wrap gap-2">
                         {keywords.map((keyword) => (
@@ -428,11 +480,6 @@ if (!visible) {
                 {/* Action Bar */}
                 <div className=" bg-tertiary/5 border-tertiary/10 
                   flex items-center justify-between">
-                  <p className="text-xs text-tertiary flex items-center gap-1">
-                    Press <span className="font-medium px-1 py-0.5 bg-tertiary/10 rounded-md">⏎ Enter</span> 
-                    to add keywords
-                  </p>
-                  <div className="flex items-center gap-3">
                     <button
                       onClick={handleClear}
                       className="px-2 py-2 text-sm text-tertiary hover:text-primary 
@@ -440,6 +487,7 @@ if (!visible) {
                     >
                       Clear All
                     </button>
+                  <div className="flex items-center gap-3">
                     <button
                       onClick={handleSubmit}
                       disabled={!context.trim() || isProcessing}

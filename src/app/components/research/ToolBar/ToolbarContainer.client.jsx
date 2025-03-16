@@ -1,8 +1,7 @@
 
-
 // src/app/components/research/layout/ToolbarContainer.client.jsx
 'use client';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Sparkles,
@@ -10,10 +9,10 @@ import {
   BookOpen, 
   ListTodo,
   PlusSquare,
-  PanelLeft,
   ArrowLeftFromLine, 
   ArrowRightFromLine,
-  X
+  X,
+  ArrowUp
 } from 'lucide-react';
 
 // Import tool components
@@ -50,13 +49,49 @@ export function ToolbarContainer({
   onClose,
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const contentRef = useRef(null);
+  const [showScrollToTop, setShowScrollToTop] = useState(false);
+  
   // Determine tool visibility based on available data
   const toolVisibility = {
-    'search-results': results || activeTool == 'search-results' || true ,
+    'search-results': results || activeTool == 'search-results' || true,
     'document-details': !!document,
     'references': !!(document?.references?.entries),
     'notes-list': true,
     'create-note': true
+  };
+
+  // Handle scroll events to show/hide the "back to top" button
+  useEffect(() => {
+    setShowScrollToTop(false)
+    const handleScroll = () => {
+      if (!contentRef.current) return;
+
+      // Show button when scrolled down 20% of the content height
+      const scrollThreshold = contentRef.current.scrollHeight * 0.2;
+      setShowScrollToTop(contentRef.current.scrollTop > scrollThreshold);
+    };
+    
+    const currentRef = contentRef.current;
+    if (currentRef) {
+      currentRef.addEventListener('scroll', handleScroll);
+    }
+    
+    return () => {
+      if (currentRef) {
+        currentRef.removeEventListener('scroll', handleScroll);
+      }
+    };
+  }, [activeTool]);
+  
+  // Scroll to top function
+  const scrollToTop = () => {
+    if (contentRef.current) {
+      contentRef.current.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
   };
 
   // Get content for active tool
@@ -67,7 +102,6 @@ export function ToolbarContainer({
           <SearchResults 
             documents={documents}
             results={results}
-
             onSaveNote={onSaveNote}
             onViewDocument={onViewDocument}
             onViewSearchResults={onViewSearchResults}
@@ -91,38 +125,27 @@ export function ToolbarContainer({
   };
 
   return (
-    <div className="flex w-auto  overflow-y-hidden overflow-x-hidden">
+    <div className="flex w-auto h-full overflow-hidden">
       
-      {/* Tool Content Area */}
+      {/* Tool Content Area with Fixed Buttons */}
       <AnimatePresence mode="wait">
-      <div className={`flex-1 relative mr-2 
-        ${activeTool 
-          ? isExpanded 
-            ? 'w-[700px] min-w-[400px]  pl-6 border-l' 
-            : 'w-[400px] min-w-[300px]  pl-6 border-l' 
-          : 'w-[0px] pr-0'
-        } 
-        custom-scrollbar overflow-x-hidden transition-all duration-300`}
-      >
-        <motion.div
-          key={activeTool}
-          initial={{ opacity: 0, x: 320 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: 320 }}
-          transition={{ 
-            type: "spring",
-            stiffness: 250,
-            damping: 30,
-            duration: 0.6 
-          }}
-          className="overflow-x-hidden"
+        <div 
+          className={`flex-1 relative mr-2 
+            ${activeTool 
+              ? isExpanded 
+                ? 'w-[700px] min-w-[400px]' 
+                : 'w-[400px] min-w-[300px]' 
+              : 'w-[0px] pr-0'
+            } 
+            overflow-hidden transition-all duration-300`}
         >
-            {activeTool && 
-            <div className="flex items-center gap-1 relative ">
+          {/* Fixed Buttons Container */}
+          {activeTool && (
+            <div className="absolute top-0 left-0 right-0 z-10 flex items-center ">
               {/* Expand Button */}
               <button
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="p-1.5 rounded-lg 
+                className="p-1.5 px-3 rounded-lg bg-white
                   text-tertiary hover:text-primary hover:bg-tertiary/5 
                   transition-colors"
               >
@@ -131,21 +154,53 @@ export function ToolbarContainer({
               {/* Close Button */}
               <button
                 onClick={() => onToolSelect(null)}
-                className="p-1.5 rounded-lg 
+                className="p-1.5 px-3 rounded-lg bg-white
                   text-tertiary hover:text-primary hover:bg-tertiary/5 
-                  transition-colors "
+                  transition-colors"
               >
                 <X className="w-6 h-6" />
               </button>
             </div>
-          }
-          {getToolContent()}
-        </motion.div>
-      </div>
-    </AnimatePresence>
+          )}
+
+          {/* Scrollable Content Area with Padding for Fixed Buttons */}
+          <motion.div
+            key={activeTool}
+            initial={{ opacity: 0, x: 320 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 320 }}
+            transition={{ 
+              type: "spring",
+              stiffness: 250,
+              damping: 30,
+              duration: 0.6 
+            }}
+            className={`h-full overflow-y-auto overflow-x-hidden pl-6 border-l ${activeTool ? 'pt-14' : ''} custom-scrollbar`}
+            ref={contentRef}
+          >
+            {getToolContent()}
+            
+            {/* Back to Top Button */}
+            <AnimatePresence>
+              {showScrollToTop && (
+                <motion.button
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  onClick={scrollToTop}
+                  className="fixed bottom-6 right-5 p-3 rounded-full bg-primary text-black shadow-lg hover:bg-primary/90 transition-colors z-30"
+                  title="Back to top"
+                >
+                  <ArrowUp className="w-7 h-7"/>
+                </motion.button>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        </div>
+      </AnimatePresence>
 
       {/* Tool Icons */}
-      <div className="w-16 relative right-2 h-full px-8 bg-tertiary/5 ">
+      <div className="w-16 relative right-2 h-full px-8 bg-tertiary/5">
         <div className="flex flex-col items-center py-4 gap-4">
           {tools.map(tool => {
             const Icon = tool.icon;
@@ -158,7 +213,7 @@ export function ToolbarContainer({
                 className={`
                   relative p-3 rounded-2xl transition-all 
                   ${activeTool === tool.id 
-                    ? 'bg-primary/10 bg-gray-200 text-primary scale-120' // Added scale effect
+                    ? 'bg-primary/10 bg-gray-200 text-primary scale-120' 
                     : 'text-tertiary hover:text-primary hover:bg-tertiary/5'
                   }
                 `}
@@ -181,5 +236,3 @@ export function ToolbarContainer({
     </div>
   );
 }
-
-

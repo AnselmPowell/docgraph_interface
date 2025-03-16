@@ -21,6 +21,7 @@ export function DocumentDetails({ document, onToolSelect }) {
       </div>
     );
   }
+  console.log("Document detail:", document)
 
   // Helper function for date formatting
   const formatDate = (dateString) => {
@@ -64,7 +65,7 @@ export function DocumentDetails({ document, onToolSelect }) {
                 <span className="text-sm text-tertiary">Pages</span>
               </div>
               <p className="text-2xl font-semibold text-primary">
-                {document.total_pages || '—'}
+                {document.pages || '—'}
               </p>
             </div>
 

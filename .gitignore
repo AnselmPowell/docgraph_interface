@@ -5,6 +5,11 @@
 .env
 
 
+output.txt
+merge_file_commands.txt
+merge_files.sh
+
+
 # Dependencies
 /node_modules
 

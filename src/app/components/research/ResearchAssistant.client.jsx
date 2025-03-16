@@ -611,6 +611,7 @@ export function ResearchAssistant() {
     await deleteFromPinata(document)
     await deleteUploadedDocument(document)
 
+    
    
   }, []);
 
@@ -761,6 +762,17 @@ export function ResearchAssistant() {
   }, [searchInDocumentResults, handleDocumentView]);
 
 
+  const handleCloseDocumentView = () => { 
+    setActiveDocument(null)
+    if(activeDocument.file_id){
+      handleTabClose(activeDocument.file_id)
+    } else {
+      handleTabClose(activeDocument.document_id)
+    }
+
+  }
+
+
   /**************************************************************************
    * TAB MANAGMENT 
    * Manages all our tabs
@@ -803,13 +815,14 @@ export function ResearchAssistant() {
   // Tab Close Handler
   const handleTabClose = useCallback(async(tabId) => {
     console.log("tab remove:", tabId)
-    // Remove tab
+    console.log("Tester tab remove--:", activeTab)
+    // Remove tab 
     setTabs(prev => prev.filter(t => t.id !== tabId));
     await removeCachedTabDocument(tabId)
     
-
     // If closing active tab
     if (activeTab === tabId) {
+      setActiveDocument(null);
       const remainingTabs = tabs.filter(t => t.id !== tabId);
       if (remainingTabs.length > 0) {
         // Switch to last remaining tab
@@ -1126,7 +1139,7 @@ export function ResearchAssistant() {
               // Document Viewer
               <DocumentViewer
               document={activeDocument}
-              onClose={() => setActiveDocument(null)}
+              onClose={handleCloseDocumentView}
               searchInResults={searchInDocumentResults}
             />
             ) : (
