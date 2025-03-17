@@ -369,7 +369,6 @@
 // }
 
 
-
 // src/app/components/research/header/TabBar.client.jsx
 'use client';
 
@@ -393,8 +392,8 @@ export function TabBar({
   // Calculate compression values based on tab count
   const tabProperties = useMemo(() => {
     // Base values
-    const maxTabWidth = 160;  // Maximum width for tabs (1-6 tabs)
-    const minTabWidth = 100;  // Minimum width for tabs (10+ tabs)
+    const maxTabWidth = 200;  // Maximum width for tabs (1-6 tabs)
+    const minTabWidth = 130;  // Minimum width for tabs (10+ tabs)
     const maxOverlap = 16;    // Maximum overlap in pixels
     
     // Calculate compression factor (0 to 1)
@@ -498,41 +497,57 @@ export function TabBar({
         </button>
       )}
 
-      {/* Tabs Container */}
+      {/* Tabs */}
       <div 
         ref={scrollRef}
         className="flex-1 overflow-x-auto hide-scrollbar"
         onWheel={handleWheel}
       >
-        {/* Fixed Container for Tabs - Prevents layout shifts */}
         <div className="flex items-center">
-          {tabs.map((tab, index) => {
-            const isActive = activeTab === tab.id;
-            const isSelected = selectedDocuments?.some(doc => doc === tab.title);
-            
-            // Apply increased z-index for active tab and hover state
-            const zIndex = isActive ? 20 : 10 - Math.min(10, Math.abs(tabs.length/2 - index));
-            
-            return (
-              <div
-                key={tab.id}
-                data-tab-id={tab.id}
-                style={{
-                  zIndex: zIndex,
-                  marginLeft: index === 0 ? '0px' : `-${tabProperties.overlap}px`,
-                  width: `${isActive ? tabProperties.tabWidth + 20 : tabProperties.tabWidth}px`,
-                  // Use fixed height to prevent vertical jitter
-                  height: '38px'
-                }}
-                className="flex items-center relative"
-              >
-                <div
+          <AnimatePresence mode="sync">
+            {tabs.map((tab, index) => {
+              const isActive = activeTab === tab.id;
+              const isSelected = selectedDocuments?.some(doc => doc === tab.title);
+              
+              // Apply increased z-index for active tab and hover state
+              const zIndex = isActive ? 20 : 10 - Math.min(10, Math.abs(tabs.length/2 - index));
+              
+              return (
+                <motion.div
+                  key={tab.id}
+                  // Removed layout prop to eliminate automatic animations
+                  data-tab-id={tab.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ 
+                    opacity: 1, 
+                    scale: isActive ? 1 : tabProperties.scale,
+                    transition: { 
+                      duration: 0.2,
+                      ease: "easeOut"
+                    }
+                  }}
+                  exit={{ 
+                    opacity: 0,
+                    scale: 0.9,
+                    transition: { 
+                      duration: 0.15,
+                      ease: "easeIn"
+                    }
+                  }}
                   onClick={() => onTabChange(tab.id)}
                   onMouseEnter={() => handleTabHover(tab.id, tab.title)}
                   onMouseLeave={handleTabHoverEnd}
+                  style={{
+                    zIndex: zIndex,
+                    marginLeft: index === 0 ? '0px' : `-${tabProperties.overlap}px`,
+                    maxWidth: `${isActive ? tabProperties.tabWidth + 20 : tabProperties.tabWidth}px`,
+                    // Apply fixed positioning to prevent layout shifts
+                    position: "relative"
+                  }}
                   className={`
-                    group flex items-center justify-between h-full w-full
-                    rounded-md cursor-pointer transition-all duration-200
+                    group flex items-center py-8 
+                    rounded-md cursor-pointer
+                    shadow-sm
                     ${isActive 
                       ? 'bg-gray-200 text-gray-800' 
                       : isSelected
@@ -540,6 +555,7 @@ export function TabBar({
                         : 'bg-white text-gray-800 hover:bg-gray-50'
                     }
                     ${tabProperties.compressionFactor > 0 ? 'px-2 border border-gray-200' : 'px-3'}
+                    ${tabProperties.compressionFactor > 0 ? 'hover:z-30 hover:scale-105' : ''}
                   `}
                 >
                   <span 
@@ -548,7 +564,7 @@ export function TabBar({
                       ${isActive ? "text-m font-medium border-primary px-1" : "text-sm font-small"} 
                     `}
                     style={{
-                      maxWidth: `${isActive ? tabProperties.tabWidth - 30 : tabProperties.tabWidth - 40}px`
+                      maxWidth: `${isActive ? tabProperties.tabWidth - 10 : tabProperties.tabWidth - 30}px`
                     }}
                   >
                     {tab.title}
@@ -559,7 +575,7 @@ export function TabBar({
                       onTabClose(tab.id);
                     }}
                     className="opacity-0 group-hover:opacity-100 
-                      p-0.5 rounded-sm cursor-pointer
+                      p-0.5 rounded-sm cursor-pointer ml-0.5
                       transition-opacity"
                   >
                     <X className="w-5 h-5" />
@@ -574,10 +590,10 @@ export function TabBar({
                       {tab.title}
                     </div>
                   )}
-                </div>
-              </div>
-            );
-          })}
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
         </div>
       </div>
 

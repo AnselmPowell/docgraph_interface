@@ -10,7 +10,8 @@ import {
   Calendar,
   Bookmark,
   BookOpen,
-  File
+  File,
+  Quote
 } from 'lucide-react';
 
 export function DocumentDetails({ document, onToolSelect }) {
@@ -52,9 +53,21 @@ export function DocumentDetails({ document, onToolSelect }) {
               {document.title || document.file_name}
             </h1>
             <p className="text-sm text-tertiary">
-              {document.file_name}
+              file name: {document.file_name}
             </p>
           </section>
+
+          {document.citation && (
+              <div className="p-3 rounded-lg bg-tertiary/5 space-y-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <Quote className="w-5 h-5 text-tertiary" />
+                  <span className="text-sm text-tertiary"> Citation {`(Havard style)`}</span>
+                </div>
+                <p className="text-sm font-small text-tertiary">
+                  {document.citation}
+                </p>
+              </div>
+            )}
 
           {/* Quick Stats Grid */}
           <section className="grid grid-cols-2 gap-3">
@@ -97,17 +110,6 @@ export function DocumentDetails({ document, onToolSelect }) {
             )}
 
             {/* Processing Time */}
-            {document.processing_duration && (
-              <div className="p-3 rounded-lg bg-tertiary/5 space-y-1">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-tertiary" />
-                  <span className="text-sm text-tertiary">Process Time</span>
-                </div>
-                <p className="text-sm font-medium text-primary">
-                  {Math.round(document.processing_duration)}s
-                </p>
-              </div>
-            )}
           </section>
 
           {/* Summary Section */}
@@ -117,7 +119,7 @@ export function DocumentDetails({ document, onToolSelect }) {
                 <Bookmark className="w-4 h-4" /> Summary
               </h3>
               <div className="p-3 rounded-lg bg-tertiary/5">
-                <p className="text-sm text-tertiary leading-relaxed">
+                <p className="text-m  text-tertiary leading-relaxed">
                   {document.summary}
                 </p>
               </div>

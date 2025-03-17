@@ -204,9 +204,9 @@ export function DocumentSidebar({
                 {selectedDocuments.length > 1 &&
                 <button
                 onClick={onDeleteAll}
-                className="text-sm ml-2 text-tertiary hover:text-primary transition-colors  text-red-800"
+                className="text-sm ml-2 pl-0.5 text-tertiary hover:text-primary transition-colors  text-red-800"
                 >
-               <Trash2 className="w-4 h-4" />
+               <Trash2 className="w-5 h-5" />
               </button>
                 }
               

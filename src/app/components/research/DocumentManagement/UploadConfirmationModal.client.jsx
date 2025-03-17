@@ -68,13 +68,13 @@ export function UploadConfirmationModal({
                             {isDuplicate ? (
                               <span className="text-amber-700">Already exists</span>
                             ) : (
-                              <span className="text-green-600">Ready to upload</span>
+                              <span className="text-green-400">Ready to upload</span>
                             )}
                           </td>
                           <td className="px-4 py-3">
                             <button
                               onClick={() => onRemoveFile(file)}
-                              className="p-1 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                              className="p-1 rounded-full text-gray-400 hover:text-black "
                               title="Remove from upload"
                             >
                               <X className="w-4 h-4" />

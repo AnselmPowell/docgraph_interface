@@ -32,7 +32,7 @@ export function DocumentViewer({ document, onClose, searchInResults, className =
   // Viewer state
   const [numPages, setNumPages] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [scale, setScale] = useState(1);
+  const [scale, setScale] = useState(1.4);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [documentUrl, setDocumentUrl] = useState(null);
@@ -225,7 +225,7 @@ export function DocumentViewer({ document, onClose, searchInResults, className =
   useEffect(() => {
     // console.log('[DocumentViewer] Resetting viewer state for new document');
     setCurrentPage(1);
-    setScale(1);
+    setScale(1.4);
     setError(null);
     setIsLoading(true);
     setNumPages(null);
@@ -411,7 +411,7 @@ export function DocumentViewer({ document, onClose, searchInResults, className =
 
       {/* Document Viewer */}
       <div className="flex-1 overflow-auto">
-        <div className="min-h-full flex items-center justify-center p-4">
+        <div className="min-h-full flex items-center justify-center p-4 absolute translate-x-[-50%] left-[50%]">
           {uploadStatus ? (
             <div className="flex flex-col items-center gap-2">
               <Loader2 className="w-8 h-8 text-primary animate-spin" />

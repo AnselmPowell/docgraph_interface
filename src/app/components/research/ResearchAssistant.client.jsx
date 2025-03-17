@@ -588,9 +588,7 @@ const handleUploadStaged = useCallback(async (stagedDocuments) => {
       file_size: file.file_size,
       file_cid: file.file_cid,
     }));
-
     console.log('Uploading staged documents:', filesData);
-    toast.info(`Processing ${filesData.length} documents...`);
     setIsProcessing(true);
 
     const response = await fetch('/api/research/documents/upload', {

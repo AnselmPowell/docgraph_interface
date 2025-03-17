@@ -16,6 +16,7 @@ import {
   FileText
 } from 'lucide-react'; 
 import { DeleteConfirmationModal } from './DeleteConfirmationModal.client';
+import { toast } from '../../messages/Toast.client';
 
 export function SearchResults({ 
   documents,
