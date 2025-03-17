@@ -92,20 +92,23 @@ export function SearchBar({
   }, []);
 
   // Search handling
-  const handleSubmit = useCallback(() => {
-    if (!context.trim()) return;
-    
-    setIsProcessing(true); // Show loading in search button
-
-    
-    const searchParams = {
-      context: context.trim(),
-      keywords: !keywords || keywords < 1 ? ["No Keywords Provided"] : keywords
-    };
+const handleSubmit = useCallback(() => {
+  if (!context.trim()) return;
+  if (context.length > 800) {
+    // Show error toast or alert
+    return;
+  }
   
-    onSearch?.(searchParams);
-    setIsExpanded(false);
-  }, [context, keywords, onSearch]);
+  setIsProcessing(true); // Show loading in search button
+  
+  const searchParams = {
+    context: context.trim(),
+    keywords: !keywords || keywords < 1 ? ["No Keywords Provided"] : keywords
+  };
+
+  onSearch?.(searchParams);
+  setIsExpanded(false);
+}, [context, keywords, onSearch]);
 
   // Clear search
   const handleClear = useCallback(() => {
@@ -410,11 +413,17 @@ if (!visible) {
 
                   {/* Character Count */}
                   {context.length > 0 && (
-                    <div className="absolute bottom-2 right-4 px-2 pt-3 
-                      bg-background/80 rounded-md text-xs text-tertiary 
-                      backdrop-blur-sm "
-                    >
-                      {context.length}/2000 characters
+                    <div className={`absolute bottom-2 right-4 px-2 pt-3 
+                      bg-background/80 rounded-md text-xs 
+                      backdrop-blur-sm
+                      ${context.length > 800 ? 'text-red-500 font-medium' : 'text-tertiary'}
+                    `}>
+                      {context.length}/800 characters
+                      {context.length > 800 && (
+                        <div className="text-red-500 text-xs font-medium">
+                          Too many characters
+                        </div>
+                      )}
                     </div>
                   )}
                     

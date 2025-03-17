@@ -647,6 +647,7 @@ function DocumentResult({
                   ))
                 }
 
+
                 {/* Keyword Matches */}
                 {(activeMatchType === 'all' || activeMatchType === 'keywords') && 
                   hasKeywordMatches &&
@@ -665,6 +666,7 @@ function DocumentResult({
                       onSave={onSaveNote}
                       isCopied={copiedSection === section.section_id}
                       isSaved={savedSection === section.section_id}
+                      Why 
                     />
                   ))
                 }
@@ -704,7 +706,7 @@ function MatchSection({
               onViewDocument(content.slice(0, 25), ...document, pageNumber)}
             } 
             className=" text-xs hover:underline flex items-center gap-1 'hover:bg-tertiary/10 text-tertiary opacity-0 group-hover:opacity-100"
-          >
+          > 
             View
           </button>
           <button
