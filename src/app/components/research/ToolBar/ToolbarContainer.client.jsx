@@ -39,10 +39,11 @@ export function ToolbarContainer({
   results,
   pendingSearches,
   onToggleSearchBarVisibility,
-  onSaveNote,
   onViewDocument,
   onViewSearchResults,
   notes,
+  onSaveNote,
+  onDeleteNote,
   onNoteSelect,
   isSearching,
   onRemoveResult,
@@ -135,7 +136,7 @@ export function ToolbarContainer({
       case 'references':
         return <ReferenceList document={document} />;
       case 'notes-list':
-        return <NotesList notes={notes} onNoteSelect={onNoteSelect} />;
+        return <NotesList notes={notes} onDeleteNote={onDeleteNote} onNoteSelect={onNoteSelect} />;
       case 'create-note':
         return <NoteCreator onSave={onSaveNote} />;
       default:

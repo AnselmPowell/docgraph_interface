@@ -13,6 +13,7 @@ import {
   BookOpen,
   Search,
   AlertCircle,
+  Filter,
   Check,
   FileText
 } from 'lucide-react'; 
@@ -37,6 +38,29 @@ export function SearchResults({
   const [activeMatchType, setActiveMatchType] = useState('all');
   const [resultToDelete, setResultToDelete] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+
+  // Add filter state
+  const [showFilter, setShowFilter] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState('all');
+  
+  // Extract unique document titles for filter dropdown
+  const documentTitles = results && results.length > 0
+    ? ['all', ...new Set(results.map(result => result.title))]
+    : ['all'];
+  
+  // Filter results based on selected filter
+  const filteredResults = selectedFilter === 'all'
+    ? results
+    : results.filter(result => result.title === selectedFilter);
+  
+  // Function to truncate long titles
+  const truncateTitle = (title, maxLength = 20) => {
+    return title.length > maxLength
+      ? title.substring(0, maxLength) + '...'
+      : title;
+  };
+
 
   // Empty state - no results and not loading
   if (!results?.length && !pendingSearches?.length && !isLoading) {
@@ -138,7 +162,7 @@ export function SearchResults({
     
     // Pass the structured note to parent handler
     onSaveNote(note);
-    console.log(sectionId)
+    console.log("Savenote:", note)
     // Only set the specific sectionId that was clicked
     setSavedSection(sectionId);
     setTimeout(() => setSavedSection(null), 2000);
@@ -150,15 +174,53 @@ export function SearchResults({
   return (
     <div className="relative  overflow-y-auto">
       {/* Header */}
-      <div className="shrink-0 px-4 pt-4 border-tertiary/10 bg-background/50 backdrop-blur-sm">
+      <div className="shrink-0 px-4 pt-4 border-tertiary/10 bg-background/50 backdrop-blur-sm sticky top-0 z-20">
       <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold text-primary flex items-center gap-2">
-            <Sparkles className="w-5 h-5" />
-            {isLoading ? "Analysing..." : "Search Results"}
-          </h2>
+        <h2 className="text-lg font-semibold text-primary flex items-center gap-2">
+          <Sparkles className="w-5 h-5" />
+          {isLoading ? "Analysing..." : "Search Results"}
+        </h2>
       
 
-          <div className="flex relative items-center gap-3 pb-2">
+        <div className="flex relative items-center gap-2 ">
+          
+            {/* Add Filter Dropdown */}
+            {results.length > 1 && (
+            <div className="relative filter-dropdown z-[500]">
+              <button
+                onClick={() => setShowFilter(!showFilter)}
+                className="text-sm flex items-center gap-1 text-tertiary hover:text-primary transition-colors px-2 py-1 rounded-md hover:bg-tertiary/5"
+                title="Filter by document"
+              >
+                <Filter className="w-4 h-4" />
+                <span className="hidden sm:inline">{selectedFilter === 'all' ? 'All documents' : truncateTitle(selectedFilter)}</span>
+                <ChevronDown className="w-3 h-3" />
+              </button>
+              
+              {showFilter && (
+                <div className="fixed right-12 mt-2 bg-white shadow-xl rounded-md border border-tertiary/20 py-1 w-56 max-h-60 overflow-y-auto animate-in fade-in duration-100">
+                  {documentTitles.map(title => (
+                    <button
+                      key={title}
+                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-gray-50
+                        ${selectedFilter === title 
+                          ? 'text-primary bg-primary/10 font-medium' 
+                          : 'text-secondary hover:text-primary'}`}
+                      onClick={() => {
+                        setSelectedFilter(title);
+                        setShowFilter(false);
+                      }}
+                    >
+                      {title === 'all' ? 'All documents' : truncateTitle(title)}
+                    </button> 
+                  ))}
+            
+              </div>
+              )}
+            </div>
+
+          )}
+
             {/* Selection Controls - Only show when results exist */}
             {results.length > 0 && (
               <>
@@ -178,16 +240,13 @@ export function SearchResults({
                 )}
               </>
             )}
-            <span className="text-sm text-tertiary">
-              {results.length} {results.length === 1 ? 'document' : 'documents'}
-            </span>
           </div>
         </div>
         </div>
 
         {/* Match Type Filters - Only show when we have results */}
         {results.length > 0 && (
-          <div className="sticky top-30 z-50 bg-white/80 py-2">
+          <div className=" top-30 z-30 py-4">
             <div className="flex gap-2 text-sm">
               {['all', 'context', 'keywords'].map(type => (
                 <button
@@ -253,7 +312,7 @@ export function SearchResults({
       )}
 
       {/* Results List */}
-      <div className="">
+      <div className="relative z-10">
         {results.length > 0 && pendingCount > 0 ? (
           
           <div className="pt-3">
@@ -263,28 +322,28 @@ export function SearchResults({
           </div>
         ) : null }
         
-        {results.map((result, idx) => (
-          <DocumentResult
-            key={result.search_results_id || (result.question + result.title + idx)}
-            result={result}
-            isExpanded={expandedResult === result.search_results_id}
-            onExpand={() => setExpandedResult(
-              expandedResult === result.search_results_id ? null : result.search_results_id
-            )}
-            onOpenDeleteModal={handleOpenDeleteModal}
-            documents={documents}
-            current_document_id={result.document_id}
-            onViewDocument={onViewSearchResults}
-            onCopyText={handleCopyText}
-            onSaveNote={handleSaveNote}
-            copiedSection={copiedSection}
-            savedSection={savedSection}
-            activeMatchType={activeMatchType}
-            isToolbarExpanded={isToolbarExpanded}
-            isSelected={selectedResults.includes(result.search_results_id)}
-            onSelect={() => handleSelect(result.search_results_id)}
-          />
-        ))}
+        {filteredResults.map((result, idx) => (
+        <DocumentResult
+          key={result.search_results_id || (result.question + result.title + idx)}
+          result={result}
+          isExpanded={expandedResult === result.search_results_id}
+          onExpand={() => setExpandedResult(
+            expandedResult === result.search_results_id ? null : result.search_results_id
+          )}
+          onOpenDeleteModal={handleOpenDeleteModal}
+          documents={documents}
+          current_document_id={result.document_id}
+          onViewDocument={onViewSearchResults}
+          onCopyText={handleCopyText}
+          onSaveNote={handleSaveNote}
+          copiedSection={copiedSection}
+          savedSection={savedSection}
+          activeMatchType={activeMatchType}
+          isToolbarExpanded={isToolbarExpanded}
+          isSelected={selectedResults.includes(result.search_results_id)}
+          onSelect={() => handleSelect(result.search_results_id)}
+        />
+      ))}
       </div>
 
       {/* Empty Results with Pending Searches */}
@@ -658,15 +717,13 @@ function DocumentResult({
                 (activeMatchType === 'all' && !hasContextMatches && !hasKeywordMatches && !hasSimilarMatches)) {
               return null;
             }
+            console.log("Show section:", section)
             
             return (
               <div key={idx} className="px-4 py-1 space-y-3">
                 {/* Section Header */}
-                <div className="flex items-center justify-between text-sm font-semibold">
-                  <div className="flex items-center gap-2">
-                    <span className="text-tertiary">Page {section.page_number}</span>
-                  </div>
-                </div>
+                
+                
                 
                 {/* Context Matches */}
                 {(activeMatchType === 'all' || activeMatchType === 'context') && 
@@ -675,10 +732,10 @@ function DocumentResult({
                     <MatchSection
                       key={`context-${midx}`}
                       type="context"
+                      section={section}
                       content={match.text}
                       citations={match.citations}
                       sectionId={`${section.sectionId}-${midx}-${match.text.slice(0, 20)}`}
-                     
                       pageNumber={section.page_number}
                       onViewDocument={onViewDocument}
                       documents={documents}
@@ -694,11 +751,12 @@ function DocumentResult({
 
                 {/* Keyword Matches */}
                 {(activeMatchType === 'all' || activeMatchType === 'keywords') && 
-                  hasKeywordMatches &&
+                  hasKeywordMatches  &&
                   section.keyword_matches.map((match, midx) => (
                     <MatchSection
                       key={`keyword-${midx}`}
                       type="keyword"
+                      section={section}
                       content={match.text}
                       keyword={match.keyword}
                       sectionId={`${section.sectionId}-${midx}-${match.text.slice(0, 20)}`}
@@ -731,6 +789,7 @@ function DocumentResult({
     content, 
     citations, 
     keyword,
+    section,
     sectionId,
     pageNumber,
     onViewDocument,
@@ -748,15 +807,21 @@ function DocumentResult({
 
     
     return (
-      <div className="relative group border-b border-tertiary/10 pb-5">
-        {/* Action Buttons */}
-        <div className="absolute top-1 right-0 flex items-center gap-2">
+      <div className="relative group border-b border-tertiary/10 pt-2 pb-5">
+        <div className="flex items-center my-3 justify-between text-sm font-semibold">
+              <div className="flex items-center gap-2">
+                <span className="text-tertiary">Page {section.page_number}</span>
+              </div>
+            </div>
+       {/* Action Buttons */}
+        <div className="absolute top-3 right-0 flex items-center gap-2">
           {/* View button */}
           <button
             onClick={() => {
               onViewDocument(content.slice(0, 25), currentDocument, pageNumber);
             }} 
-            className="text-xs hover:underline flex items-center gap-1 hover:bg-tertiary/10 text-tertiary"
+            className="text-sm hover:underline flex items-center gap-1 hover:bg-tertiary/10 text-tertiary opacity-0 group-hover:opacity-100"
+            title="View in document"  // Added tooltip
           > 
             View
           </button>
@@ -764,32 +829,30 @@ function DocumentResult({
           {/* Copy button */}
           <button
             onClick={() => onCopyNote(content, currentDocument, citations, sectionId)} 
-            className={`p-1.5 rounded-md transition-all flex items-center gap-1 text-black
-              `}
+            className={`p-1.5 rounded-md transition-all flex items-center gap-1 text-black opacity-0 group-hover:opacity-100`}
+            title="Copy"  
           >
             {isCopied ? ( 
               <span className="text-xs font-semibold">Copied</span>
             ) : (
-              <Copy className="w-4 h-4" />
+              <Copy className="w-5 h-5" />
             )}
           </button>
           
           {/* Save note button with icon instead of text */}
           <button
             onClick={() => onSaveNote(content, pageNumber, currentDocument, citations, sectionId)} 
-            className={`p-1.5 rounded-md transition-all flex items-center gap-1 text-black
-             `}
+            className={`p-1.5 rounded-md transition-all flex items-center gap-1 text-black `}
+            title="Save as note"  // Added tooltip
           >
             {isSaved ? ( 
               <span className="text-xs font-semibold">Saved</span>
             ) : (
-              <Plus className="w-4 h-4" />
+              <Plus className="w-5 h-5" />
             )}
-
-           
           </button>
         </div>
-      
+              
 
 
       <div className="bg-background rounded-md pt-3 ">
@@ -808,7 +871,7 @@ function DocumentResult({
         </div>
 
         {/* Content */}
-        <div className="text-sm text-secondary">
+        <div className="text-s text-secondary my-3">
           {content}
         </div>
       </div>

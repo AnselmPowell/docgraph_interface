@@ -1315,8 +1315,10 @@ const handleSearch = useCallback(async (searchParams) => {
 
 
 
-
-
+ /**************************************************************************
+   * NOTES FUNCTIONALITY
+   * Manages document Notes
+   **************************************************************************/
 
 
   
@@ -1388,6 +1390,37 @@ const handleSaveNote = useCallback(async (noteData) => {
   const handleNoteSelect = useCallback((note) => {
     setActiveTool('create-note');
   }, []);
+
+
+
+  const handleDeleteNote = useCallback(async (noteId) => {
+    try {
+      // Remove from local state first for responsive UI
+      setNotes(prev => prev.filter(note => note.id !== noteId));
+      
+      // Send delete request to backend
+      const response = await fetch('/api/research/documents/notes', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+        },
+        body: JSON.stringify({ note_id: noteId })
+      });
+      
+      if (!response.ok) {
+        // If the request fails, restore the note in the UI
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete note');
+      }
+      
+    } catch (error) {
+      console.error('Error deleting note:', error);
+      // Fetch notes again to ensure UI is in sync with server
+      fetchNotes();
+      throw error;
+    }
+  }, [fetchNotes]);
 
 
   /**************************************************************************
@@ -1484,10 +1517,11 @@ const handleSaveNote = useCallback(async (noteData) => {
             onToolSelect={handleToolSelect}
             document={activeDocument}
             results={searchResults}
-            onSaveNote={handleSaveNote}
             onViewDocument={handleDocumentView}
             onViewSearchResults={handleViewSearchResults}
             notes={notes}
+            onSaveNote={handleSaveNote}
+            onDeleteNote={handleDeleteNote} 
             onNoteSelect={handleNoteSelect}
             isSearching={isSearching}
             onRemoveResult={handleRemoveSearchResult}
