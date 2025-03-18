@@ -52,6 +52,23 @@ export function ToolbarContainer({
   const [isExpanded, setIsExpanded] = useState(false);
   const contentRef = useRef(null);
   const [showScrollToTop, setShowScrollToTop] = useState(false);
+
+  const [noteIconAnimating, setNoteIconAnimating] = useState(false);
+
+
+  // Enhanced onSaveNote that triggers icon animation
+  const handleSaveNote = (noteData) => {
+    // First animate the icon
+    setNoteIconAnimating(true);
+    
+    // Wait for animation to finish before turning it off
+    setTimeout(() => {
+      setNoteIconAnimating(false);
+    }, 1000); // Same duration as the wiggle animation
+    
+    // Forward the note data to the parent handler
+    onSaveNote(noteData);
+  };
   
   // Determine tool visibility based on available data
   const toolVisibility = {
@@ -104,7 +121,7 @@ export function ToolbarContainer({
             documents={documents}
             results={results}
             pendingSearches={pendingSearches}
-            onSaveNote={onSaveNote}
+            onSaveNote={handleSaveNote}
             onViewDocument={onViewDocument}
             onViewSearchResults={onViewSearchResults}
             isLoading={isSearching}
@@ -201,12 +218,15 @@ export function ToolbarContainer({
         </div>
       </AnimatePresence>
 
-      {/* Tool Icons */}
-      <div className="w-16 relative right-2 h-full px-8 bg-tertiary/5">
+     {/* Tool Icons */}
+     <div className="w-16 relative right-2 h-full px-8 bg-tertiary/5">
         <div className="flex flex-col items-center py-4 gap-4">
           {tools.map(tool => {
             const Icon = tool.icon;
             if (!toolVisibility[tool.id]) return null;
+
+            // Apply wiggle animation to notes-list icon when a note is saved
+            const isAnimating = tool.id === 'notes-list' && noteIconAnimating;
 
             return (
               <button
@@ -214,19 +234,23 @@ export function ToolbarContainer({
                 onClick={() => onToolSelect(tool.id)}
                 className={`
                   relative p-3 rounded-2xl transition-all 
+                 
                   ${activeTool === tool.id 
                     ? 'bg-primary/10 bg-gray-200 text-primary scale-120' 
                     : 'text-tertiary hover:text-primary hover:bg-tertiary/5'
                   }
+                  ${isAnimating ? 'animate-[wiggle_0.6s_ease-in-out] brightness-110' : ''}
                 `}
                 title={tool.label}
               >
                 <Icon className="w-6 h-6" />
-                {tool.id === 'search-results' && results?.length > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary 
-                    rounded-full flex items-center justify-center">
-                    <span className="text-[10px] font-medium text-white">
-                      {results.length}
+      
+                {tool.id === 'notes-list' && notes?.length > 0 && (
+                  <span className={`absolute top-2 right-2 w-4 h-4 bg-primary 
+                    rounded-full flex items-center justify-center bg-slate-100
+                    ${isAnimating ? 'animate-pulse' : ''}`}>
+                    <span className="text-sm font-medium text-gray rounded-full  bg-slate-100  w-5 h-5 justify-center items-center">
+                      {notes.length}
                     </span>
                   </span>
                 )}
@@ -235,6 +259,7 @@ export function ToolbarContainer({
           })}
         </div>
       </div>
+      
     </div>
   );
 }

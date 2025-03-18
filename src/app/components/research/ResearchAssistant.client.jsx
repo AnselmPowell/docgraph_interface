@@ -194,8 +194,8 @@ export function ResearchAssistant() {
 
    const fetchData = async () => {
         await fetchDocuments();
-        // setIsDocumentsFetched(true)
         await fetchSearchResult();
+        await fetchNotes();
     };
 
     if (user) {
@@ -1022,11 +1022,11 @@ const checkDocumentStatus = useCallback(async (documentIds) => {
     setIsSearching(true);
     const cachedResults = await getCachedResults();
 
-    if(cachedResults.data > 0) {
-      console.log("stored search results:", cachedResults.data)
-      setSearchResults(cachedResults.data)
-    await setIsSearching(false);  
-    } else {
+    // if(cachedResults.data > 0) {
+    //   console.log("stored search results:", cachedResults.data)
+    //   setSearchResults(cachedResults.data)
+    // await setIsSearching(false);  
+    // } else {
     setIsSearching(true);
     console.log("USER FOUND FETCHING SEARCH RESULTS");
 
@@ -1063,7 +1063,7 @@ const checkDocumentStatus = useCallback(async (documentIds) => {
         // cacheSearchResults([]);
         cacheSearchResults([...data.results]);
         setSearchResults(data.results)
-    }
+    // }
 
     } catch (error) {
         console.error('Failed to fetch search results:', error);
@@ -1319,28 +1319,75 @@ const handleSearch = useCallback(async (searchParams) => {
 
 
 
+  
+  const fetchNotes = useCallback(async () => {
+    try {
+      const response = await fetch('/api/research/documents/notes', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+        }
+      });
+      
+      if (!response.ok) {
+        console.log("No Notes Found")
+        
+      }
+      
+      const data = await response.json();
+      setNotes(data.notes || []);
+      
+    } catch (error) {
+      console.error('Error fetching notes:', error);
+      // Don't show error toast here as it's not critical
+    }
+  }, []);
 
 
 
-
-
-
-
-
-
-
-
-  // Note Management
-  const handleSaveNote = useCallback((noteData) => {
-    const newNote = {
-      id: Date.now(),
+ // In ResearchAssistant.client.jsx
+const handleSaveNote = useCallback(async (noteData) => {
+  try {
+    // Create a new note locally first for immediate feedback
+    const tempNote = {
+      id: Date.now(),  // Temporary ID
       ...noteData,
-      source: activeDocument?.title || activeDocument?.file_name,
       timestamp: new Date().toISOString()
     };
-    setNotes(prev => [...prev, newNote]);
-    setActiveTool('notes-list');
-  }, [activeDocument]);
+    
+    // Add to local state immediately for responsive UI
+    setNotes(prev => [...prev, tempNote]);
+    
+    console.log("POST NOTES -----------------------------")
+    // Send to backend
+    const response = await fetch('/api/research/documents/notes', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+      },
+      body: JSON.stringify(noteData)
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to save note to server');
+    }
+    
+    // Get the saved note with proper ID from server
+    const savedNote = await response.json();
+    
+    // Replace the temporary note with the saved one
+    setNotes(prev => prev.map(note => 
+      note.id === tempNote.id ? savedNote : note
+    ));
+    
+    
+  } catch (error) {
+    console.error('Error saving note:', error);
+    toast.error('Failed to save note');
+  }
+}, [setActiveTool, setNotes]);
+
 
   const handleNoteSelect = useCallback((note) => {
     setActiveTool('create-note');

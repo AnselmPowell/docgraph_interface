@@ -13,6 +13,7 @@ import {
   BookOpen,
   Search,
   AlertCircle,
+  Check,
   FileText
 } from 'lucide-react'; 
 import { DeleteConfirmationModal } from './DeleteConfirmationModal.client';
@@ -89,15 +90,56 @@ export function SearchResults({
     }
   };
 
-  // Handlers
-  const handleCopyText = (text, sectionId) => {
-    navigator.clipboard.writeText(text);
+
+
+  const handleCopyText = (text, document, citations, sectionId) => {
+    // Format content with citations
+    let textToCopy = text;
+    
+    // Add citations if available
+    if (citations && citations.length > 0) {
+      textToCopy += '\n\n';
+      citations.forEach((citation) => {
+        
+        // Add reference details if available
+        if (citation.references && citation.references.length > 0) {
+          citation.references.forEach((ref) => {
+            textToCopy += `${ref.text}\n`;
+          });
+        }
+      });
+    } else {
+      textToCopy += `\n\n${document.citation}\n`;
+    }
+    
+    // Copy to clipboard
+    navigator.clipboard.writeText(textToCopy);
     setCopiedSection(sectionId);
     setTimeout(() => setCopiedSection(null), 2000);
   };
 
-  const handleSaveNote = (section, sectionId) => {
-    onSaveNote(section);
+
+  
+  const handleSaveNote = (content, pageNumber, document, citations, sectionId) => {
+    // Create structured note
+    const note = {
+      id: Date.now(),
+      title: document?.title || "Untitled Document",
+      pageNumber: pageNumber,
+      content: content,
+      citations: citations?.length > 0 ? citations : (document?.citation ? [{ 
+        text: document.citation,
+        type: "document_citation",
+        references: []
+      }] : []),
+      source: document?.title || "Unknown Source",
+      timestamp: new Date().toISOString()
+    };
+    
+    // Pass the structured note to parent handler
+    onSaveNote(note);
+    console.log(sectionId)
+    // Only set the specific sectionId that was clicked
     setSavedSection(sectionId);
     setTimeout(() => setSavedSection(null), 2000);
   };
@@ -625,7 +667,7 @@ function DocumentResult({
                     <span className="text-tertiary">Page {section.page_number}</span>
                   </div>
                 </div>
-
+                
                 {/* Context Matches */}
                 {(activeMatchType === 'all' || activeMatchType === 'context') && 
                   hasContextMatches && 
@@ -635,15 +677,16 @@ function DocumentResult({
                       type="context"
                       content={match.text}
                       citations={match.citations}
-                      sectionId={section.section_id}
+                      sectionId={`${section.sectionId}-${midx}-${match.text.slice(0, 20)}`}
+                     
                       pageNumber={section.page_number}
                       onViewDocument={onViewDocument}
                       documents={documents}
                       current_document_id={current_document_id}
-                      onCopy={onCopyText}
-                      onSave={onSaveNote}
-                      isCopied={copiedSection === section.section_id}
-                      isSaved={savedSection === section.section_id}
+                      onCopyNote={onCopyText}
+                      onSaveNote={onSaveNote}
+                      isCopied={copiedSection === `${section.sectionId}-${midx}-${match.text.slice(0, 20)}`}  
+                      isSaved={savedSection === `${section.sectionId}-${midx}-${match.text.slice(0, 20)}`} 
                     />
                   ))
                 }
@@ -658,16 +701,17 @@ function DocumentResult({
                       type="keyword"
                       content={match.text}
                       keyword={match.keyword}
-                      sectionId={section.section_id}
+                      sectionId={`${section.sectionId}-${midx}-${match.text.slice(0, 20)}`}
+                
                       pageNumber={section.page_number}
                       onViewDocument={onViewDocument}
                       documents={documents}
                       current_document_id={current_document_id}
-                      onCopy={onCopyText}
-                      onSave={onSaveNote}
-                      isCopied={copiedSection === section.section_id}
-                      isSaved={savedSection === section.section_id}
-                      Why 
+                      onCopyNote={onCopyText}
+                      onSaveNote={onSaveNote}
+                      isCopied={copiedSection === `${section.sectionId}-${midx}-${match.text.slice(0, 20)}`}  
+                      isSaved={savedSection === `${section.sectionId}-${midx}-${match.text.slice(0, 20)}`} 
+                       
                     />
                   ))
                 }
@@ -681,56 +725,73 @@ function DocumentResult({
   );
 }
 
-// Match Section Component for both context and keyword matches
-function MatchSection({ 
-  type, 
-  content, 
-  citations, 
-  keyword,
-  sectionId, 
-  pageNumber,
-  onViewDocument,
-  documents,
-  current_document_id,
-  onCopy, 
-  onSave,
-  isCopied,
-  isSaved 
-}) {
-  return (
-    <div className="relative group border-b border-tertiary/10 pb-5">
-      {/* Action Buttons */}
-      <div className="absolute top-1 right-0 flex items-center gap-2">
-        <button
-            onClick={() =>{
-              const document = documents.filter(file => file.document_id == current_document_id)
-              onViewDocument(content.slice(0, 25), ...document, pageNumber)}
-            } 
-            className=" text-xs hover:underline flex items-center gap-1 'hover:bg-tertiary/10 text-tertiary opacity-0 group-hover:opacity-100"
+// Match Section Component for both context and keyword matches  
+  function MatchSection({ 
+    type, 
+    content, 
+    citations, 
+    keyword,
+    sectionId,
+    pageNumber,
+    onViewDocument,
+    documents,
+    current_document_id,
+    onCopyNote, 
+    onSaveNote,
+    isCopied,
+    isSaved 
+  }) {
+    // Create a unique ID for this specific match section combination
+    
+    // Find the current document object
+    const currentDocument = documents.find(doc => doc.document_id === current_document_id) || {};
+
+    
+    return (
+      <div className="relative group border-b border-tertiary/10 pb-5">
+        {/* Action Buttons */}
+        <div className="absolute top-1 right-0 flex items-center gap-2">
+          {/* View button */}
+          <button
+            onClick={() => {
+              onViewDocument(content.slice(0, 25), currentDocument, pageNumber);
+            }} 
+            className="text-xs hover:underline flex items-center gap-1 hover:bg-tertiary/10 text-tertiary opacity-0 group-hover:opacity-100"
           > 
             View
           </button>
+          
+          {/* Copy button */}
           <button
-            onClick={() => onCopy(content, sectionId)}
+            onClick={() => onCopyNote(content, currentDocument, citations, sectionId)} 
             className={`p-1.5 rounded-md transition-all flex items-center gap-1 text-black
-              ${isCopied 
-                ? 'bg-green-500/10 ' 
-                : 'hover:bg-tertiary/10 opacity-0 group-hover:opacity-100'}`}
+              `}
           >
-            <Copy className="w-4 h-4" />
-            {isCopied && <span className="text-xs">Copied!</span>}
+            {isCopied ? ( 
+              <span className="text-xs font-semibold">Copied</span>
+            ) : (
+              <Copy className="w-4 h-4" />
+            )}
           </button>
+          
+          {/* Save note button with icon instead of text */}
           <button
-            onClick={() => onSave(content, sectionId)}
+            onClick={() => onSaveNote(content, pageNumber, currentDocument, citations, sectionId)} 
             className={`p-1.5 rounded-md transition-all flex items-center gap-1 text-black
-              ${isSaved 
-                ? 'bg-blue-500/10' 
-                : 'hover:bg-tertiary/10  opacity-0 group-hover:opacity-100'}`}
+             `}
           >
-            <Plus className="w-4 h-4" />
-            {isSaved && <span className="text-xs">Saved!</span>}
+            {isSaved ? ( 
+              <span className="text-xs font-semibold">Saved</span>
+            ) : (
+              <Plus className="w-4 h-4" />
+            )}
+
+           
           </button>
         </div>
+      
+
+
       <div className="bg-background rounded-md pt-3 ">
         {/* Match Type Indicator */}
         <div className="mb-2">
@@ -783,3 +844,10 @@ function MatchSection({
     </div>
   );
 }
+
+
+
+
+
+
+

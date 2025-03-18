@@ -135,7 +135,7 @@ if (!visible) {
             shadow-[0_4px_12px_rgba(0,0,0,0.08)]
             backdrop-blur-sm
             border border-white/20
-            animate-[wiggle_0.6s_ease-in-out,fadeOut_2s_ease-in-out]
+            animate-[wiggle_0.6s_ease-in-out, fadeOut_2s_ease-in-out]
           ">
             {/* Compact content */}
             <div className="flex items-center gap-1.5 text-black">
