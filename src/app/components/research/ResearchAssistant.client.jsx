@@ -1348,15 +1348,19 @@ const handleSearch = useCallback(async (searchParams) => {
  // In ResearchAssistant.client.jsx
 const handleSaveNote = useCallback(async (noteData) => {
   try {
-    // Create a new note locally first for immediate feedback
-    const tempNote = {
-      id: Date.now(),  // Temporary ID
+    if (noteData.id && noteData.content) {
+      setNotes(prev => [...prev, noteData]);
+      return;
+    }
+    
+    // Otherwise, it's a manual note creation
+    const newNote = {
+      id: Date.now(),
       ...noteData,
+      source: activeDocument?.title || activeDocument?.file_name,
       timestamp: new Date().toISOString()
     };
-    
-    // Add to local state immediately for responsive UI
-    setNotes(prev => [...prev, tempNote]);
+    setNotes(prev => [...prev, newNote]);
     
     console.log("POST NOTES -----------------------------")
     // Send to backend
@@ -1372,15 +1376,7 @@ const handleSaveNote = useCallback(async (noteData) => {
     if (!response.ok) {
       throw new Error('Failed to save note to server');
     }
-    
-    // Get the saved note with proper ID from server
-    const savedNote = await response.json();
-    
-    // Replace the temporary note with the saved one
-    setNotes(prev => prev.map(note => 
-      note.id === tempNote.id ? savedNote : note
-    ));
-    
+
     
   } catch (error) {
     console.error('Error saving note:', error);

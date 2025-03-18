@@ -240,11 +240,11 @@ export function SearchResults({
                     {search.title}
                   </p>
                 </div>
-                <div className="flex items-center gap-1 px-2 ml-2 text-xs rounded-full bg-yellow-100 text-yellow-800">
-                  <Loader2 className="w-3 h-3 animate-spin" />
+                <div className="flex items-center gap-1 px-2 ml-2 text-xs rounded-full ">
                   <span>
                     Extracting results...
                   </span>
+                  <Loader2 className="w-3 h-3 animate-spin" />
                 </div>
               </div>
             ))}
@@ -756,7 +756,7 @@ function DocumentResult({
             onClick={() => {
               onViewDocument(content.slice(0, 25), currentDocument, pageNumber);
             }} 
-            className="text-xs hover:underline flex items-center gap-1 hover:bg-tertiary/10 text-tertiary opacity-0 group-hover:opacity-100"
+            className="text-xs hover:underline flex items-center gap-1 hover:bg-tertiary/10 text-tertiary"
           > 
             View
           </button>
