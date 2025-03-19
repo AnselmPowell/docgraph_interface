@@ -40,14 +40,14 @@ export function Header({
           <div className="relative w-16 h-16 p-3">
             <Image
               src="/docgraph_2_br.png"
-              alt="DocGraph Logo"
+              alt="StudyGraph Logo"
               fill
               className="object-contain"
               priority
             />
           </div>
           <span className="text-xl font-semibold text-gray-800">
-            DocGraph
+            StudyGraph
           </span>
         </div>
 

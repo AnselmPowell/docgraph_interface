@@ -31,17 +31,17 @@ export const WelcomeMessage = ({ documents = [], stagedDocuments = [], pendingDo
   return (
     <AnimatePresence>
       {showMessage && (
-        <div className="absolute -top-20 left-20 inset-0 flex items-center justify-center opacity-50 pointer-events-none z-0">
+        <div className={`absolute ${!userData ? 'opacity-80' : ' left-20 opacity-50 '} -top-40 transition-[left] inset-0 flex items-center justify-center  pointer-events-none z-0`}>
           <div className="max-w-xl text-center space-y-12">
-            {/* Part 1: What is DocGraph - Always visible */}
+          
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.8 }}
               transition={{ duration: 1 }}
               className="text-center"
             >
-              <h2 className="text-3xl font-bold text-primary mb-3">Welcome to DocGraph</h2>
-              <p className="text-lg text-tertiary">
+              <h2 className={`${!userData ? "text-5xl" : "text-4xl" } font-bold text-primary mb-3`}>Welcome to StudyGraph</h2>
+              <p className={` ${!userData ? "text-xl" : "text-lg" } mt-6 text-tertiary`}>
                 Your AI-powered research assistant that analyses academic papers, 
                 finds relevant information, and helps you build properly cited arguments.
               </p>
@@ -65,11 +65,11 @@ export const WelcomeMessage = ({ documents = [], stagedDocuments = [], pendingDo
                     >
                       <ArrowLeft className="w-8 h-8 text-primary" />
                     </motion.div>
-                    <p className="text-xl font-medium text-tertiary">
+                    <p className={` ${!userData ? "text-2xl" : "text-xl" } font-medium text-tertiary`}>
                       Upload your PDF files to get started
                     </p>
                   </div>
-                  <p className="text-sm text-tertiary/70">
+                  <p className={` ${!userData ? "text-m" : "text-sm" } text-sm text-tertiary/70`}>
                     Drag & drop files or use the upload button in the sidebar
                   </p>
                 </motion.div>

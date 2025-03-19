@@ -132,7 +132,7 @@ export function DocumentSidebar({
   console.log("selected Documents: ", selectedDocuments)
 
   return (
-    <div {...getRootProps()} className="flex flex-col pb-2 h-full ">
+    <div {...getRootProps()} className="flex flex-col pb-3 h-full ">
       <input {...getInputProps()} />
 
       {/* URL Input Section */}
@@ -142,7 +142,7 @@ export function DocumentSidebar({
         <div 
           onClick={() => document.querySelector('input[type="file"]').click()}
           className={`
-            border-2 border-dashed border-tertiary/30 rounded-lg p-4
+            border-2 border-dashed border-tertiary/30 rounded-lg px-4 py-1
             hover:border-primary/30 transition-colors cursor-pointer
             flex flex-col items-center
             ${isUploading ? 'bg-tertiary/5' : ''}
@@ -158,11 +158,10 @@ export function DocumentSidebar({
           ) : (
             <>
             
-            <Upload className="w-6 h-6 text-tertiary" />
-              <p className="text-sm font-medium text-tertiary text-center mt-2">
-                Drag & drop your file here
-              </p>
-              <p className="text-xs text-tertiary/70 mt-1">
+            <Upload className="w-5 h-5 text-tertiary" />
+              
+              <p className="text-xs text-tertiary/70 flex flex-col text-center items-center">
+                <span className="font-semibold">You can drag & drop</span>
                 <span className="font-semibold">Only <strong>PDF</strong> files are supported</span>
               </p>
             

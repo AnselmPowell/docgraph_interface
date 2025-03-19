@@ -26,7 +26,7 @@ export function DocGraphLogo({ isAnimating = false, hasUser = false }) {
   return (
     <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
       <svg 
-        className={`docgraph opacity-5 ${isActive ? 'active' : ''} ${hasUser ? 'user': ""}`}
+        className={`studygraph opacity-5 ${isActive ? 'active' : ''} ${hasUser ? 'user': ""}`}
         version="1.0" 
         xmlns="http://www.w3.org/2000/svg" 
         width="100%" 

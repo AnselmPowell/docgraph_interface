@@ -479,6 +479,7 @@ if (!visible) {
                               addKeyword(keywordInput);
                             }
                           }}
+
                           placeholder={keywords.length === 0 ? "Add keywords..." : ""}
                           className="flex-1 min-w-[150px] px-2 py-1 bg-transparent text-primary 
                             placeholder:text-tertiary/60 focus:outline-none text-sm"
@@ -492,7 +493,7 @@ if (!visible) {
                     <button
                       onClick={handleClear}
                       className="px-2 py-2 text-sm text-tertiary hover:text-primary 
-                        hover:bg-tertiary/10 rounded-lg transition-colors"
+                        hover:bg-tertiary/10 rounded-lg transition-colors active:translate-y-[0.5px] active:scale-95"
                     >
                       Clear All
                     </button>
@@ -506,11 +507,13 @@ if (!visible) {
                           border border-gray-200
                           shadow-sm 
                           hover:bg-gray-100 hover:border-gray-300 hover:translate-y-[1px]
-                          active:bg-gray-200 active:translate-y-[2px]
+                          active:bg-gray-200
                           disabled:opacity-50 disabled:cursor-not-allowed 
                           disabled:hover:translate-y-0
                           transition-all duration-150 ease-in-out
-                          flex items-center gap-2 overflow-hidden "
+                          flex items-center gap-2 overflow-hidden
+                          active:translate-y-[1px] active:scale-95
+                          "
                     >
                       {isProcessing ? (
                         <>

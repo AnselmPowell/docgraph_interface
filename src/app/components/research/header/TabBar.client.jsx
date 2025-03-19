@@ -188,6 +188,7 @@ export function TabBar({
                     ${tabProperties.compressionFactor > 0 ? 'hover:z-30 hover:scale-105' : ''}
                   `}
                 >
+        
                   <span 
                     className={`
                       truncate

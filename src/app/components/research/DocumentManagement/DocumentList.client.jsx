@@ -136,7 +136,7 @@ export function DocumentList({
             key={doc.file_name}
             className={`
               px-4 py-3 
-              ${selectedDocuments.includes(doc.file_name) ? 'bg-blue-50' : 'hover:bg-gray-50'} 
+              ${selectedDocuments.includes(doc.title) ? 'bg-blue-50' : 'hover:bg-gray-50'} 
               transition-colors
             `}
           >
@@ -150,7 +150,7 @@ export function DocumentList({
               >
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-sm font-medium text-gray-900 truncate">
-                    {doc.title || doc.file_name}
+                    {doc.title || doc.title}
                   </p>
                 </div>
                 {doc.authors?.length > 0 && (
@@ -161,14 +161,15 @@ export function DocumentList({
               </div>
               <DocumentActions
                 document={doc}
-                isSelected={selectedDocuments.includes(doc.file_name)}
+                isSelected={selectedDocuments.includes(doc.title)}
                 onView={() => onView(doc)}
                 onDelete={() => onDelete(doc)}
                 onSelect={() => {
-                  if (selectedDocuments.includes(doc.file_name)) {
-                    onSelect(selectedDocuments.filter(id => id !== doc.file_name));
+                  if (selectedDocuments.includes(doc.title)) {
+                    console.log("Doc infomation", doc)
+                    onSelect(selectedDocuments.filter(id => id !== doc.title));
                   } else {
-                    onSelect([...selectedDocuments, doc.file_name]);
+                    onSelect([...selectedDocuments, doc.title]);
                   }
                 }}
               />

@@ -230,6 +230,7 @@ export function ResearchAssistant() {
         setSearchResults([]);
         setActiveDocument(null)
         setActiveTab(null)
+        setNotes([])
         // fetchData();
     }
   }
@@ -253,6 +254,7 @@ useEffect(() => {
       setDocuments([])
       setTabs([])
       setSearchResults([])
+      setNotes([])
       setActiveDocument(null)
       setActiveTab(null)
       
@@ -942,7 +944,7 @@ const checkDocumentStatus = useCallback(async (documentIds) => {
   const createTab = useCallback((document) => {
     const newTab = {
       id: document?.document_id || document?.file_id,
-      title:  document.file_name || document.title,
+      title:  document.title || document.file_name,
       type: 'document',
       document: document
     };

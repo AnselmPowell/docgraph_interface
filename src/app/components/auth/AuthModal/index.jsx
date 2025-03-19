@@ -47,8 +47,8 @@ export function AuthModal({ isOpen, onClose, initialView = 'login' }) {
             </h2>
             <p className="text-sm text-tertiary text-center mt-1">
               {view === 'login' 
-                ? 'Sign in to continue to DocGraph' 
-                : 'Start your research journey with DocGraph'}
+                ? 'Sign in to continue to StudyGraph' 
+                : 'Start your research journey with StudyGraph'}
             </p>
           </div>
 

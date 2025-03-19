@@ -153,8 +153,8 @@ export function ToolbarContainer({
           className={`flex-1 relative mr-2 
             ${activeTool 
               ? isExpanded 
-                ?  `${ !results?.length && activeTool == 'search-results' ? 'w-[400px] min-w-[400px]' : 'w-[740px] min-w-[600px]'  } `
-                : `${ !results?.length && activeTool == 'search-results' ? 'w-[400px] min-w-[400px]' : 'w-[500px] min-w-[400px]'  } `
+                ?  `${ !results?.length && activeTool == 'search-results' ? 'w-[400px] min-w-[400px]' : 'w-[520px] min-w-[500px]'  } `
+                : `${ !results?.length && activeTool == 'search-results' ? 'w-[400px] min-w-[400px]' : 'w-[420px] min-w-[400px]'  } `
               : 'w-[0px] pr-0'
             } 
             overflow-hidden transition-all duration-300`}

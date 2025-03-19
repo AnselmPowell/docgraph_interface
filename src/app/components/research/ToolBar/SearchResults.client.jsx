@@ -152,6 +152,7 @@ export function SearchResults({
       pageNumber: pageNumber,
       content: content,
       citations: citations?.length > 0 ? citations : (document?.citation ? [{ 
+
         text: document.citation,
         type: "document_citation",
         references: []
@@ -403,12 +404,12 @@ function DocumentResult({
             <div className="flex items-center justify-between mb-1">
               <div>
                 <h4 className="font-medium text-primary text-sm truncate pr-4">
-                  {isToolbarExpanded ? result.title.slice(0, 100) : result.title.slice(0, 45)}
+                  {isToolbarExpanded ? result.title.slice(0, 100) : result.title.slice(0, 64)}
                 </h4>
                 <div className='flex gap-1 items-center py-1 '>
                   <Search className="w-3 h-3" />
                   <h4 className="font-small text-primary text-sm truncate pr-4">
-                    {isToolbarExpanded ? result.question.slice(0, 80): result.question.slice(0, 38)}
+                    {isToolbarExpanded ? result.question.slice(0, 80): result.question.slice(0, 58)}
                   </h4>
                 </div>
               </div>

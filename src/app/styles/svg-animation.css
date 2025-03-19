@@ -6,13 +6,13 @@
 
 
 /* Add default fill for all SVG paths */
-.docgraph path {
+.studygraph path {
     fill: #000000;  /* Default fill */
     opacity: 0.8;     /* Start invisible */
     transition: opacity 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
 
-  .docgraph {
+  .studygraph {
     position: absolute;
     left: 50%; 
     transform: translateX(-50%) translateY(0%) scale(1); /* Center it properly */
@@ -23,11 +23,11 @@
 }
 
 /* When active, show paths */
-.docgraph.active path {
+.studygraph.active path {
     opacity: 1;
 }
 
-.docgraph.user {
+.studygraph.user {
   animation: fadeOutAndReappear 2.2s ease-in-out forwards 5.3s;
   opacity: 0.05;
 }

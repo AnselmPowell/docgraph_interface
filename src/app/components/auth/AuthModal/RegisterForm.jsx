@@ -80,7 +80,7 @@ export default function RegisterForm({ onClose }) {
         });
         
         console.log("[RegisterForm] Registration successful"); // Dev logging
-        toast.success('Account created successfully! Welcome to DocGraph');
+        toast.success('Account created successfully! Welcome to StudyGraph');
         
         await onClose();
     } catch (error) {
