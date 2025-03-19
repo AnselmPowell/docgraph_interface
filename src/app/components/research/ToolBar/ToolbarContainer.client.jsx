@@ -88,7 +88,7 @@ export function ToolbarContainer({
 
       // Show button when scrolled down 20% of the content height
       const scrollThreshold = contentRef.current.scrollHeight * 0.2;
-      setShowScrollToTop(contentRef.current.scrollTop > scrollThreshold);
+      setShowScrollToTop(contentRef.current.scrollTop > 200);
     };
     
     const currentRef = contentRef.current;

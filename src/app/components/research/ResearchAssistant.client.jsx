@@ -41,6 +41,7 @@ import { ToolbarContainer } from './ToolBar/ToolbarContainer.client';
 
 // Utilities & Services
 import { toast } from '../messages/Toast.client';
+import { WelcomeMessage } from '../messages/WelcomeMessage.client';
 import { getCache, setCache, clearCache } from '../../services/caches';
 
 
@@ -1350,21 +1351,10 @@ const handleSearch = useCallback(async (searchParams) => {
  // In ResearchAssistant.client.jsx
 const handleSaveNote = useCallback(async (noteData) => {
   try {
-    if (noteData.id && noteData.content) {
-      setNotes(prev => [...prev, noteData]);
-      return;
-    }
-    
-    // Otherwise, it's a manual note creation
-    const newNote = {
-      id: Date.now(),
-      ...noteData,
-      source: activeDocument?.title || activeDocument?.file_name,
-      timestamp: new Date().toISOString()
-    };
-    setNotes(prev => [...prev, newNote]);
-    
-    console.log("POST NOTES -----------------------------")
+    console.log("Note data", noteData)
+    setNotes(prev => [...prev, noteData]);
+     
+  
     // Send to backend
     const response = await fetch('/api/research/documents/notes', {
       method: 'POST',
@@ -1477,21 +1467,22 @@ const handleSaveNote = useCallback(async (noteData) => {
         // Main Content Area - Dynamic Content Display
         mainContent={
           <div className="relative min-h-full min-w-full border-emerald-600 ">
+            <WelcomeMessage 
+              documents={documents}
+              stagedDocuments={stagedDocuments}
+              pendingDocuments={pendingDocuments}
+              userData={userData}
+            />
             {/* Conditional Content Rendering */}
             <DocGraphLogo isAnimating={isProcessing} hasUser={userData} />
-            { activeDocument ? (
+
+            { activeDocument && (
               // Document Viewer
               <DocumentViewer
               document={activeDocument}
               onClose={handleCloseDocumentView}
               searchInResults={searchInDocumentResults}
             />
-            ) : (
-              // Empty State
-              <div className="flex items-center justify-center h-full text-tertiary">
-                {/* <NoResults /> */}
-                {/* <DocGraphLogo isAnimating={isProcessing} /> */}
-              </div>
             )}
           </div>
         }

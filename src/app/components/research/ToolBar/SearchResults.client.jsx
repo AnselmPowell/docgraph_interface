@@ -717,7 +717,7 @@ function DocumentResult({
                 (activeMatchType === 'all' && !hasContextMatches && !hasKeywordMatches && !hasSimilarMatches)) {
               return null;
             }
-            console.log("Show section:", section)
+           
             
             return (
               <div key={idx} className="px-4 py-1 space-y-3">
@@ -819,7 +819,7 @@ function DocumentResult({
           <button
             onClick={() => {
               onViewDocument(content.slice(0, 25), currentDocument, pageNumber);
-            }} 
+            }}   
             className="text-sm hover:underline flex items-center gap-1 hover:bg-tertiary/10 text-tertiary opacity-0 group-hover:opacity-100"
             title="View in document"  // Added tooltip
           > 
