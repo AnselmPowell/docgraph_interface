@@ -189,7 +189,7 @@ export function SearchResults({
             <div className="relative filter-dropdown z-[500]">
               <button
                 onClick={() => setShowFilter(!showFilter)}
-                className="text-sm flex items-center gap-1 text-tertiary hover:text-primary transition-colors px-2 py-1 rounded-md hover:bg-tertiary/5"
+                className="text-sm flex items-center gap-1 text-tertiary hover:text-primary transition-colors px-2 py-1 rounded-md hover:bg-tertiary/5 active:translate-y-[0.5px] active:scale-95"
                 title="Filter by document"
               >
                 <Filter className="w-4 h-4" />
@@ -202,7 +202,7 @@ export function SearchResults({
                   {documentTitles.map(title => (
                     <button
                       key={title}
-                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-gray-50
+                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-gray-50 active:translate-y-[0.5px] active:scale-95
                         ${selectedFilter === title 
                           ? 'text-primary bg-primary/10 font-medium' 
                           : 'text-secondary hover:text-primary'}`}
@@ -226,14 +226,14 @@ export function SearchResults({
               <>
                 <button
                   onClick={handleSelectAll}
-                  className="text-sm text-tertiary hover:text-primary transition-colors"
+                  className="text-sm text-tertiary hover:text-primary transition-colors active:translate-y-[0.5px] active:scale-95"
                 >
                   {selectedResults.length === results.length ? 'Deselect all' : 'Select all'}
                 </button>
                 {selectedResults.length > 0 && (
                   <button
                     onClick={handleRemoveSelected}
-                    className="text-sm text-red-500 hover:text-red-600 transition-colors"
+                    className="text-sm text-red-500 hover:text-red-600 transition-colors active:translate-y-[0.5px] active:scale-95"
                   >
                     Remove all
                   </button>
@@ -252,7 +252,7 @@ export function SearchResults({
                 <button
                   key={type}
                   onClick={() => setActiveMatchType(type)}
-                  className={`px-3 py-1 rounded-full transition-colors
+                  className={`px-3 py-1 rounded-full transition-colors active:translate-y-[0.5px] active:scale-95
                     ${activeMatchType === type 
                       ? 'bg-primary/10 text-primary' 
                       : 'text-tertiary hover:text-primary hover:bg-tertiary/5'
@@ -398,7 +398,7 @@ function DocumentResult({
         <div className="flex group relative">
           <button
             onClick={onExpand}
-            className="w-full pt-3 p-2 text-left hover:bg-tertiary/5 transition-colors"
+            className="w-full pt-3 p-2 text-left hover:bg-tertiary/5 transition-colors active:translate-y-[0.5px] active:scale-95"
           >
             <div className="flex items-center justify-between mb-1">
               <div>
@@ -439,7 +439,7 @@ function DocumentResult({
         <div className="flex group relative">
           <button
             onClick={onExpand}
-            className="w-full pt-3 p-2 text-left hover:bg-tertiary/5 transition-colors"
+            className="w-full pt-3 p-2 text-left hover:bg-tertiary/5 transition-colors active:translate-y-[0.5px] active:scale-95"
           >
             <div className="flex items-center justify-between mb-1">
               <div>
@@ -476,7 +476,7 @@ function DocumentResult({
             }}
             className="p-1.5 mt-6 rounded-md text-tertiary hover:text-primary 
               hover:bg-tertiary/10 mr-2 opacity-0 group-hover:opacity-100
-              transition-all duration-75"
+              transition-all duration-75 active:translate-y-[0.5px] active:scale-95"
             title="Remove result"
           >
             <X className="w-6 h-6" />
@@ -503,7 +503,7 @@ function DocumentResult({
         <div className="flex group relative">
           <button
             onClick={onExpand}
-            className="w-full pt-3 p-2 text-left hover:bg-tertiary/5 transition-colors"
+            className="w-full pt-3 p-2 text-left hover:bg-tertiary/5 transition-colors active:translate-y-[0.5px] active:scale-95"
           >
             <div className="flex items-center justify-between mb-1">
               <div>
@@ -570,7 +570,7 @@ function DocumentResult({
         <div className="flex group relative">
           <button
             onClick={onExpand}
-            className="w-full pt-3 p-2 text-left hover:bg-tertiary/5 transition-colors"
+            className="w-full pt-3 p-2 text-left hover:bg-tertiary/5 transition-colors active:translate-y-[0.5px] active:scale-95"
           >
             {/* Header content same as below */}
             <div className="flex items-center justify-between mb-1">
@@ -612,7 +612,7 @@ function DocumentResult({
             }}
             className="p-1.5 mt-6 rounded-md text-tertiary hover:text-primary 
               hover:bg-tertiary/10 mr-2 opacity-0 group-hover:opacity-100
-              transition-all duration-75"
+              transition-all duration-75 active:translate-y-[0.5px] active:scale-95"
             title="Remove result"
           >
             <X className="w-6 h-6" />
@@ -628,7 +628,7 @@ function DocumentResult({
       <div className="flex group relative">
         <button
           onClick={onExpand}
-          className="w-full pt-3 p-2 text-left hover:bg-tertiary/5 transition-colors"
+          className="w-full pt-3 p-2 text-left hover:bg-tertiary/5 transition-colors active:translate-y-[0.5px] active:scale-95"
         >
           <div className="flex items-center justify-between mb-1">
             <div>
@@ -695,7 +695,7 @@ function DocumentResult({
             }}
             className="p-1.5 mt-6 rounded-md text-tertiary hover:text-primary 
               hover:bg-tertiary/10 mr-2 opacity-0 group-hover:opacity-100
-              transition-all duration-75"
+              transition-all duration-75 active:translate-y-[0.5px] active:scale-95"
             title="Remove result"
           >
             <X className="w-6 h-6" />
@@ -820,7 +820,7 @@ function DocumentResult({
             onClick={() => {
               onViewDocument(content.slice(0, 25), currentDocument, pageNumber);
             }}   
-            className="text-sm hover:underline flex items-center gap-1 hover:bg-tertiary/10 text-tertiary opacity-0 group-hover:opacity-100"
+            className="text-sm hover:underline flex items-center gap-1 hover:bg-tertiary/10 text-tertiary opacity-0 group-hover:opacity-100 active:translate-y-[0.5px] active:scale-95"
             title="View in document"  // Added tooltip
           > 
             View
@@ -829,7 +829,7 @@ function DocumentResult({
           {/* Copy button */}
           <button
             onClick={() => onCopyNote(content, currentDocument, citations, sectionId)} 
-            className={`p-1.5 rounded-md transition-all flex items-center gap-1 text-black opacity-0 group-hover:opacity-100`}
+            className={`p-1.5 rounded-md transition-all flex items-center gap-1 text-black opacity-0 group-hover:opacity-100 active:translate-y-[0.5px] active:scale-95`}
             title="Copy"  
           >
             {isCopied ? ( 
@@ -842,7 +842,7 @@ function DocumentResult({
           {/* Save note button with icon instead of text */}
           <button
             onClick={() => onSaveNote(content, pageNumber, currentDocument, citations, sectionId)} 
-            className={`p-1.5 rounded-md transition-all flex items-center gap-1 text-black `}
+            className={`p-1.5 rounded-md transition-all flex items-center gap-1 text-black  active:translate-y-[0.5px] active:scale-95`}
             title="Save as note"  // Added tooltip
           >
             {isSaved ? ( 

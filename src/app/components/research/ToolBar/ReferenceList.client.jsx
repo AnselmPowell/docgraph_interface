@@ -79,7 +79,7 @@ export function ReferenceList({ document }) {
         {filteredEntries.length > 5 && (
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-tertiary hover:text-primary transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-tertiary hover:text-primary transition-colors active:translate-y-[0.5px] active:scale-95"
           >
             {isExpanded ? (
               <>

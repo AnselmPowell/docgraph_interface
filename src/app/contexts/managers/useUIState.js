@@ -29,7 +29,8 @@ export function useUIState() {
   }, [theme]); // Only depend on theme changes
 
   const toggleTheme = useCallback(() => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
+    const newTheme = theme === 'light' ? 'light' : 'light';
+    // const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
     localStorage.setItem('theme', JSON.stringify(newTheme));
   }, [theme, setTheme]);

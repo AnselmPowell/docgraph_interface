@@ -167,7 +167,7 @@ export function ToolbarContainer({
                 onClick={() => setIsExpanded(!isExpanded)}
                 className="p-1.5 px-3 rounded-lg bg-white
                   text-tertiary hover:text-primary hover:bg-tertiary/5 
-                  transition-colors"
+                  transition-colors active:translate-y-[0.5px] active:scale-95"
               >
                 {isExpanded ? <ArrowRightFromLine className="w-6 h-6" /> : <ArrowLeftFromLine className="w-6 h-6" />}
               </button>
@@ -176,7 +176,7 @@ export function ToolbarContainer({
                 onClick={() => onToolSelect(null)}
                 className="p-1.5 px-3 rounded-lg bg-white
                   text-tertiary hover:text-primary hover:bg-tertiary/5 
-                  transition-colors"
+                  transition-colors active:translate-y-[0.5px] active:scale-95"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -234,7 +234,7 @@ export function ToolbarContainer({
                 key={tool.id}
                 onClick={() => onToolSelect(tool.id)}
                 className={`
-                  relative p-3 rounded-2xl transition-all 
+                  relative p-3 rounded-2xl transition-all active:translate-y-[0.5px] active:scale-95 
                  
                   ${activeTool === tool.id 
                     ? 'bg-primary/10 bg-gray-200 text-primary scale-120' 

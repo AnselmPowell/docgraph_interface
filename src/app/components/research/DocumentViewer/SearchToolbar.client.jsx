@@ -43,9 +43,9 @@ export function SearchToolbar({
               }}
               className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 
                          rounded-full hover:bg-tertiary/10 text-tertiary 
-                         hover:text-primary transition-colors"
+                         hover:text-primary transition-colors active:translate-y-[0.5px] active:scale-95"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5" />
             </button>
           )}
         </div>
@@ -67,7 +67,7 @@ export function SearchToolbar({
                 type="button"
                 onClick={() => onNavigate('prev')}
                 className="p-1.5 rounded hover:bg-tertiary/10 text-tertiary 
-                           hover:text-primary transition-colors"
+                           hover:text-primary transition-colors active:translate-y-[0.5px] active:scale-95"
               >
                 <ArrowUp className="w-4 h-4" />
               </button>
@@ -75,7 +75,7 @@ export function SearchToolbar({
                 type="button"
                 onClick={() => onNavigate('next')}
                 className="p-1.5 rounded hover:bg-tertiary/10 text-tertiary 
-                           hover:text-primary transition-colors"
+                           hover:text-primary transition-colors active:translate-y-[0.5px] active:scale-95"
               >
                 <ArrowDown className="w-4 h-4" />
               </button>

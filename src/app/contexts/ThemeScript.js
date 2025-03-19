@@ -13,8 +13,10 @@ export default function ThemeScript() {
                   // Remove any quotes that might be present
                   return storedTheme.replace(/['"]+/g, '');
                 }
-                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                  return 'dark';
+                if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+                // if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                  return 'light';
+                  // return 'dark';
                 }
               } catch {
                 return 'light';

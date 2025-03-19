@@ -354,17 +354,17 @@ useEffect(() => {
       setSearchStatusInterval(null);
     }
     
-    // Set up interval if we have pending searches
-    if (pendingSearches.length > 0) {
-      console.log("[StatusCheck] Setting up search status check interval");
-      const interval = setInterval(() => {
-        const searchIds = pendingSearches.map(search => search.search_results_id);
-        console.log("[StatusCheck] Checking status for searches:", searchIds);
-        checkSearchStatus(searchIds);
-      }, 5000); // Check every 3 seconds
+    // // Set up interval if we have pending searches
+    // if (pendingSearches.length > 0) {
+    //   console.log("[StatusCheck] Setting up search status check interval");
+    //   const interval = setInterval(() => {
+    //     const searchIds = pendingSearches.map(search => search.search_results_id);
+    //     console.log("[StatusCheck] Checking status for searches:", searchIds);
+    //     checkSearchStatus(searchIds);
+    //   }, 5000); // Check every 3 seconds
       
-      setSearchStatusInterval(interval);
-    }
+    //   setSearchStatusInterval(interval);
+    // }
     
     // Cleanup on unmount
     return () => {
@@ -389,88 +389,6 @@ useEffect(() => {
 
   }
  
-
-  /**************************************************************************
-   * DOCUMENT MANAGEMENT
-   * Core functionality for handling document operations
-   **************************************************************************/
-
-  /**
-   * Fetches processed documents from backend
-   * Data Flow: API → documents state → DocumentSidebar
-   */
-  const fetchDocuments = useMemo(() => async () => {
-    if(isDocumentFetched){
-      console.log("Documents already fetched")
-      return
-    }
-    try {
-        setIsProcessing(true);
-        const response = await fetch('/api/research/documents/upload', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-            },
-        });
-        const data = await response.json();
-
-        if (data.status === 'error') {
-            console.error('[fetchDocuments] Error:', data.detail); 
-            throw new Error(data.message);
-        }
-    
-        // Set documents (might be empty array)
-        setDocuments(data.documents);
-        setIsDocumentsFetched(true);
-
-        // Only show success toast if documents were actually found
-        if (data.documents.length > 0) {
-            toast.success('Documents loaded successfully');
-        } else {
-            // Optional: Show informative message for no documents
-            console.log('[fetchDocuments] No documents found');
-        }
-        setIsProcessing(false);
-    } catch (error) {
-        console.error('[fetchDocuments] Critical error:', error); // Dev logging
-    } finally {
-        setIsProcessing(false);
-        
-    }
-  }, []);
-
-
-  const handleUrlSubmit = useCallback(async (url) => {
-    try {
-      const formData = new FormData();
-      formData.append('url', url);
-
-      const response = await fetch('/api/research/documents/url', {
-        method: 'POST',
-        body: formData
-      });
-
-      const data = await response.json();
-      if (data.status === 'error') throw new Error(data.error);
-
-      setStagedDocuments(prev => [...prev, data.document]);
-      toast.success('Document added from URL');
-    } catch (error) {
-      console.error('URL submission error:', error);
-      toast.error(error.message || 'Failed to add document from URL');
-    }
-  }, []);
-
-  const handleOpenSidebar = useCallback(async (isOpen) => {
-    if(!isOpen){
-      setOpenSidebar(true)
-
-     } else {
-      setOpenSidebar(false)
-     }
-
-  }, []);
 
 
   /**************************************************************************
@@ -527,17 +445,58 @@ useEffect(() => {
     }
   };
 
-
-
   /**************************************************************************
-   * DOCUMENT STAGING & UPLOAD HANDLERS
-   * Manages document upload workflow
+   * DOCUMENT MANAGMENT
+   * Manages document upload workflow staging and processing status
    **************************************************************************/
 
+
   /**
-   * Handles initial document staging before upload
-   * Flow: Files → Staging Area → Upload Queue
+   * Fetches processed documents from backend
+   * Data Flow: API → documents state → DocumentSidebar
    */
+  const fetchDocuments = useMemo(() => async () => {
+    if(isDocumentFetched){
+      console.log("Documents already fetched")
+      return
+    }
+    try {
+        setIsProcessing(true);
+        const response = await fetch('/api/research/documents/upload', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+            },
+        });
+        const data = await response.json();
+
+        if (data.status === 'error') {
+            console.error('[fetchDocuments] Error:', data.detail); 
+            throw new Error(data.message);
+        }
+    
+        // Set documents (might be empty array)
+        setDocuments(data.documents);
+        setIsDocumentsFetched(true);
+
+        // Only show success toast if documents were actually found
+        if (data.documents.length > 0) {
+            toast.success('Documents loaded successfully');
+        } else {
+            // Optional: Show informative message for no documents
+            console.log('[fetchDocuments] No documents found');
+        }
+        setIsProcessing(false);
+    } catch (error) {
+        console.error('[fetchDocuments] Critical error:', error); // Dev logging
+    } finally {
+        setIsProcessing(false);
+        
+    }
+  }, []);
+
+
 
   const handleStagedDocuments = useCallback(async (files) => {
     console.log('Staging documents:', files);
@@ -632,6 +591,55 @@ const handleUploadStaged = useCallback(async (stagedDocuments) => {
     setIsProcessing(false);
   }
 }, [removeCachedStaged, toast]);
+
+
+
+
+const handleUrlSubmit = useCallback(async (formData) => {
+  try {
+  
+
+    // Send the URL to our API endpoint
+    const response = await fetch('/api/research/documents/url', {
+      method: 'POST',
+      body: formData
+    });
+
+    // Parse response
+    const data = await response.json();
+
+    console.log("URL Data:", data)
+    
+    // Handle errors
+    if (response.status !== 200 || data.status === 'error') {
+      throw new Error(data.error || 'Failed to process URL');
+    }
+    
+    // Check if we have documents in the response
+    if (data.documents && data.documents.length > 0) {
+      // Success - add document to staged documents
+
+      // Add to staged documents (same as file upload code path)
+      setStagedDocuments(prev => {
+        const newDocs = [...prev, ...data.documents];
+        cacheStagedDocuments(newDocs);
+        return newDocs;
+      });
+      
+      // Use your existing handleUploadStaged function to handle the rest
+      // This keeps your code path consistent with file uploads
+      setTimeout(() => {
+        handleUploadStaged(data.documents);
+      }, 500);
+    } else {
+      throw new Error('No documents received from server');
+    }
+  } catch (error) {
+    console.error('URL submission error:', error);
+    toast.error(error.message || 'Failed to process URL');
+  }
+}, [setStagedDocuments, cacheStagedDocuments, handleUploadStaged]);
+
 
 
 
@@ -1411,6 +1419,24 @@ const handleSaveNote = useCallback(async (noteData) => {
       throw error;
     }
   }, [fetchNotes]);
+
+
+
+   /**************************************************************************
+   * APPLICATION COMPONENT FUNCTIONALITY
+   * Core functionality for handling document operations
+   **************************************************************************/
+
+
+   const handleOpenSidebar = useCallback(async (isOpen) => {
+    if(!isOpen){
+      setOpenSidebar(true)
+
+     } else {
+      setOpenSidebar(false)
+     }
+
+  }, []);
 
 
   /**************************************************************************

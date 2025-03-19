@@ -54,6 +54,7 @@ export async function POST(request) {
         }
 
         console.log(`[POST] Processing ${files.length} files`);
+        console.log(`[POST] Processing file:`, files );
         
         // Process files with Pinata
         const processedFiles = await Promise.all(

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 export const WelcomeMessage = ({ documents = [], stagedDocuments = [], pendingDocuments = [], userData = null }) => {
   const [showMessage, setShowMessage] = useState(false);
@@ -63,7 +63,7 @@ export const WelcomeMessage = ({ documents = [], stagedDocuments = [], pendingDo
                       transition={{ repeat: 3, duration: 1.5 }}
                       className="mr-3"
                     >
-                      <ChevronLeft className="w-8 h-8 text-primary" />
+                      <ArrowLeft className="w-8 h-8 text-primary" />
                     </motion.div>
                     <p className="text-xl font-medium text-tertiary">
                       Upload your PDF files to get started

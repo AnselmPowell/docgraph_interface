@@ -198,12 +198,14 @@ export function DocumentViewer({ document, onClose, searchInResults, className =
   
         // Get proxied URL
         const proxiedUrl = await getProxiedUrl(url);
+        // const proxiedUrl = await getProxiedUrl('https://www.cambridge.org/core/services/aop-cambridge-core/content/view/4FF461F4066A0C16135F2D2849E3356A/S1351324924000044a.pdf/emerging-trends-a-gentle-introduction-to-rag.pdf');
         console.log('[DocumentViewer] Created proxied URL:', proxiedUrl);
     
     
         if (isMounted) {
           console.log('[DocumentViewer] Mount proxied URL');
           setDocumentUrl(proxiedUrl);
+          // setDocumentUrl('https://www.cambridge.org/core/services/aop-cambridge-core/content/view/4FF461F4066A0C16135F2D2849E3356A/S1351324924000044a.pdf/emerging-trends-a-gentle-introduction-to-rag.pdf');
           setError(null);
         }
       } catch (error) {
@@ -311,7 +313,7 @@ export function DocumentViewer({ document, onClose, searchInResults, className =
       <div className="flex items-center gap-4 min-w-0">
         <button
           onClick={onClose}
-          className="shrink-0 p-1 rounded hover:bg-tertiary/10 text-tertiary hover:text-primary transition-colors"
+          className="shrink-0 p-1 rounded hover:bg-tertiary/10 text-tertiary hover:text-primary transition-colors active:translate-y-[0.5px] active:scale-95"
         >
           <X className="w-5 h-5" />
         </button>
@@ -335,7 +337,7 @@ export function DocumentViewer({ document, onClose, searchInResults, className =
           <button
             onClick={goToPrevPage}
             disabled={currentPage <= 1 || isLoading}
-            className="p-1 rounded hover:bg-tertiary/10 text-tertiary hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="p-1 rounded hover:bg-tertiary/10 text-tertiary hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors active:translate-y-[0.5px] active:scale-95"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -373,7 +375,7 @@ export function DocumentViewer({ document, onClose, searchInResults, className =
           <button
             onClick={goToNextPage}
             disabled={currentPage >= (numPages || 1) || isLoading}
-            className="p-1 rounded hover:bg-tertiary/10 text-tertiary hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="p-1 rounded hover:bg-tertiary/10 text-tertiary hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors active:translate-y-[0.5px] active:scale-95"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
@@ -384,7 +386,7 @@ export function DocumentViewer({ document, onClose, searchInResults, className =
           <button
             onClick={zoomOut}
             disabled={scale <= 0.5 || isLoading}
-            className="p-1 rounded hover:bg-tertiary/10 text-tertiary hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="p-1 rounded hover:bg-tertiary/10 text-tertiary hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors active:translate-y-[0.5px] active:scale-95"
           >
             <ZoomOut className="w-5 h-5" />
           </button>
@@ -394,14 +396,14 @@ export function DocumentViewer({ document, onClose, searchInResults, className =
           <button
             onClick={zoomIn}
             disabled={scale >= 3 || isLoading}
-            className="p-1 rounded hover:bg-tertiary/10 text-tertiary hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="p-1 rounded hover:bg-tertiary/10 text-tertiary hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors active:translate-y-[0.5px] active:scale-95"
           >
             <ZoomIn className="w-5 h-5" />
           </button>
           <button
             onClick={resetZoom}
             disabled={isLoading}
-            className="p-1 rounded hover:bg-tertiary/10 text-tertiary hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="p-1 rounded hover:bg-tertiary/10 text-tertiary hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors active:translate-y-[0.5px] active:scale-95"
           >
             <RotateCcw className="w-5 h-5" />
           </button>

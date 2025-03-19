@@ -102,16 +102,15 @@ export function UploadConfirmationModal({
             onClick={onConfirmUpload}
             disabled={filesToUpload.length === 0 || hasDuplicates}
             className="px-6 py-2.5 text-sm font-medium
-                          bg-gradient-to-b from-gray-50 to-gray-100
+                          
                           text-gray-900 rounded-lg
-                          border border-gray-200
+                         
                           shadow-sm 
-                          hover:bg-gray-100 hover:border-gray-300 hover:translate-y-[1px]
-                          active:bg-gray-200 active:translate-y-[2px]
+                        
+                          active:bg-gray-50 active:translate-y-[2px]
                           disabled:opacity-50 disabled:cursor-not-allowed 
                           disabled:hover:translate-y-0
-                          transition-all duration-150 ease-in-out
-                          flex items-center gap-2 overflow-hidden "
+                           "
                     >
 
             Upload {filesToUpload.length > 0 ? `(${filesToUpload.length})` : ''}

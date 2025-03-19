@@ -213,10 +213,10 @@ export function DocumentDetails({ document, onToolSelect }) {
                 }
                 {Object.keys(document.references.entries).length > 5 && (
                   <button
-                  className='ml-8 '
+                  className='ml-8 active:translate-y-[0.5px] active:scale-95 '
                   onClick={() => onToolSelect('references')}
                   >
-                    <p className="text-sm text-tertiary text-center">
+                    <p className="text-m text-tertiary text-center">
                     + {Object.keys(document.references.entries).length - 5} more references
                   </p>
 

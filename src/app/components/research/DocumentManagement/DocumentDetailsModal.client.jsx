@@ -23,7 +23,7 @@ export function DocumentDetailsModal({ isOpen, onClose, document }) {
           >
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 p-1 text-tertiary hover:text-primary rounded-full transition-colors"
+              className="absolute top-4 right-4 p-1 text-tertiary hover:text-primary rounded-full transition-colors active:translate-y-[0.5px] active:scale-95"
             >
               <X className="w-5 h-5" />
             </button>

@@ -151,7 +151,7 @@ const handleClickOutside =(event)=> {
                   onClick={() => handleOpenSidebar(true)}
                   className="relative right-[100%] top-0 p-2 pb-4 bg-background/80 
                   hover:bg-tertiary/5 transition-colors z-50 cursor-pointer
-                  rounded-lg w-4 h-4 " 
+                  rounded-lg w-5 h-5 active:translate-y-[0.5px] active:scale-95 " 
                 >
                   <X />
                 </button>

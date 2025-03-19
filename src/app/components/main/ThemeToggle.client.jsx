@@ -31,7 +31,8 @@ export default function ThemeToggle() {
       {ui.theme === 'light' ? (
         <>
           <Moon className="h-5 w-5 text-secondary" />
-          <span className="text-sm text-secondary">Dark Mode</span>
+          <span className="text-sm text-secondary">Light Mode</span>
+          {/* <span className="text-sm text-secondary">Dark Mode</span> */}
         </>
       ) : (
         <>

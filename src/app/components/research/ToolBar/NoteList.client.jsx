@@ -95,7 +95,7 @@ export function NotesList({ notes = [], onDeleteNote }) {
           <div className="relative filter-dropdown z-[500]">
             <button
               onClick={() => setShowFilter(!showFilter)}
-              className="text-sm flex items-center gap-1 text-tertiary hover:text-primary transition-colors px-2 py-1 rounded-md hover:bg-tertiary/5"
+              className="active:translate-y-[0.5px] active:scale-95 text-sm flex items-center gap-1 text-tertiary hover:text-primary transition-colors px-2 py-1 rounded-md hover:bg-tertiary/5"
               title="Filter by document"
             >
               <Filter className={` w-5 h-5
@@ -113,7 +113,7 @@ export function NotesList({ notes = [], onDeleteNote }) {
                 {documentSources.map(source => (
                   <button
                     key={source}
-                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-grey-50
+                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-grey-50 active:translate-y-[0.5px] active:scale-95
                       ${selectedFilter === source 
                         ? 'text-primary bg-primary/10 font-medium' 
                         : 'text-secondary hover:text-primary'}`}
@@ -159,7 +159,7 @@ export function NotesList({ notes = [], onDeleteNote }) {
                   handleCopyNote(note);
                 }}
                 className={`absolute top-1 right-8 p-1.5 rounded-md 
-                  transition-all flex items-center gap-1 text-black`}
+                  transition-all flex items-center gap-1 text-black active:translate-y-[0.5px] active:scale-95`}
                 title="Copy"
               >
                 {copiedNoteId === note.id ? (
@@ -179,7 +179,7 @@ export function NotesList({ notes = [], onDeleteNote }) {
                 }}
                 disabled={deletingNoteId === note.id}
                 className="absolute top-1 right-1 p-1.5 rounded-md transition-all flex items-center gap-1 
-                  text-red-600 opacity-0 group-hover:opacity-60 hover:opacity-100"
+                  text-red-600 opacity-0 group-hover:opacity-60 hover:opacity-100 active:translate-y-[0.5px] active:scale-95"
                 title="Delete note"
               >
                 {deletingNoteId === note.id ? (
