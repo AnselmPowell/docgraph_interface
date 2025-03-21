@@ -121,7 +121,7 @@ const handleSubmit = useCallback(() => {
 
 if (!visible) {
   return (
-    <div className="relative">
+    <div className="absolute">
       {/* Popup for selected documents */}
           {selectedDocuments.length > 0 && (
       <div className="absolute -top-[0] right-2 mb-2">
@@ -146,42 +146,11 @@ if (!visible) {
       </div>
     )}
 
-      {/* Search Button */}
-      {/* <button
-        onClick={() => onToggleVisibility(true)}
-        className={`fixed bottom-10 right-36 
-          p-8
-          rounded-full 
-          bg-white/95
-          shadow-[0_8px_30px_rgb(0,0,0,0.06)]
-          border border-tertiary/20
-          group 
-          hover:bg-white
-          hover:shadow-[0_20px_50px_rgb(0,0,0,0.12)]
-          hover:border-primary/20
-          hover:scale-105 
-          transition-all duration-500 ease-out z-50
-          ${selectedDocuments.length > 0 ? 'animate-[wiggle_1s_ease-in-out] brightness-110' : ''}
-        `}
-        title={`${selectedDocuments.length} document${selectedDocuments.length !== 1 ? 's' : ''} selected`}
-      >
-        <div className="relative flex items-center justify-center gap-4">
-          <Sparkles 
-            className={`absolute w-9 h-9 
-              text-primary/10
-              ${selectedDocuments.length > 0 ? 'opacity-80' : 'opacity-20'}
-              group-hover:opacity-80 
-              group-hover:rotate-6
-              transition-all duration-500
-            `} 
-          />
-        </div>
-      </button> */}
 
       {/* Search Button with Selection Counter */}
         <button
           onClick={() => onToggleVisibility(true)}
-          className={`fixed bottom-10 right-36 
+          className={`fixed bottom-12 right-44 z-[500]
             p-8
             rounded-full 
             bg-white/95
@@ -192,7 +161,7 @@ if (!visible) {
             hover:shadow-[0_20px_50px_rgb(0,0,0,0.12)]
             hover:border-primary/20
             hover:scale-105 
-            transition-all duration-500 ease-out z-50
+            transition-all duration-500 ease-out
             ${selectedDocuments.length > 0 ? 'animate-[wiggle_1s_ease-in-out] brightness-110' : ''}
           `}
           title={`${selectedDocuments.length} document${selectedDocuments.length !== 1 ? 's' : ''} selected`}
@@ -231,7 +200,7 @@ if (!visible) {
   
   return (
     <div ref={containerRef} className="fixed bottom-10 left-1/2 -translate-x-1/2 
-      w-full max-w-5xl mx-auto px-4 z-30">
+      w-full max-w-5xl mx-auto px-4 z-[500]">
       
       <div className="max-w-5xl mx-auto items-center p-3">
         
@@ -253,12 +222,12 @@ if (!visible) {
           className="absolute top-3 right-3 
             px-3 py-1.5  pt-4
             rounded-full
-            bg-background/50 backdrop-blur-sm
+            backdrop-blur-sm
             text-tertiary hover:text-primary
             text-m font-medium
             flex items-center gap-1.5
             hover:bg-tertiary/5 hover:border-primary/30
-            transition-all duration-200 z-50
+            transition-all duration-200 z-[500]
             group"
         >
           <span>Hide</span>
@@ -391,7 +360,7 @@ if (!visible) {
                     }}
                     onFocus={() => setIsExpanded(true)}
                     onClick={() => setIsExpanded(true)}
-                    placeholder="Enter your research query to search the papaer..."
+                    placeholder="Enter your research query to search the paper..."
                     className={`
                       ${isExpanded  ? 'min-h-[160px] p-3  border-2'
                         : 'min-h-[100px] flex items-center justify-center border-none relative top-3 p-3 pt-10 ' } 
@@ -414,7 +383,7 @@ if (!visible) {
                   {/* Character Count */}
                   {context.length > 0 && (
                     <div className={`absolute bottom-2 right-4 px-2 pt-3 
-                      bg-background/80 rounded-md text-xs 
+                      rounded-md text-xs 
                       backdrop-blur-sm
                       ${context.length > 800 ? 'text-red-500 font-medium' : 'text-tertiary'}
                     `}>

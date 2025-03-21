@@ -124,6 +124,10 @@ export function ResearchAssistant() {
   // Toolbar States
    const [activeTool, setActiveTool] = useState(null);
    const [notes, setNotes] = useState([]);
+   const [researchContext, setResearchContext] = useState(null);
+
+
+   const [searchArxivSearchResults, setSearchArxivSearchResults] = useState(null)
 
 
 
@@ -196,6 +200,7 @@ export function ResearchAssistant() {
    const fetchData = async () => {
         await fetchDocuments();
         await fetchSearchResult();
+        await fetchResearchContext();
         await fetchNotes();
     };
 
@@ -250,13 +255,14 @@ useEffect(() => {
     } else {
       console.log("user not found")
       setUserData("")
-      handleDocumentView([])
+      handleDocumentView(null)
       setDocuments([])
       setTabs([])
       setSearchResults([])
       setNotes([])
       setActiveDocument(null)
       setActiveTab(null)
+      
       
     }
   };
@@ -357,16 +363,16 @@ useEffect(() => {
     }
     
     // // Set up interval if we have pending searches
-    // if (pendingSearches.length > 0) {
-    //   console.log("[StatusCheck] Setting up search status check interval");
-    //   const interval = setInterval(() => {
-    //     const searchIds = pendingSearches.map(search => search.search_results_id);
-    //     console.log("[StatusCheck] Checking status for searches:", searchIds);
-    //     checkSearchStatus(searchIds);
-    //   }, 5000); // Check every 3 seconds
+    if (pendingSearches.length > 0) {
+      console.log("[StatusCheck] Setting up search status check interval");
+      const interval = setInterval(() => {
+        const searchIds = pendingSearches.map(search => search.search_results_id);
+        console.log("[StatusCheck] Checking status for searches:", searchIds);
+        checkSearchStatus(searchIds);
+      }, 5000); // Check every 3 seconds
       
-    //   setSearchStatusInterval(interval);
-    // }
+      setSearchStatusInterval(interval);
+    }
     
     // Cleanup on unmount
     return () => {
@@ -890,7 +896,11 @@ const checkDocumentStatus = useCallback(async (documentIds) => {
         console.log(" [ResearchAssistant] Viewing --File")
         tabId = `${document.file_id}`;
       }
-      setSelectedDocuments([document.file_name])
+      if(document.title) {
+        setSelectedDocuments([document.title])
+      } else {
+        setSelectedDocuments([document.title])
+      }
       const existingTab = tabs.find(t => t.id === tabId);
       console.log("all Tabs: ", tabs)
       
@@ -1425,20 +1435,128 @@ const handleSaveNote = useCallback(async (noteData) => {
 
 
    /**************************************************************************
+   * CONTEXT FUNCTIONALITY
+   * Manages Reseach Context
+   **************************************************************************/
+
+  const fetchResearchContext = useCallback(async () => {
+    try {
+      const response = await fetch('/api/research/context', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+        }
+      });
+      
+      if (!response.ok) {
+        console.log("No Research Context Found");
+        return;
+      }
+      
+      const data = await response.json();
+      // Set the context if available
+      if (data.has_context && data.context) {
+        setResearchContext(data.context);
+      } else {
+        setResearchContext(null);
+      }
+      
+    } catch (error) {
+      console.error('Error fetching research context:', error);
+    }
+  }, []);
+
+// Add save handler
+const handleSaveResearchContext = useCallback(async (contextData) => {
+  try {
+    // Optimistic update
+    setResearchContext(prev => ({ ...prev, ...contextData }));
+    
+    const response = await fetch('/api/research/context', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+      },
+      body: JSON.stringify(contextData)
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to save research context');
+    }
+    
+    const data = await response.json();
+    
+    // Update with server data
+    if (data.context) {
+      setResearchContext(data.context);
+    }
+    
+    return data;
+    
+  } catch (error) {
+    console.error('Error saving research context:', error);
+    throw error;
+  }
+}, []);
+
+// Add delete handler
+const handleDeleteResearchContext = useCallback(async () => {
+  try {
+    // Optimistic update
+    setResearchContext(null);
+    
+    const response = await fetch('/api/research/context', {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to delete research context');
+      // Restore context on error
+      fetchResearchContext();
+    }
+    
+    return true;
+    
+  } catch (error) {
+    console.error('Error deleting research context:', error);
+    throw error;
+  }
+}, [fetchResearchContext]);
+
+
+
+
+const handelSetArxivSearchResult = useCallback(async (results) => {
+      
+  if(results) {
+    setSearchArxivSearchResults(results)
+  }
+})
+
+
+
+
+
+ /**************************************************************************
    * APPLICATION COMPONENT FUNCTIONALITY
    * Core functionality for handling document operations
    **************************************************************************/
 
 
-   const handleOpenSidebar = useCallback(async (isOpen) => {
-    if(!isOpen){
-      setOpenSidebar(true)
+ const handleOpenSidebar = useCallback(async (isOpen) => {
+  if(!isOpen){
+    setOpenSidebar(true)
 
-     } else {
-      setOpenSidebar(false)
-     }
+   } else {
+    setOpenSidebar(false)
+   }
 
-  }, []);
+}, []);
+
 
 
   /**************************************************************************
@@ -1494,7 +1612,7 @@ const handleSaveNote = useCallback(async (noteData) => {
 
         // Main Content Area - Dynamic Content Display
         mainContent={
-          <div className="relative min-h-full min-w-full border-emerald-600 ">
+          <div className="relative min-h-full min-w-full border-blue-400 ">
             <WelcomeMessage 
               documents={documents}
               stagedDocuments={stagedDocuments}
@@ -1502,7 +1620,7 @@ const handleSaveNote = useCallback(async (noteData) => {
               userData={userData}
             />
             {/* Conditional Content Rendering */}
-            <DocGraphLogo isAnimating={isProcessing} hasUser={userData} />
+            <DocGraphLogo isAnimating={isProcessing} hasUser={userData} sidebarOpen={openSidebar} />
 
             { activeDocument && (
               // Document Viewer
@@ -1534,23 +1652,32 @@ const handleSaveNote = useCallback(async (noteData) => {
             activeTool={activeTool}
             pendingSearches={pendingSearches}
             onToolSelect={handleToolSelect}
+
             document={activeDocument}
+
             results={searchResults}
-            onViewDocument={handleDocumentView}
-            onViewSearchResults={handleViewSearchResults}
-            notes={notes}
-            onSaveNote={handleSaveNote}
-            onDeleteNote={handleDeleteNote} 
-            onNoteSelect={handleNoteSelect}
             isSearching={isSearching}
             onRemoveResult={handleRemoveSearchResult}
             onRemoveAllResult={handleRemoveAllSearchResult}
 
+            onViewDocument={handleDocumentView}
+            onViewSearchResults={handleViewSearchResults}
+
+            researchContext={researchContext}
+            onSaveResearchContext={handleSaveResearchContext}
+            onDeleteResearchContext={handleDeleteResearchContext}
+
+            notes={notes}
+            onSaveNote={handleSaveNote}
+            onDeleteNote={handleDeleteNote} 
+            onNoteSelect={handleNoteSelect}
+
+            searchArxivSearchResults={searchArxivSearchResults}
+            onSetArxivSearchResult={handelSetArxivSearchResult}
+
           />
         }
       
-
-
       />
 
      

@@ -15,7 +15,6 @@ export function DocumentList({
   onSelect,
   onView,
   onDelete,
-  onDetails
 }) {
   // Get all documents in processing state
   const processingDocs = [
@@ -67,6 +66,7 @@ export function DocumentList({
                     onClick={(e) => {
                       e.stopPropagation();
                       onDelete(doc);
+
                     }}
                     className="p-1.5 rounded-md text-red-600 hover:bg-red-50 transition-colors active:translate-y-[0.5px] active:scale-95"
                   >

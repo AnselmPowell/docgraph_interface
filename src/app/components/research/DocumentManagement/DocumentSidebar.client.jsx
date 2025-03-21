@@ -228,8 +228,7 @@ export function DocumentSidebar({
       selectedDocuments={selectedDocuments}
       onSelect={onSelect}
       onView={onView}
-      onDelete={setDeleteDocumentName}
-      onDetails={setDocumentDetails}
+      onDelete={onDelete}
     />
 
       {/* Modals */}

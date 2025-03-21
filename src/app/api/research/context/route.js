@@ -1,27 +1,29 @@
+// src/app/api/research/context/route.js
 
-// src/app/api/research/documents/notes/route.js
 import { NextResponse } from 'next/server';
-import config from '../../../../../config';
+import config from '../../../../config';
+
+
 
 export async function POST(request) {
   try {
-    const noteData = await request.json();
+    const contextData = await request.json();
     
     // Send to backend
-    const response = await fetch(`${config.backendApiUrl}research/notes/`, {
+    const response = await fetch(`${config.backendApiUrl}research/research-context/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': request.headers.get('Authorization'),
       }, 
-      body: JSON.stringify(noteData),
+      body: JSON.stringify({ content: contextData.content }),
       credentials: 'include',
     });
 
     if (!response.ok) {
       const errorData = await response.json();
       return NextResponse.json(
-        { error: errorData.message || 'Failed to save note' },
+        { error: errorData.message || 'Failed to save research context' },
         { status: response.status }
       );
     }
@@ -30,9 +32,9 @@ export async function POST(request) {
     return NextResponse.json(data);
     
   } catch (error) {
-    console.error('[POST] Error saving note:', error);
+    console.error('[POST] Error saving research context:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to save note' },
+      { error: error.message || 'Failed to save research context' },
       { status: 500 }
     );
   }
@@ -40,10 +42,8 @@ export async function POST(request) {
 
 export async function GET(request) {
   try {
-    // Get notes from backend
-
-   
-    const response = await fetch(`${config.backendApiUrl}research/notes/`, {
+    // Get research context from backend
+    const response = await fetch(`${config.backendApiUrl}research/research-context/`, {
       method: 'GET',
       headers: {
         'Authorization': request.headers.get('Authorization'),
@@ -54,7 +54,7 @@ export async function GET(request) {
     if (!response.ok) {
       const errorData = await response.json();
       return NextResponse.json(
-        { error: errorData.message || 'Failed to retrieve notes' },
+        { error: errorData.message || 'Failed to retrieve research context' },
         { status: response.status }
       );
     }
@@ -63,9 +63,9 @@ export async function GET(request) {
     return NextResponse.json(data);
     
   } catch (error) {
-    console.error('[GET] Error retrieving notes:', error);
+    console.error('[GET] Error retrieving research context:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to retrieve notes' },
+      { error: error.message || 'Failed to retrieve research context' },
       { status: 500 }
     );
   }
@@ -73,17 +73,8 @@ export async function GET(request) {
 
 export async function DELETE(request) {
   try {
-    const { note_id } = await request.json();
-    
-    if (!note_id) {
-      return NextResponse.json(
-        { error: 'No note ID provided' },
-        { status: 400 }
-      );
-    }
-    
-    // Delete note from backend
-    const response = await fetch(`${config.backendApiUrl}research/notes/${note_id}/`, {
+    // Delete research context from backend
+    const response = await fetch(`${config.backendApiUrl}research/research-context/clear/`, {
       method: 'DELETE',
       headers: {
         'Authorization': request.headers.get('Authorization'),
@@ -94,17 +85,17 @@ export async function DELETE(request) {
     if (!response.ok) {
       const errorData = await response.json();
       return NextResponse.json(
-        { error: errorData.message || 'Failed to delete note' },
+        { error: errorData.message || 'Failed to delete research context' },
         { status: response.status }
       );
     }
 
-    return NextResponse.json({ status: 'success', message: 'Note deleted' });
+    return NextResponse.json({ status: 'success', message: 'Research context deleted' });
     
   } catch (error) {
-    console.error('[DELETE] Error deleting note:', error);
+    console.error('[DELETE] Error deleting research context:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to delete note' },
+      { error: error.message || 'Failed to delete research context' },
       { status: 500 }
     );
   }

@@ -6,13 +6,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Sparkles,
   FileText, 
-  BookOpen, 
+  BookOpen,
+  BookPlus, 
   ListTodo,
   PlusSquare,
   ArrowLeftFromLine, 
   ArrowRightFromLine,
   X,
-  ArrowUp
+  ArrowUp,
+  TextSearch
 } from 'lucide-react';
 
 // Import tool components
@@ -21,9 +23,13 @@ import { DocumentDetails } from './DocumentDetails.client';
 import { ReferenceList } from './ReferenceList.client';
 import { NotesList } from './NoteList.client';
 import { NoteCreator } from './NoteCreator.client';
+import { ResearchContext } from './ResearchContext.client';
+import { ArxivSearch } from './ArxivSearch.client';
 
 // Tool definitions with fixed types
 const tools = [
+  { id: 'arxiv-search', icon: TextSearch, label: 'arXiv Search' },
+  { id: 'research-context', icon: BookPlus, label: 'Research Context' },
   { id: 'search-results', icon: Sparkles, label: 'Search Results' },
   { id: 'document-details', icon: FileText, label: 'Document Details' },
   { id: 'references', icon: BookOpen, label: 'References' },
@@ -48,6 +54,12 @@ export function ToolbarContainer({
   isSearching,
   onRemoveResult,
   onRemoveAllResult,
+  researchContext,
+  onSaveResearchContext,
+  onDeleteResearchContext,
+
+  searchArxivSearchResults,
+  onSetArxivSearchResult,
   onClose,
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -73,6 +85,8 @@ export function ToolbarContainer({
   
   // Determine tool visibility based on available data
   const toolVisibility = {
+    'arxiv-search': true,
+    'research-context': true,
     'search-results': results || activeTool == 'search-results' || true,
     'document-details': !!document,
     'references': !!(document?.references?.entries),
@@ -139,13 +153,17 @@ export function ToolbarContainer({
         return <NotesList notes={notes} onDeleteNote={onDeleteNote} onNoteSelect={onNoteSelect} />;
       case 'create-note':
         return <NoteCreator onSave={onSaveNote} />;
+      case 'research-context':
+        return <ResearchContext context={researchContext} onSave={onSaveResearchContext} onDelete={onDeleteResearchContext} />;
+      case 'arxiv-search':
+        return <ArxivSearch researchContext={researchContext} onSaveNote={onSaveNote} onSetArxivSearchResult={onSetArxivSearchResult} searchArxivSearchResults={searchArxivSearchResults} />;
       default:
         return null;
     }
   };
   
   return (
-    <div className="flex w-auto h-full overflow-hidden">
+    <div className="flex w-auto h-full overflow-hidden bg-white z-50">
       
       {/* Tool Content Area with Fixed Buttons */}
       <AnimatePresence mode="wait">
@@ -161,7 +179,7 @@ export function ToolbarContainer({
         >
           {/* Fixed Buttons Container */}
           {activeTool && (
-            <div className="absolute top-0 left-1 right-0 z-10 flex items-center ">
+            <div className="absolute top-0 left-1 right-0 z-50 flex items-center bg-white ">
               {/* Expand Button */}
               <button
                 onClick={() => setIsExpanded(!isExpanded)}

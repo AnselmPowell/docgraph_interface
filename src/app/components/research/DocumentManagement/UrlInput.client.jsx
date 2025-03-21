@@ -104,18 +104,13 @@ export function UrlInput({ onUrlSubmit }) {
                   focus:border-primary transition-colors"
                 disabled={isLoading}
               />
-              {isLoading && (
-                <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                </div>
-              )}
             </div>
           </div>
           
           <div className="flex w-full items-center justify-between gap-4 px-3">
            
               {isLoading ? (
-                <span className="flex items-center justify-center gap-1">
+                <span className="flex text-sm text-gray-900  items-center justify-center gap-1">
                   <Loader2 className="w-4 h-4 animate-spin" />
                   Processing...
                 </span>

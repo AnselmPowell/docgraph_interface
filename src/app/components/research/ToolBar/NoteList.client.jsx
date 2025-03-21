@@ -83,7 +83,7 @@ export function NotesList({ notes = [], onDeleteNote }) {
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="shrink-0 px-4 pt-4 border-tertiary/10 bg-background/50 backdrop-blur-sm sticky top-0 z-20">
+      <div className="shrink-0 px-4 pt-4 border-tertiary/10 bg-white sticky top-0 z-20">
        <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-semibold text-primary flex items-center gap-2">
             <NotepadText className="w-5 h-5" />
