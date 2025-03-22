@@ -2,11 +2,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, TextSearch, Loader2, ExternalLink, Check, Plus, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, TextSearch, Loader2, ExternalLink, Check, ChevronDown, ChevronUp, Upload } from 'lucide-react';
+import { TbListSearch } from "react-icons/tb";
 import { FaRegFilePdf } from "react-icons/fa6"
 import { toast } from '../../messages/Toast.client';
 
-export function ArxivSearch({ researchContext, onSaveNote, onSetArxivSearchResult, searchArxivSearchResults }) {
+export function ArxivSearch({ researchContext, onSetArxivSearchResult, searchArxivSearchResults, onUploadUrl }) {
   const [query, setQuery] = useState('');
   const [useContext, setUseContext] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
@@ -85,32 +86,14 @@ export function ArxivSearch({ researchContext, onSaveNote, onSetArxivSearchResul
     }));
   };
   
-  const handleSaveAsNote = (paper) => {
-    try {
-      if (!paper) return;
-      
-      const noteData = {
-        id: Date.now(),
-        title: `Research Paper: ${paper.title}`,
-        content: `${paper.summary}\n\nAuthors: ${paper.authors.join(', ')}\nPublished: ${paper.published}\nURL: ${paper.links[0]?.href || 'No URL available'}`,
-        source: 'arXiv',
-        timestamp: new Date().toISOString()
-      };
-      
-      onSaveNote(noteData);
-      toast.success('Paper saved as note');
-    } catch (error) {
-      console.error('Error saving paper as note:', error);
-      toast.error('Failed to save paper as note');
-    }
-  };
+ 
   
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-tertiary/10">
         <div className="flex items-center gap-2">
-          <TextSearch className="w-5 h-5 text-primary" />
+          <TbListSearch className="w-5 h-5 text-primary" />
           <h2 className="text-lg font-semibold text-primary">Research Papers</h2>
         </div>
 
@@ -152,7 +135,7 @@ export function ArxivSearch({ researchContext, onSaveNote, onSetArxivSearchResul
         <button
           onClick={handleSearch}
           disabled={isSearching}
-          className={`w-full flex ${  useContext ? 'items-center justify-center ' : 'items-end justify-end '} gap-2 py-1 rounded-md transition-colors pr-4 ${
+          className={`w-full flex ${  useContext ? 'items-center justify-center ' : 'items-end justify-end '} gap-2 py-1 rounded-md transition-colors pr-4  active:translate-y-[0.5px] active:scale-95${
             isSearching ? 'bg-tertiary/20 cursor-wait' : 'bg-primary/10 text-primary hover:bg-primary/20'
           }`}
         >
@@ -167,9 +150,13 @@ export function ArxivSearch({ researchContext, onSaveNote, onSetArxivSearchResul
                
                 <div className='flex items-center gap-1' >
                    <Search className="w-4 h-4" />
-                    Search Using Research Context' 
+                    Search Using Research Context
               </div>
-                : 'Search'}
+                : 
+                <div className='flex items-center gap-1' >
+                    Search
+                </div>
+                }
             </div>
           )}
         </button>
@@ -193,13 +180,13 @@ export function ArxivSearch({ researchContext, onSaveNote, onSetArxivSearchResul
         {searchResults && !searchResults.categories && (
           <div>
             <h3 className="text-md font-medium mb-4">
-              Search Results for "{searchResults.query}"
+              Search Results for: {searchResults.query}
             </h3>
             {searchResults.results.map((paper, index) => (
               <PaperCard 
                 key={index} 
                 paper={paper} 
-                onSaveAsNote={() => handleSaveAsNote(paper)} 
+                onUploadUrl={onUploadUrl} 
               />
             ))}
           </div>
@@ -256,7 +243,7 @@ export function ArxivSearch({ researchContext, onSaveNote, onSetArxivSearchResul
                           key={paperIndex} 
                           paper={paper} 
                           searchTerm={paper.search_term}
-                          onSaveAsNote={() => handleSaveAsNote(paper)} 
+                          onUploadUrl={onUploadUrl} 
                         />
                       ))}
                     </div>
@@ -271,9 +258,9 @@ export function ArxivSearch({ researchContext, onSaveNote, onSetArxivSearchResul
   );
 }
 
-function PaperCard({ paper, searchTerm, onSaveAsNote }) {
+function PaperCard({ paper, searchTerm, onUploadUrl }) {
   const [expanded, setExpanded] = useState(false);
-  const [savingNote, setSavingNote] = useState(false);
+  const [uploadingPdf, setUploadingPdf] = useState(false);
   
   // Find the URL (typically the first link is the abstract, others are PDF, etc)
   const abstractUrl = paper.links.find(link => link.rel === 'alternate')?.href || paper.links[0]?.href;
@@ -289,20 +276,22 @@ function PaperCard({ paper, searchTerm, onSaveAsNote }) {
     }
   };
   
-  const handleSaveNote = async () => {
-    try {
-      setSavingNote(true);
-      await onSaveAsNote();
-    } finally {
-      setSavingNote(false);
-    }
+  const handleUploadUrl = async () => {
+
+    console.log("PDF URL:", pdfUrl)
+    const formData = new FormData();
+    formData.append('url', pdfUrl);
+    
+    setUploadingPdf(true)
+    await onUploadUrl(pdfUrl)
+    setUploadingPdf(false)
   };
   
   return (
     <div className="border-b border-tertiary/20 rounded-lg overflow-hidden mb-1 pb-2">
       <div className="">
         {searchTerm && (
-            <div className="mb-1">
+            <div className="mb-3">
                 <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
                 Search term: {searchTerm}
                 </span>
@@ -310,13 +299,13 @@ function PaperCard({ paper, searchTerm, onSaveAsNote }) {
             )}
         <div className="flex items-center justify-between bg-tertiary/5 p-2 ">
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 pl-3">
           {abstractUrl && (
             <a
               href={abstractUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs flex items-center gap-1 text-primary hover:underline"
+              className="text-xs flex items-center gap-1 text-primary hover:underline active:translate-y-[0.5px] active:scale-95"
             >
               <ExternalLink className="w-3 h-3" />
               Abstract
@@ -328,7 +317,7 @@ function PaperCard({ paper, searchTerm, onSaveAsNote }) {
               href={pdfUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs flex items-center gap-1 text-primary hover:underline"
+              className="text-xs flex items-center gap-1 text-primary hover:underline active:translate-y-[0.5px] active:scale-95"
             >
               <ExternalLink className="w-3 h-3" />
               PDF
@@ -337,16 +326,17 @@ function PaperCard({ paper, searchTerm, onSaveAsNote }) {
         </div>
         
         <button
-          onClick={handleSaveNote}
-          disabled={savingNote}
-          className="text-xs flex items-center gap-1 text-primary hover:bg-primary/10 px-2 py-1 rounded-md transition-colors"
+         title='Upload to StudyGraph'
+          onClick={handleUploadUrl}
+          disabled={uploadingPdf}
+          className="text-xs flex items-center gap-1 text-primary hover:bg-primary/10 px-2 py-1 rounded-md transition-colors active:translate-y-[0.5px] active:scale-95"
         >
-          {savingNote ? (
+          {uploadingPdf ? (
             <Check className="w-3 h-3" />
           ) : (
-            <Plus className="w-3 h-3" />
+            <Upload className="w-3 h-3" />
           )}
-          Save as Note
+          Upload
         </button>
       </div>
         
@@ -367,18 +357,18 @@ function PaperCard({ paper, searchTerm, onSaveAsNote }) {
         {!expanded && (
           <button 
             onClick={() => setExpanded(true)}
-            className="pl-6 text-xs text-primary mt-1 hover:underline font-medium"
+            className="pl-6 text-xs text-primary mt-1 hover:underline font-medium active:translate-y-[0.5px] active:scale-95"
           >
-            Read more
+            Read discription...
           </button>
         )}
         
         {expanded && (
           <button 
             onClick={() => setExpanded(false)}
-            className="pl-6 text-xs text-primary mt-1 hover:underline"
+            className="pl-6 text-xs text-primary mt-1 hover:underline active:translate-y-[0.5px] active:scale-95"
           >
-            Show less
+            Hide discription
           </button>
         )}
       </div>

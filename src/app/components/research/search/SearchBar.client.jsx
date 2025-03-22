@@ -27,12 +27,13 @@ const SparklesCore = ({ className = "" }) => {
 
 export function SearchBar({
   visible = true,
+  onToggleVisibility,
   onSearch,
   onClose,
   selectedDocuments = [],
   isSearching,
-  onToggleVisibility, // Add new prop
   onSelect,
+  isSidebarOpen,
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [context, setContext] = useState('');
@@ -77,6 +78,15 @@ export function SearchBar({
     setDocumentsToSearch([...selectedDocuments])
 
   },[selectedDocuments])
+
+
+  useEffect(() => {
+    if(!isSidebarOpen){
+      
+      setIsExpanded(false);
+    }
+
+  },[isSidebarOpen])
 
   // Keyword management
   const addKeyword = useCallback((keyword) => {
@@ -368,8 +378,6 @@ if (!visible) {
                       
                        border-tertiary/20 
                       placeholder:text-tertiary/50 
-                      focus:outline-none focus:border-primary/30 focus:ring-2 
-                      focus:ring-primary/20 
                       
                       transition-all duration-200 
                   

@@ -604,6 +604,13 @@ const handleUploadStaged = useCallback(async (stagedDocuments) => {
 
 
 const handleUrlSubmit = useCallback(async (formData) => {
+
+  if (typeof formData.type !== 'string') {
+    let newFormData = new FormData();
+    newFormData.append('url', formData);
+    formData = newFormData
+  }
+  handleOpenSidebar(false)
   try {
   
 
@@ -746,10 +753,15 @@ const checkDocumentStatus = useCallback(async (documentIds) => {
 
   
   const handleSelectAllDocuments = () => {
+    const selectableDocIds = [];
 
-    const selectableDocIds = documents
-      .filter(doc => doc.processing_status === 'completed')
-      .map(doc => doc.file_name);
+    for (let i = 0; i < documents.length; i++) {
+      if (documents[i].title) {
+        selectableDocIds.push(documents[i].title);
+      } else {
+        selectableDocIds.push(documents[i].file_name);
+      }
+    }
 
       handleSelectDocuments(selectableDocIds);
 } 
@@ -1548,11 +1560,13 @@ const handelSetArxivSearchResult = useCallback(async (results) => {
 
 
  const handleOpenSidebar = useCallback(async (isOpen) => {
+  
   if(!isOpen){
     setOpenSidebar(true)
 
    } else {
     setOpenSidebar(false)
+ 
    }
 
 }, []);
@@ -1643,6 +1657,7 @@ const handelSetArxivSearchResult = useCallback(async (results) => {
           onToggleVisibility={handleSearchBarVisibility}
           isSearching={isSearching}
           onSelect={handleSelectDocuments}
+          isSidebarOpen={openSidebar}
         />
         }
 
@@ -1674,6 +1689,7 @@ const handelSetArxivSearchResult = useCallback(async (results) => {
 
             searchArxivSearchResults={searchArxivSearchResults}
             onSetArxivSearchResult={handelSetArxivSearchResult}
+            onUploadUrl={handleUrlSubmit}
 
           />
         }

@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronUp, Search, BookOpen } from 'lucide-react';
+import { LiaListOlSolid } from "react-icons/lia";
 
 export function ReferenceList({ document }) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -35,7 +36,8 @@ export function ReferenceList({ document }) {
       {/* Fixed Header */}
       <div className="shrink-0 p-4 border-tertiary/10 bg-background/50 backdrop-blur-sm">
         <h2 className="text-lg font-semibold text-primary flex items-center gap-2">
-          <BookOpen className="w-5 h-5" />
+          <LiaListOlSolid className="w-5 h-5" />
+   
           References
         </h2>
       </div>

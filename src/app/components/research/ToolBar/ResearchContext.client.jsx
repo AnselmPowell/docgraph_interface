@@ -3,7 +3,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { BookPlus, Save, AlertCircle, Check, Trash2, Loader2 } from 'lucide-react';
+import { BookPlus, Save, AlertCircle, Check, Trash2, Loader2, SaveAll } from 'lucide-react';
 import { toast } from '../../messages/Toast.client';
 
 export function ResearchContext({ context, onSave, onDelete }) {
@@ -122,13 +122,14 @@ export function ResearchContext({ context, onSave, onDelete }) {
               saveSuccess ? 'bg-green-100 text-green-700' :
               'bg-primary/10 text-primary hover:bg-primary/20'
             }`}
-            title="Save context"
+            title={` ${hasContext ? 'Update context': 'Save context' }`}
           >
             {isSaving ? (
               <Loader2 className="w-5 h-5 animate-spin" />
             ) : saveSuccess ? (
               <Check className="w-5 h-5" />
             ) : (
+               hasContext ? <SaveAll className='w-5 h-5'/> : 
               <Save className="w-5 h-5" />
             )}
           </button>
@@ -167,7 +168,7 @@ export function ResearchContext({ context, onSave, onDelete }) {
       <div className="px-4 py-3 bg-tertiary/5 border-t border-tertiary/10">
         <p className="text-xs text-tertiary">
           This research context helps guide your document analysis and searches. Describe your research topic, 
-          key questions, and specific information you're looking for. You can have only one research context at a time.
+          key questions, and specific information. <span className='font-semibold'> You can have only one research context at a time.</span>
         </p>
       </div>
     </div>

@@ -223,6 +223,7 @@ export async function POST(request) {
     // Get URL from request body
     const formData = await request.formData();
     const url = formData.get('url');
+    console.log("[Post] URL", url)
     
     if (!url) {
       return NextResponse.json({ 

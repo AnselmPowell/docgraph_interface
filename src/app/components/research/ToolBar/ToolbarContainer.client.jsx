@@ -16,6 +16,9 @@ import {
   ArrowUp,
   TextSearch
 } from 'lucide-react';
+import { LiaListOlSolid } from "react-icons/lia";
+import { TbListSearch } from "react-icons/tb";
+
 
 // Import tool components
 import { SearchResults } from './SearchResults.client';
@@ -28,11 +31,11 @@ import { ArxivSearch } from './ArxivSearch.client';
 
 // Tool definitions with fixed types
 const tools = [
-  { id: 'arxiv-search', icon: TextSearch, label: 'arXiv Search' },
+  { id: 'arxiv-search', icon: TbListSearch, label: 'Article Search' },
   { id: 'research-context', icon: BookPlus, label: 'Research Context' },
   { id: 'search-results', icon: Sparkles, label: 'Search Results' },
   { id: 'document-details', icon: FileText, label: 'Document Details' },
-  { id: 'references', icon: BookOpen, label: 'References' },
+  { id: 'references', icon: LiaListOlSolid, label: 'References' },
   { id: 'notes-list', icon: ListTodo, label: 'Notes' },
   { id: 'create-note', icon: PlusSquare, label: 'Create Note' }
 ];
@@ -60,6 +63,7 @@ export function ToolbarContainer({
 
   searchArxivSearchResults,
   onSetArxivSearchResult,
+  onUploadUrl,
   onClose,
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -156,7 +160,7 @@ export function ToolbarContainer({
       case 'research-context':
         return <ResearchContext context={researchContext} onSave={onSaveResearchContext} onDelete={onDeleteResearchContext} />;
       case 'arxiv-search':
-        return <ArxivSearch researchContext={researchContext} onSaveNote={onSaveNote} onSetArxivSearchResult={onSetArxivSearchResult} searchArxivSearchResults={searchArxivSearchResults} />;
+        return <ArxivSearch researchContext={researchContext} onSetArxivSearchResult={onSetArxivSearchResult} searchArxivSearchResults={searchArxivSearchResults} onUploadUrl={onUploadUrl} />;
       default:
         return null;
     }
@@ -213,7 +217,7 @@ export function ToolbarContainer({
               damping: 30,
               duration: 0.6 
             }}
-            className={`h-full overflow-y-auto overflow-x-hidden pl-6 border-l ${activeTool ? 'pt-14' : ''} custom-scrollbar`}
+            className={`h-full overflow-y-auto overflow-x-hidden pl-6 border-l ${activeTool ? 'pt-6' : ''} custom-scrollbar`}
             ref={contentRef}
           >
             {getToolContent()}
@@ -239,7 +243,7 @@ export function ToolbarContainer({
 
      {/* Tool Icons */}
      <div className="w-16 relative right-2 h-full px-8 bg-tertiary/5">
-        <div className="flex flex-col items-center py-4 gap-4">
+        <div className="flex flex-col items-center py-1 gap-4">
           {tools.map(tool => {
             const Icon = tool.icon;
             if (!toolVisibility[tool.id]) return null;

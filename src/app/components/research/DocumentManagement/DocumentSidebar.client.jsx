@@ -7,6 +7,8 @@ import { useDropzone } from 'react-dropzone';
 import { 
   Upload, Loader2 
 } from 'lucide-react';
+import { PiListChecks } from "react-icons/pi";
+import { LiaListSolid } from "react-icons/lia";
 
 import { DocumentList } from './DocumentList.client';
 import { UrlInput } from './UrlInput.client';
@@ -117,7 +119,6 @@ export function DocumentSidebar({
   // handle select all
   const handleSelectAll = () => {
     if (isAllSelected) {
-      // onSelect([]);
       setIsAllSelected(false);
     } else {
       onSelectAll()
@@ -189,14 +190,15 @@ export function DocumentSidebar({
                   }}
                   className="text-sm text-tertiary hover:text-primary transition-colors"
                 >
-                  {isAllSelected ? 'Deselect all' : 'Select all'}
+                  {isAllSelected ? <LiaListSolid className="w-6 h-6" /> : <PiListChecks  className="w-6 h-6 font-light" />}
                 </button>
                 {selectedDocuments.length > 1 &&
                 <button
                 onClick={onDeleteAll}
+                title='Delete selected'
                 className="text-sm ml-2 pl-0.5 text-tertiary hover:text-primary transition-colors  text-red-800 active:translate-y-[0.5px] active:scale-95"
                 >
-               <Trash2 className="w-5 h-5" />
+               <Trash2 className="w-5 h-5 text-red-700" />
               </button>
                 }
               

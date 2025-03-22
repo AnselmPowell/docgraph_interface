@@ -45,21 +45,6 @@ export function ResearchLayout({
     onOpenSidebar(isOpen);
   };
 
-  // Handle hover effect
-  const handleMouseEnter = () => {
-    if (!showSidebar) {
-      hoverTimerRef.current = setTimeout(() => {
-        handleOpenSidebar(true);
-      }, 800); // 0.8 second delay
-    }
-  };
-
-  const handleMouseLeave = () => {
-    if (hoverTimerRef.current) {
-      clearTimeout(hoverTimerRef.current);
-    }
-  };
-
   const handleClickOutside = (event) => {
     if (sidebarRef.current && 
         !sidebarRef.current.contains(event.target) && 

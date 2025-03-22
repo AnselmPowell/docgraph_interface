@@ -161,12 +161,11 @@ export function DocumentList({
               </div>
               <DocumentActions
                 document={doc}
-                isSelected={selectedDocuments.includes(doc.title)}
+                isSelected={selectedDocuments.includes(doc.title) || selectedDocuments.includes(doc.file_name)}
                 onView={() => onView(doc)}
                 onDelete={() => onDelete(doc)}
                 onSelect={() => {
                   if (selectedDocuments.includes(doc.title)) {
-                    console.log("Doc infomation", doc)
                     onSelect(selectedDocuments.filter(id => id !== doc.title));
                   } else {
                     onSelect([...selectedDocuments, doc.title]);

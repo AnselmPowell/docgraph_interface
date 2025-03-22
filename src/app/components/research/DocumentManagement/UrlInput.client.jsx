@@ -9,7 +9,7 @@ import { toast } from '../../../components/messages/Toast.client';
 export function UrlInput({ onUrlSubmit }) {
   const [url, setUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
+
 
   // Persist the URL input state when component is unmounted
   useEffect(() => {
@@ -17,7 +17,7 @@ export function UrlInput({ onUrlSubmit }) {
     if (savedUrl) {
       console.log('Saved URL:', savedUrl)
       setUrl(savedUrl);
-      setIsExpanded(true);
+
     }
     
     return () => {
@@ -71,7 +71,6 @@ export function UrlInput({ onUrlSubmit }) {
       
       // Reset the form on success
       setUrl('');
-      setIsExpanded(false);
       localStorage.removeItem('urlInputState');
       
     } catch (error) {
@@ -84,7 +83,7 @@ export function UrlInput({ onUrlSubmit }) {
 
   const handleCancel = () => {
     setUrl('');
-    setIsExpanded(false);
+
     localStorage.removeItem('urlInputState');
   };
 
