@@ -37,7 +37,7 @@ const tools = [
   { id: 'document-details', icon: FileText, label: 'Document Details' },
   { id: 'references', icon: LiaListOlSolid, label: 'References' },
   { id: 'notes-list', icon: ListTodo, label: 'Notes' },
-  { id: 'create-note', icon: PlusSquare, label: 'Create Note' }
+  // { id: 'create-note', icon: PlusSquare, label: 'Create Note' }
 ];
 
 export function ToolbarContainer({ 
@@ -95,7 +95,7 @@ export function ToolbarContainer({
     'document-details': !!document,
     'references': !!(document?.references?.entries),
     'notes-list': true,
-    'create-note': true
+    // 'create-note': true
   };
 
   // Handle scroll events to show/hide the "back to top" button
@@ -155,8 +155,8 @@ export function ToolbarContainer({
         return <ReferenceList document={document} />;
       case 'notes-list':
         return <NotesList notes={notes} onDeleteNote={onDeleteNote} onNoteSelect={onNoteSelect} />;
-      case 'create-note':
-        return <NoteCreator onSave={onSaveNote} />;
+      // case 'create-note':
+      //   return <NoteCreator onSave={onSaveNote} />;
       case 'research-context':
         return <ResearchContext context={researchContext} onSave={onSaveResearchContext} onDelete={onDeleteResearchContext} />;
       case 'arxiv-search':

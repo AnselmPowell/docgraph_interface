@@ -741,7 +741,6 @@ const checkDocumentStatus = useCallback(async (documentIds) => {
 }, [setDocuments, setPendingDocuments]);
 
 
-  
 
   const handleSelectDocuments = useCallback((documentFileName) => {
     console.log("selected Docs:", documentFileName)
