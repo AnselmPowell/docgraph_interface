@@ -15,15 +15,6 @@ import {
 } from 'lucide-react';
 
 
-// Add SparklesCore component for animation
-const SparklesCore = ({ className = "" }) => {
-  return (
-    <div className={`absolute inset-0 ${className}`}>
-      <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-      <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 animate-pulse duration-1000" />
-    </div>
-  );
-};
 
 export function SearchBar({
   visible = true,

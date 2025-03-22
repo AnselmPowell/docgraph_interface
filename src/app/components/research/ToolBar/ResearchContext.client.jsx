@@ -61,7 +61,7 @@ export function ResearchContext({ context, onSave, onDelete }) {
       setHasContext(true);
       setTimeout(() => setSaveSuccess(false), 2000);
       
-      toast.success('Research context saved successfully');
+      
     } catch (error) {
       console.error('Error saving research context:', error);
       toast.error('Failed to save research context');
@@ -130,7 +130,7 @@ export function ResearchContext({ context, onSave, onDelete }) {
               <Check className="w-5 h-5" />
             ) : (
                hasContext ? <SaveAll className='w-5 h-5'/> : 
-              <Save className="w-5 h-5" />
+              <Save className={`w-5 h-5  ${content.length > 0  ? " animate-[wiggle_0.6s_ease-in-out] scale-110 brightness-110 transition-[scale]" :  " " } `} />
             )}
           </button>
         </div>

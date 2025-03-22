@@ -5,10 +5,11 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PanelLeft, PanelRight, X } from 'lucide-react';
 import { Header } from '../header/Header.client';
-import { AuthModal } from '../../auth/AuthModal';
+
 
 export function ResearchLayout({ 
   authState,
+  authModel,
   sidebarContent,
   onOpenSidebar,
   isSidebarOpen,
@@ -176,7 +177,8 @@ export function ResearchLayout({
             <PanelLeft />
           </button>
         )}
-
+        
+        {authModel}
       </div>
     </div>
     </div>

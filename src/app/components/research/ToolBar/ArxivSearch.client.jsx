@@ -39,7 +39,7 @@ export function ArxivSearch({ researchContext, onSetArxivSearchResult, searchArx
       setIsSearching(true);
       
       const searchData = useContext 
-        ? { context_id: researchContext.id, max_results_per_term: 3 }
+        ? { context_id: researchContext.id, max_results_per_term: 6 }
         : { query, max_results: 10 };
       
       const response = await fetch('/api/research/arxiv', {

@@ -44,6 +44,8 @@ import { toast } from '../messages/Toast.client';
 import { WelcomeMessage } from '../messages/WelcomeMessage.client';
 import { getCache, setCache, clearCache } from '../../services/caches';
 
+import { AuthModal } from '../auth/AuthModal';
+
 
 // Hooks
 import { useDocumentCache } from '../../hooks/useDocumentCache';
@@ -90,6 +92,7 @@ export function ResearchAssistant() {
   // User Role Management State
 
   const [userData, setUserData] = useState(); // Processed documents
+  const [openAuthModal, setOpenAuthModal] = useState(false); // Processed documents
   
 
   // Document Management States
@@ -396,6 +399,17 @@ useEffect(() => {
     }
 
   }
+
+
+  const handelOpenAuthModel = async (isAuthModelOpen) => {
+
+    
+      setOpenAuthModal(isAuthModelOpen)
+   
+
+  }
+
+
  
 
 
@@ -542,6 +556,11 @@ useEffect(() => {
 
   // Updated handleUploadStaged to properly handle response and pending docs
 const handleUploadStaged = useCallback(async (stagedDocuments) => {
+  if (!user && !userData) {
+    toast.info('To process the document please login', 9000);
+    setIsProcessing(false);
+    return;
+}
   console.log("Upload Staged document:", stagedDocuments);
   if (stagedDocuments.length === 0) return;
   setStagedDocuments([]);
@@ -604,6 +623,7 @@ const handleUploadStaged = useCallback(async (stagedDocuments) => {
 
 
 const handleUrlSubmit = useCallback(async (formData) => {
+
 
   if (typeof formData.type !== 'string') {
     let newFormData = new FormData();
@@ -1112,6 +1132,11 @@ const checkDocumentStatus = useCallback(async (documentIds) => {
 
 // Update handleSearch function
 const handleSearch = useCallback(async (searchParams) => {
+  if (!user && !userData) {
+    toast.info('To search a document please login', 9000);
+    handelOpenAuthModel(true)
+    return;
+  }
   try {
     setIsSearching(true);
     
@@ -1479,10 +1504,16 @@ const handleSaveNote = useCallback(async (noteData) => {
 
 // Add save handler
 const handleSaveResearchContext = useCallback(async (contextData) => {
+  if (!user && !userData) {
+    toast.info('To save research context please login', 9000);
+    handelOpenAuthModel(true)
+    return;
+  }
   try {
     // Optimistic update
     setResearchContext(prev => ({ ...prev, ...contextData }));
     
+    toast.success('Research context saved successfully');
     const response = await fetch('/api/research/context', {
       method: 'POST',
       headers: {
@@ -1692,8 +1723,19 @@ const handelSetArxivSearchResult = useCallback(async (results) => {
 
           />
         }
+        
+        authModel={
+          <AuthModal 
+          isOpen={openAuthModal}
+
+          initialView={'login'}
+          onClose={()=>{handelOpenAuthModel(false)}}
+        />
+        }
       
       />
+
+       
 
      
     </>

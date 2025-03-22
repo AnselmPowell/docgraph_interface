@@ -262,7 +262,7 @@ export function ToolbarContainer({
                     ? 'bg-primary/10 bg-gray-200 text-primary scale-120' 
                     : 'text-tertiary hover:text-primary hover:bg-tertiary/5'
                   }
-                  ${isAnimating ? 'animate-[wiggle_0.6s_ease-in-out] brightness-110' : ''}
+                  ${isAnimating ? 'animate-[wiggle_0.6s_ease-in-out] brightness-110 scale-105' : ''}
                 `}
                 title={tool.label}
               >
