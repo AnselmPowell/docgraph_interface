@@ -153,7 +153,7 @@ export function ArxivSearch({ researchContext, onSetArxivSearchResult, searchArx
                     Search Using Research Context
               </div>
                 : 
-                <div className='flex items-center gap-1' >
+                <div className='flex text-lg items-center gap-1' >
                     Search
                 </div>
                 }

@@ -190,7 +190,7 @@ export function DocumentSidebar({
                   }}
                   className="text-sm text-tertiary hover:text-primary transition-colors"
                 >
-                  {isAllSelected ? <LiaListSolid className="w-6 h-6" /> : <PiListChecks  className="w-6 h-6 font-light" />}
+                  {isAllSelected ? <LiaListSolid className="w-6 h-6" /> : <PiListChecks  className="w-6 h-6" />}
                 </button>
                 {selectedDocuments.length > 1 &&
                 <button

@@ -86,6 +86,7 @@ export default function UserDropdown({ user, onLogout }) {
                   >
                     <Icon className="w-5 h-5 text-[#666666]" />
                     {item.label}
+                    <span>{`(beta)`}</span>
                   </button>
                 );
               })}

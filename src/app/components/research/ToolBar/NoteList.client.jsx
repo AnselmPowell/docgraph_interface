@@ -2,7 +2,7 @@
 // src/app/components/research/Toolbar/NoteList.client.jsx
 'use client';
 import { useState, useEffect } from 'react';
-import { Quote, NotepadText, Copy, Check, Trash2, Filter, ChevronDown } from 'lucide-react';
+import { Quote, NotepadText, Copy, Check, Trash2, Filter, ChevronDown, Notes } from 'lucide-react';
 
 export function NotesList({ notes = [], onDeleteNote }) {
   const [copiedNoteId, setCopiedNoteId] = useState(null);
@@ -86,7 +86,7 @@ export function NotesList({ notes = [], onDeleteNote }) {
       <div className="shrink-0 px-4 pt-4 border-tertiary/10 bg-white sticky top-0 z-20">
        <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-semibold text-primary flex items-center gap-2">
-            <NotepadText className="w-5 h-5" />
+            <Notes className="w-5 h-5" />
             Notes
           </h2>
           

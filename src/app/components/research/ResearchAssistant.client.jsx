@@ -173,6 +173,7 @@ export function ResearchAssistant() {
     const fetchUserData = async () => {
     console.log("User Data:", user);
     console.log("User Data (userData):", userData);
+    setUserData(userData)
 
     const savedUser = localStorage.getItem("user");  
 
@@ -391,7 +392,7 @@ useEffect(() => {
    * Core functionality for handling User activity 
    **************************************************************************/
 
-  const SetAuthUserData = async (userData) => {
+  const setAuthUserData = async (userData) => {
 
     if(userData){
       console.log(" Set User Data {userData}:", userData )
@@ -402,10 +403,7 @@ useEffect(() => {
 
 
   const handelOpenAuthModel = async (isAuthModelOpen) => {
-
-    
-      setOpenAuthModal(isAuthModelOpen)
-   
+      setOpenAuthModal(isAuthModelOpen)   
 
   }
 
@@ -1504,6 +1502,8 @@ const handleSaveNote = useCallback(async (noteData) => {
 
 // Add save handler
 const handleSaveResearchContext = useCallback(async (contextData) => {
+  console.log("User data ------------:", user)
+  console.log("User data ------------2:", userData)
   if (!user && !userData) {
     toast.info('To save research context please login', 9000);
     handelOpenAuthModel(true)
@@ -1622,7 +1622,7 @@ const handelSetArxivSearchResult = useCallback(async (results) => {
         onTabChange={handleTabChange}
         onTabClose={handleTabClose}
         selectedDocuments={selectedDocuments}
-        setAuthUserData={SetAuthUserData}
+        setAuthUserData={setAuthUserData}
         onToggleSearchBarVisibility={handleSearchBarVisibility}
 
 

@@ -14,9 +14,11 @@ import {
   Search,
   AlertCircle,
   Filter,
-  Check,
-  FileText
+  Trash2,
 } from 'lucide-react'; 
+import { PiListChecks } from "react-icons/pi";
+import { LiaListSolid } from "react-icons/lia";
+
 import { DeleteConfirmationModal } from './DeleteConfirmationModal.client';
 import { toast } from '../../messages/Toast.client';
 
@@ -199,7 +201,7 @@ export function SearchResults({
               </button>
               
               {showFilter && (
-                <div className="fixed right-12 mt-2 bg-white shadow-xl rounded-md border border-tertiary/20 py-1 w-56 max-h-60 overflow-y-auto animate-in fade-in duration-100">
+                <div className="fixed right-12 mt-2 bg-white z-50 shadow-xl rounded-md border border-tertiary/20 py-1 w-56 max-h-60 overflow-y-auto animate-in fade-in duration-100">
                   {documentTitles.map(title => (
                     <button
                       key={title}
@@ -228,15 +230,17 @@ export function SearchResults({
                 <button
                   onClick={handleSelectAll}
                   className="text-sm text-tertiary hover:text-primary transition-colors active:translate-y-[0.5px] active:scale-95"
+                  title={selectedResults.length === results.length ? "Deselect all"  : "Select all" }
                 >
-                  {selectedResults.length === results.length ? 'Deselect all' : 'Select all'}
+                  {selectedResults.length === results.length ? <LiaListSolid className="w-6 h-6" /> : <PiListChecks  className="w-6 h-6 " />}
                 </button>
                 {selectedResults.length > 0 && (
                   <button
                     onClick={handleRemoveSelected}
                     className="text-sm text-red-500 hover:text-red-600 transition-colors active:translate-y-[0.5px] active:scale-95"
+                    title="Delete all"
                   >
-                    Remove all
+                    <Trash2 className="w-5 h-5 text-red-700" />
                   </button>
                 )}
               </>
@@ -404,12 +408,12 @@ function DocumentResult({
             <div className="flex items-center justify-between mb-1">
               <div>
                 <h4 className="font-medium text-primary text-sm truncate pr-4">
-                  {isToolbarExpanded ? result.title.slice(0, 100) : result.title.slice(0, 64)}
+                  {isToolbarExpanded ? result.title.slice(0, 100) : result.title.slice(0, 4)}
                 </h4>
                 <div className='flex gap-1 items-center py-1 '>
                   <Search className="w-3 h-3" />
                   <h4 className="font-small text-primary text-sm truncate pr-4">
-                    {isToolbarExpanded ? result.question.slice(0, 80): result.question.slice(0, 58)}
+                    {isToolbarExpanded ? result.question.slice(0, 80): result.question.slice(0, 8)}
                   </h4>
                 </div>
               </div>
@@ -821,7 +825,8 @@ function DocumentResult({
             onClick={() => {
               onViewDocument(content.slice(0, 25), currentDocument, pageNumber);
             }}   
-            className="text-sm hover:underline flex items-center gap-1 hover:bg-tertiary/10 text-tertiary opacity-0 group-hover:opacity-100 active:translate-y-[0.5px] active:scale-95"
+            className="text-sm hover:underline flex items-center gap-1 hover:bg-tertiary/10 text-tertiary  active:translate-y-[0.5px] active:scale-95"
+            // opacity-0 group-hover:opacity-100
             title="View in document"  // Added tooltip
           > 
             View
@@ -830,7 +835,7 @@ function DocumentResult({
           {/* Copy button */}
           <button
             onClick={() => onCopyNote(content, currentDocument, citations, sectionId)} 
-            className={`p-1.5 rounded-md transition-all flex items-center gap-1 text-black opacity-0 group-hover:opacity-100 active:translate-y-[0.5px] active:scale-95`}
+            className={`p-1.5 rounded-md transition-all flex items-center gap-1 text-black  active:translate-y-[0.5px] active:scale-95`}
             title="Copy"  
           >
             {isCopied ? ( 

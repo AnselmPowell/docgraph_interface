@@ -14,7 +14,7 @@ import {
   ArrowRightFromLine,
   X,
   ArrowUp,
-  TextSearch
+  NotepadText
 } from 'lucide-react';
 import { LiaListOlSolid } from "react-icons/lia";
 import { TbListSearch } from "react-icons/tb";
@@ -36,7 +36,7 @@ const tools = [
   { id: 'search-results', icon: Sparkles, label: 'Search Results' },
   { id: 'document-details', icon: FileText, label: 'Document Details' },
   { id: 'references', icon: LiaListOlSolid, label: 'References' },
-  { id: 'notes-list', icon: ListTodo, label: 'Notes' },
+  { id: 'notes-list', icon: NotepadText, label: 'Notes' },
   // { id: 'create-note', icon: PlusSquare, label: 'Create Note' }
 ];
 
@@ -175,8 +175,8 @@ export function ToolbarContainer({
           className={`flex-1 relative mr-2 
             ${activeTool 
               ? isExpanded 
-                ?  `${ !results?.length && activeTool == 'search-results' ? 'w-[400px] min-w-[400px]' : 'w-[520px] min-w-[500px]'  } `
-                : `${ !results?.length && activeTool == 'search-results' ? 'w-[400px] min-w-[400px]' : 'w-[420px] min-w-[400px]'  } `
+                ?  `${ 'w-[600px]'  } `
+                : `${ !results?.length && activeTool == 'search-results' ? 'w-[300px] ' : 'w-[400px] '  } `
               : 'w-[0px] pr-0'
             } 
             overflow-hidden transition-all duration-300`}
