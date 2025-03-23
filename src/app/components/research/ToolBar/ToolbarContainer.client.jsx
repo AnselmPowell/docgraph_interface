@@ -167,7 +167,7 @@ export function ToolbarContainer({
   };
   
   return (
-    <div className="flex w-auto h-full overflow-hidden bg-white z-50">
+    <div className="flex w-auto h-full overflow-hidden bg-white z-[60]">
       
       {/* Tool Content Area with Fixed Buttons */}
       <AnimatePresence mode="wait">

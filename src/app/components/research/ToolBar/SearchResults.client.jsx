@@ -1,7 +1,7 @@
 // src/app/components/research/Toolbar/SearchResults.client.jsx
 'use client';
-
-import { useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useState, useRef } from 'react';
 import { 
   ChevronDown, 
   ChevronUp,
@@ -40,6 +40,8 @@ export function SearchResults({
   const [activeMatchType, setActiveMatchType] = useState('all');
   const [resultToDelete, setResultToDelete] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  const filterButtonRef = useRef(null);
 
 
   // Add filter state
@@ -175,7 +177,7 @@ export function SearchResults({
   const pendingCount = pendingSearches?.length || 0;
   
   return (
-    <div className="relative  overflow-y-auto">
+    <div className="relative overflow-y-auto overflow-x-hidden z-[65]">
       {/* Header */}
       <div className="shrink-0 px-4 pt-4 border-tertiary/10 sticky top-0 ">
       <div className="flex items-center justify-between mb-3">
@@ -187,39 +189,50 @@ export function SearchResults({
 
         <div className="flex relative items-center gap-2 ">
           
-            {/* Add Filter Dropdown */}
-            {results.length > 1 && (
-            <div className="relative filter-dropdown z-[500]">
-              <button
-                onClick={() => setShowFilter(!showFilter)}
-                className="text-sm flex items-center gap-1 text-tertiary hover:text-primary transition-colors px-2 py-1 rounded-md hover:bg-tertiary/5 active:translate-y-[0.5px] active:scale-95"
-                title="Filter by document"
-              >
-                <Filter className="w-4 h-4" />
-                <span className="hidden sm:inline">{selectedFilter === 'all' ? 'All documents' : truncateTitle(selectedFilter)}</span>
-                <ChevronDown className="w-3 h-3" />
-              </button>
-              
-              {showFilter && (
-                <div className="fixed right-12 mt-2 bg-white z-50 shadow-xl rounded-md border border-tertiary/20 py-1 w-56 max-h-60 overflow-y-auto animate-in fade-in duration-100">
-                  {documentTitles.map(title => (
-                    <button
-                      key={title}
-                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-gray-50 active:translate-y-[0.5px] active:scale-95
-                        ${selectedFilter === title 
-                          ? 'text-primary bg-primary/10 font-medium' 
-                          : 'text-secondary hover:text-primary'}`}
-                      onClick={() => {
-                        setSelectedFilter(title);
-                        setShowFilter(false);
-                      }}
-                    >
-                      {title === 'all' ? 'All documents' : truncateTitle(title)}
-                    </button> 
-                  ))}
             
-              </div>
-              )}
+              {results.length > 1 && (
+              <div className="relative">
+                <button
+                  ref={filterButtonRef} // Add ref to button for positioning
+                  onClick={() => setShowFilter(!showFilter)}
+                  className="text-sm flex items-center gap-1 text-tertiary hover:text-primary transition-colors px-2 py-1 rounded-md hover:bg-tertiary/5 active:translate-y-[0.5px] active:scale-95"
+                  title="Filter by document"
+                >
+                  <Filter className="w-4 h-4" />
+                  <span className="hidden sm:inline">{selectedFilter === 'all' ? 'All documents' : truncateTitle(selectedFilter)}</span>
+                  <ChevronDown className="w-3 h-3" />
+                </button>
+                
+                {/* Portal implementation for dropdown */}
+                {showFilter && typeof document !== 'undefined' && createPortal(
+                  <div 
+                    className="fixed right-1 shadow-xl rounded-md border border-tertiary/20 py-1 w-56 max-h-60 overflow-y-auto overflow-x-hidden animate-in fade-in duration-100 bg-white"
+                    style={{
+                      top: filterButtonRef.current?.getBoundingClientRect().bottom + 8 || 0,
+                      right: document.body.clientWidth - (filterButtonRef.current?.getBoundingClientRect().right || 0),
+                      zIndex: 9999
+                    }}
+                  >
+                    {documentTitles.map(title => (
+                      <button
+                        key={title}
+                        className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-gray-50 active:translate-y-[0.5px] active:scale-95
+                          ${selectedFilter === title 
+                            ? 'text-primary bg-primary/10 font-medium' 
+                            : 'text-secondary hover:text-primary'}`}
+                        onClick={() => {
+                          setSelectedFilter(title);
+                          setShowFilter(false);
+                        }}
+                      >
+                        {title === 'all' ? 'All documents' : truncateTitle(title)}
+                      </button> 
+                    ))}
+                  </div>,
+                  document.body
+                )}
+
+
             </div>
 
           )}
@@ -398,21 +411,21 @@ function DocumentResult({
   // If the search is still processing and not expanded, show minimal info
   if (isPending && !isExpanded) {
     return (
-      <div className="pb-3">
+      <div className="pb-3 " >
         {/* Document Header */}
-        <div className="flex group relative">
+        <div className="flex group relative ">
           <button
             onClick={onExpand}
-            className="w-full pt-3 p-2 text-left hover:bg-tertiary/5 transition-colors active:translate-y-[0.5px] active:scale-95"
+            className="w-full pt-3 p-2 text-left hover:bg-tertiary/5 transition-colors active:translate-y-[0.5px] active:scale-95 "
           >
-            <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center justify-between mb-1 ">
               <div>
-                <h4 className="font-medium text-primary text-sm truncate pr-4">
+                <h4 className="font-medium text-primary text-sm truncate pr-4 ">
                   {isToolbarExpanded ? result.title.slice(0, 100) : result.title.slice(0, 4)}
                 </h4>
                 <div className='flex gap-1 items-center py-1 '>
                   <Search className="w-3 h-3" />
-                  <h4 className="font-small text-primary text-sm truncate pr-4">
+                  <h4 className="font-2xl text-primary text-sm truncate pr-4">
                     {isToolbarExpanded ? result.question.slice(0, 80): result.question.slice(0, 8)}
                   </h4>
                 </div>

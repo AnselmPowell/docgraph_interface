@@ -86,7 +86,7 @@ export function NotesList({ notes = [], onDeleteNote }) {
       <div className="shrink-0 px-4 pt-4 border-tertiary/10 bg-white sticky top-0 z-20">
        <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-semibold text-primary flex items-center gap-2">
-            <Notes className="w-5 h-5" />
+            <NotepadText className="w-5 h-5" />
             Notes
           </h2>
           
