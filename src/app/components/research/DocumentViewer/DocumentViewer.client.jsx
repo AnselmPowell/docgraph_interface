@@ -305,7 +305,7 @@ export function DocumentViewer({ document, onClose, searchInResults, className =
   return (
     <div className={`flex flex-col h-full bg-background ${className}`}>
       
-      <div className="flex sticky top-0 items-center justify-center px-4 py-2 border-b border-tertiary/10 min-w-0 z-50 bg-white">
+      <div className="flex sticky top-0 items-center justify-center px-4 py-2 border-b border-tertiary/10 min-w-[70%] z-50 bg-white">
       {/* Left Section - Always visible */}
       <div className="flex items-center gap-4 min-w-0">
         <button
@@ -316,7 +316,7 @@ export function DocumentViewer({ document, onClose, searchInResults, className =
         </button>
       </div>
       {/* Search - Collapsible on smaller widths */}
-      <div className="flex-shrink items-center">
+      <div className="w-72 items-center">
           <SearchToolbar 
             onSearch={handleSearch}
             onNavigate={handleSearchNavigate}

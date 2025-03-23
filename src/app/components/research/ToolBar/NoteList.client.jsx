@@ -179,7 +179,7 @@ export function NotesList({ notes = [], onDeleteNote }) {
                 }}
                 disabled={deletingNoteId === note.id}
                 className="absolute top-1 right-1 p-1.5 rounded-md transition-all flex items-center gap-1 
-                  text-red-600 opacity-0 group-hover:opacity-60 hover:opacity-100 active:translate-y-[0.5px] active:scale-95"
+                  text-red-600 opacity-0 group-hover:opacity-100 hover:opacity-100 active:translate-y-[0.5px] active:scale-95"
                 title="Delete note"
               >
                 {deletingNoteId === note.id ? (
@@ -189,10 +189,10 @@ export function NotesList({ notes = [], onDeleteNote }) {
                 )}
               </button>
 
-              <div className="flex justify-between items-start mt-2">
+              <div className="flex justify-between items-start mt-3">
                 <h3 className="text-xs text-secondary">Ttile: {note.title}</h3>
                 {note.pageNumber && (
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-tertiary/10 text-tertiary">
+                  <span className="text-xs px-2 py-0.5 text-center rounded-full bg-tertiary/10 text-tertiary">
                     Page {note.pageNumber}
                   </span>
                 )}

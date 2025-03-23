@@ -622,7 +622,7 @@ const handleUploadStaged = useCallback(async (stagedDocuments) => {
 
 const handleUrlSubmit = useCallback(async (formData) => {
 
-
+  handleOpenSidebar(false)
   if (typeof formData.type !== 'string') {
     let newFormData = new FormData();
     newFormData.append('url', formData);
@@ -854,11 +854,15 @@ const checkDocumentStatus = useCallback(async (documentIds) => {
     
     console.log("[handleRemoveAllDocument]  Selected Documents: ", selectedDocuments);
     // try {
-      const selectedDocs = documents.filter(doc => selectedDocuments.includes(doc.file_name));
+      
+    const selectedDocs = documents.filter(doc => { 
+      if (doc.title) {
+        return selectedDocuments.includes(doc.title);
+      } else {
+        return selectedDocuments.includes(doc.file_name);
+      }
+    });
       let documentIds = []; 
-      setSelectedDocuments([])
-      setActiveTab(null);  
-      setActiveDocument(null);
         selectedDocs.forEach(doc => {
           if (doc.document_id) {
               documentIds.push(doc.document_id);  // Use push instead of append
@@ -871,7 +875,8 @@ const checkDocumentStatus = useCallback(async (documentIds) => {
       });
 
       
-        console.log("[handleRemoveAllDocument] Remove document Ids: ", documents);
+        console.log("[handleRemoveAllDocument] Remove document Ids: ---", documentIds);
+        console.log("[handleRemoveAllDocument] Remove document Ids: --- selected", selectedDocs);
         
         const response = await fetch('/api/research/documents/upload', {
             method: 'DELETE',
@@ -881,6 +886,11 @@ const checkDocumentStatus = useCallback(async (documentIds) => {
             },
             body: JSON.stringify({ document_ids: documentIds })
         });
+
+        setSelectedDocuments([])
+        setActiveTab(null);  
+        setActiveDocument(null);
+        setDocuments([])
 
         const result = await response.json();
         console.log("[handleRemoveAllDocument] backend response ", result );  

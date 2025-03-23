@@ -23,12 +23,12 @@ export function SearchToolbar({
   
     return (
       <form onSubmit={handleSubmit} className="flex w-full items-center gap-2 px-4 py-2 border-tertiary/10">
-        <div className="relative flex-1 max-w-md">
+        <div className="relative flex-1 ">
           <input
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Search in document (press Enter)"
+            placeholder="Type keyword to search in document (press enter)"
             className="w-full pl-9 pr-4 py-1.5 rounded-lg bg-tertiary/5 
                        border border-tertiary/10 focus:border-primary 
                        text-sm text-primary placeholder:text-tertiary"

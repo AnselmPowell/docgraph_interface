@@ -15,6 +15,7 @@ import {
   AlertCircle,
   Filter,
   Trash2,
+  Check,
 } from 'lucide-react'; 
 import { PiListChecks } from "react-icons/pi";
 import { LiaListSolid } from "react-icons/lia";
@@ -40,6 +41,8 @@ export function SearchResults({
   const [activeMatchType, setActiveMatchType] = useState('all');
   const [resultToDelete, setResultToDelete] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  const [onSelect, setOnSelect] = useState([])
 
   const filterButtonRef = useRef(null);
 
@@ -68,10 +71,23 @@ export function SearchResults({
 
   // Empty state - no results and not loading
   if (!results?.length && !pendingSearches?.length && !isLoading) {
-    return (
-      <div className="flex items-center justify-center h-full text-tertiary">
+    return ( 
+      <div className="relative overflow-y-auto overflow-x-hidden z-[65]">
+      {/* Header */}
+      <div className="shrink-0 px-4 pt-4 border-tertiary/10 sticky top-0 ">
+        <h2 className="text-lg font-semibold text-primary border-b  pb-5 flex items-center gap-2">
+          <Sparkles className="w-5 h-5" />
+          {isLoading ? "Analysing..." : "Search Results"}
+        </h2>
+      <div className="flex w-full items-center justify-center mt-40">
+        <div className="flex items-center justify-center h-full text-tertiary">
         No search results yet
+            </div>
+          </div>
+        </div>
       </div>
+
+
     );
   }
 
@@ -247,7 +263,7 @@ export function SearchResults({
                 >
                   {selectedResults.length === results.length ? <LiaListSolid className="w-6 h-6" /> : <PiListChecks  className="w-6 h-6 " />}
                 </button>
-                {selectedResults.length > 0 && (
+                {selectedResults.length > 1 && (
                   <button
                     onClick={handleRemoveSelected}
                     className="text-sm text-red-500 hover:text-red-600 transition-colors active:translate-y-[0.5px] active:scale-95"
@@ -359,7 +375,14 @@ export function SearchResults({
           activeMatchType={activeMatchType}
           isToolbarExpanded={isToolbarExpanded}
           isSelected={selectedResults.includes(result.search_results_id)}
-          onSelect={() => handleSelect(result.search_results_id)}
+          // onSelect={() => handleSelect(result.search_results_id)}
+          onSelect={() => {
+            if (selectedResults.includes(result.search_results_id)) {
+              setSelectedResults(selectedResults.filter(id => id !== result.search_results_id));
+            } else {
+              setSelectedResults([...selectedResults, result.search_results_id]);
+            }
+          }}
         />
       ))}
       </div>
@@ -402,7 +425,9 @@ function DocumentResult({
   copiedSection,
   savedSection,
   activeMatchType,
-  isToolbarExpanded
+  isToolbarExpanded,
+  isSelected,
+  onSelect
 }) {
   // Add loading/processing status display
   const isPending = result.processing_status === 'pending' || result.processing_status === 'processing';
@@ -413,7 +438,7 @@ function DocumentResult({
     return (
       <div className="pb-3 " >
         {/* Document Header */}
-        <div className="flex group relative ">
+        <div className="flex group relative">
           <button
             onClick={onExpand}
             className="w-full pt-3 p-2 text-left hover:bg-tertiary/5 transition-colors active:translate-y-[0.5px] active:scale-95 "
@@ -518,7 +543,7 @@ function DocumentResult({
     return (
       <div className="pb-3">
         {/* Document Header */}
-        <div className="flex group relative">
+        <div className="flex group relative ">
           <button
             onClick={onExpand}
             className="w-full pt-3 p-2 text-left hover:bg-tertiary/5 transition-colors active:translate-y-[0.5px] active:scale-95"
@@ -585,7 +610,7 @@ function DocumentResult({
     return (
       <div className="pb-3">
         {/* Document Header */}
-        <div className="flex group relative">
+        <div className="flex group relative ">
           <button
             onClick={onExpand}
             className="w-full pt-3 p-2 text-left hover:bg-tertiary/5 transition-colors active:translate-y-[0.5px] active:scale-95"
@@ -641,24 +666,29 @@ function DocumentResult({
   }
 
   return (
-    <div className="pb-3">
+    <div className="pb-3 group-hover:bg-gray-50">
       {/* Document Header */}
-      <div className="flex group relative">
+      <div className="flex group relative group-hover:bg-gray-50 ">
         <button
           onClick={onExpand}
-          className="w-full pt-3 p-2 text-left hover:bg-tertiary/5 transition-colors active:translate-y-[0.5px] active:scale-95"
+          className=" w-[84%] pr-4 py-3 text-left hover:bg-tertiary/5 transition-colors group-hover:bg-gray-50"
         >
-          <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center justify-between mb-1 ">
             <div>
-              <h4 className="font-medium text-primary text-sm truncate pr-4">
-                {isToolbarExpanded ? result.title.slice(0, 100) : result.title.slice(0, 45)}
+            <h4 className="font-medium text-primary text-sm truncate pr-4">
+              {result.title.length > (isToolbarExpanded ? 70 : 48) 
+                ? result.title.slice(0, isToolbarExpanded ? 70 : 48) + "..." 
+                : result.title}
+            </h4>
+
+            <div className='flex gap-1 items-center py-1'>
+              <Search className="w-3 h-3" />
+              <h4 className="font-small text-primary text-sm truncate pr-4">
+                {result.question.length > (isToolbarExpanded ? 62 : 42) 
+                  ? result.question.slice(0, isToolbarExpanded ? 62 : 42) + "..." 
+                  : result.question}
               </h4>
-              <div className='flex gap-1 items-center py-1 '>
-                <Search className="w-3 h-3" />
-                <h4 className="font-small text-primary text-sm truncate pr-4">
-                  {isToolbarExpanded ? result.question.slice(0, 80): result.question.slice(0, 38)}
-                </h4>
-              </div>
+            </div>
             </div>
           </div>
 
@@ -699,25 +729,44 @@ function DocumentResult({
                 </div>
               )}
               {isExpanded ? 
-              <ChevronUp className="w-5 h-5 text-tertiary" /> : 
-              <ChevronDown className="w-5 h-5 text-tertiary" />
+              <ChevronUp className="w-5 h-5 text-tertiary " /> : 
+              <ChevronDown className="w-5 h-5 text-tertiary " />
               }
             </div>
           </div>
         </button>
          {/* Remove Button */}
+         <div className='flex items-center justify-end  group-hover:bg-gray-50'>
          <button
             onClick={(e) => {
               e.stopPropagation();
               onOpenDeleteModal(result.search_results_id);
             }}
-            className="p-1.5 mt-6 rounded-md text-tertiary hover:text-primary 
-              hover:bg-tertiary/10 mr-2 opacity-0 group-hover:opacity-100
-              transition-all duration-75 active:translate-y-[0.5px] active:scale-95"
+            className="rounded-md text-tertiary hover:text-primary 
+              hover:bg-tertiary/10 opacity-0 group-hover:opacity-100 group-hover:bg-gray-50
+              transition-all duration-75 active:translate-y-[0.5px] active:scale-95 "
             title="Remove result"
           >
-            <X className="w-6 h-6" />
+            <Trash2 className="w-5 h-5 text-red-600" />
           </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelect();
+            }}
+            className={`
+              min-w-5 min-h-5 max-w-5 max-h-5 ml-3 mr-3  rounded border transition-colors active:translate-y-[0.5px] active:scale-95
+              ${isSelected 
+                ? 'bg-primary border-primary' 
+                : 'border-black hover:border-primary opacity-0 group-hover:opacity-100'
+              }
+              flex items-center justify-center
+            `}
+          >
+            {isSelected && <Check className="w-4 h-4 text-black font-bold" />}
+          </button>
+          </div>
+
       </div>
 
       {/* Expanded Content */}

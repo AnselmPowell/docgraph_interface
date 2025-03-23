@@ -211,6 +211,7 @@ export async function DELETE(request) {
   console.log("[DELETE] Starting document deletion");
   try {
       const data = await request.json();
+      console.log("DELETE DATA:", data)
       const docId = data.document_id;
       const docIds = data.document_ids;
 
