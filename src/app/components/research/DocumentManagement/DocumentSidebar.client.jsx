@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import {  Trash2 } from 'lucide-react';
+import {  Trash2, LockKeyholeOpen, LockKeyhole } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import { 
   Upload, Loader2 
@@ -30,6 +30,8 @@ export function DocumentSidebar({
   onStagedUpload,
   onUrlSubmit,
   isFetchingDocuments,
+  onLockSidebar,
+  isSidebarLocked
   
 }) {
   // Existing state
@@ -137,7 +139,20 @@ export function DocumentSidebar({
       <input {...getInputProps()} />
 
       {/* URL Input Section */}
-      <UrlInput onUrlSubmit={onUrlSubmit} />
+      <div className="flex pr-2">
+      <UrlInput onUrlSubmit={onUrlSubmit} className="flex-grow" />
+      <button 
+        onClick={() => onLockSidebar(!isSidebarLocked)} 
+        className="ml-3 pb-8  active:translate-y-[0.5px] active:scale-95"
+        title={isSidebarLocked ? 'Unlock Sidebar' : 'Lock Sidebar'}
+      >
+        {isSidebarLocked ? (
+          <LockKeyhole className="w-5 h-5" />
+        ) : (
+          <LockKeyholeOpen className="w-5 h-5" />
+        )}
+      </button>
+    </div>
        {/* Upload Area */}
        <div className=" border-b border-tertiary/10">
         <div 
@@ -179,7 +194,16 @@ export function DocumentSidebar({
                 Documents {selectedDocuments.length > 0 && (<span> Selected: {selectedDocuments.length}</span> )} 
               </h3>
               {documents.length > 0 && (
-              <div className='flex active:translate-y-[0.5px] active:scale-95' >
+              <div className='flex  pr-2' >
+               {selectedDocuments.length > 1 &&
+                <button
+                onClick={onDeleteAll}
+                title='Delete selected'
+                className="text-sm mr-4 pr-0.5 text-tertiary hover:text-primary transition-colors  text-red-800 active:translate-y-[0.5px] active:scale-95"
+                >
+               <Trash2 className="w-5 h-5 text-red-700" />
+              </button>
+                }
                  <button
                   onClick={()=>{
                     if(isAllSelected){
@@ -188,19 +212,12 @@ export function DocumentSidebar({
                     handleSelectAll()
                    
                   }}
-                  className="text-sm text-tertiary hover:text-primary transition-colors"
+                  className="text-sm text-tertiary hover:text-primary transition-colors active:translate-y-[0.5px] active:scale-95"
+                  title={isAllSelected ? 'Deselect All' : 'Select All'}
                 >
                   {isAllSelected ? <LiaListSolid className="w-6 h-6" /> : <PiListChecks  className="w-6 h-6" />}
                 </button>
-                {selectedDocuments.length > 1 &&
-                <button
-                onClick={onDeleteAll}
-                title='Delete selected'
-                className="text-sm ml-2 pl-0.5 text-tertiary hover:text-primary transition-colors  text-red-800 active:translate-y-[0.5px] active:scale-95"
-                >
-               <Trash2 className="w-5 h-5 text-red-700" />
-              </button>
-                }
+
               
               </div>
              

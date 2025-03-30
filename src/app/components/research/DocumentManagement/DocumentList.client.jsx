@@ -58,7 +58,7 @@ export function DocumentList({
                       e.stopPropagation();
                       onView(doc);
                     }}
-                    className="p-1.5 rounded-md text-gray-600 hover:bg-gray-100 transition-colors active:translate-y-[0.5px] active:scale-95"
+                    className="p-1.5 rounded-md text-gray-600  transition-colors active:translate-y-[0.5px] active:scale-95"
                   >
                     View
                   </button>
@@ -68,7 +68,7 @@ export function DocumentList({
                       onDelete(doc);
 
                     }}
-                    className="p-1.5 rounded-md text-red-600 hover:bg-red-50 transition-colors active:translate-y-[0.5px] active:scale-95"
+                    className="p-1.5 rounded-md text-red-600  transition-colors active:translate-y-[0.5px] active:scale-95"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -108,7 +108,7 @@ export function DocumentList({
                       e.stopPropagation();
                       onView(doc);
                     }}
-                    className="p-1.5 rounded-md text-gray-600 hover:bg-gray-100 transition-colors active:translate-y-[0.5px] active:scale-95"
+                    className="p-1.5 rounded-md text-gray-600  transition-colors active:translate-y-[0.5px] active:scale-95"
                   >
                     View
                   </button>
@@ -117,7 +117,7 @@ export function DocumentList({
                       e.stopPropagation();
                       onDelete(doc);
                     }}
-                    className="p-1.5 rounded-md text-red-600 hover:bg-red-50 transition-colors active:translate-y-[0.5px] active:scale-95"
+                    className="p-1.5 rounded-md text-red-600 transition-colors active:translate-y-[0.5px] active:scale-95"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>

@@ -67,7 +67,7 @@ export function ArxivSearch({ researchContext, onSetArxivSearchResult, searchArx
         data.categories.forEach(category => {
           initialExpanded[category.category] = true;
         });
-        setExpandedCategories(initialExpanded);
+        // setExpandedCategories(initialExpanded);
       }
       
       toast.success('Search completed successfully');
@@ -145,10 +145,10 @@ export function ArxivSearch({ researchContext, onSetArxivSearchResult, searchArx
               <Loader2 className="w-4 h-4 animate-spin" />
             </div>
           ) : (
-            <div className={`flex items-center gap-1 py-1 px-2  ${  useContext ? "text-m" : "text-sm" } text-gray-900 font-medium rounded-xl cursor-pointer hover:bg-gray-100 transition`}>
+            <div className={`flex items-center gap-1 py-1 px-2  ${  useContext ? "text-m" : "text-sm" } text-gray-900 font-medium rounded-xl cursor-pointer hover:bg-gray-100 transition active:translate-y-[0.5px] active:scale-95`}>
                 {  useContext ? 
                
-                <div className='flex items-center gap-1' >
+                <div className='flex items-center gap-1 my-3' >
                    <Search className="w-4 h-4" />
                     Search Using Research Context
               </div>
@@ -165,7 +165,7 @@ export function ArxivSearch({ researchContext, onSetArxivSearchResult, searchArx
       {/* Search Results */}
       <div className="flex-1 overflow-y-auto p-4">
         {!searchResults && !isSearching && (
-          <div className="text-center text-tertiary py-8">
+          <div className="text-center text-tertiary py-10 ">
             <TextSearch className="w-12 h-12 mx-auto mb-2 opacity-20" />
             <p>Search for research papers</p>
             {researchContext && (
@@ -198,12 +198,12 @@ export function ArxivSearch({ researchContext, onSetArxivSearchResult, searchArx
             <h3 className="text-md font-medium mb-1">
               Context-Based Search Results
             </h3>
-            <p className="text-xs text-tertiary ">
-              Results based on your research context: {searchResults.context_title || 'Research Context'}
+            <p className="text-xs text-tertiary mb-3 ">
+              Results are based on your Research Context
             </p>
             
             {searchResults.categories.map((category, catIndex) => (
-              <div key={catIndex} className="mb-2 border-b pb-3 mt-2 border-tertiary/20 rounded-lg overflow-hidden">
+              <div key={catIndex} className="mb-3 border-b pb-4 mt-2 border-tertiary/20 rounded-lg overflow-hidden">
                 <div 
                   className="flex items-center justify-between px-3 pt-3 bg-tertiary/5 cursor-pointer"
                   onClick={() => handleToggleCategory(category.category)}
@@ -279,16 +279,16 @@ function PaperCard({ paper, searchTerm, onUploadUrl }) {
   const handleUploadUrl = async () => {
 
     console.log("PDF URL:", pdfUrl)
-    const formData = new FormData();
-    formData.append('url', pdfUrl);
+    console.log("Paper", paper)
+  
     
     setUploadingPdf(true)
-    await onUploadUrl(pdfUrl)
+    await onUploadUrl(pdfUrl, paper.title)
     setUploadingPdf(false)
   };
   
   return (
-    <div className="border-b border-tertiary/20 rounded-lg overflow-hidden mb-1 pb-2">
+    <div className="border-b border-tertiary/20 rounded-lg overflow-hidden mb-5 pb-5">
       <div className="">
         {searchTerm && (
             <div className="mb-3">
@@ -341,11 +341,11 @@ function PaperCard({ paper, searchTerm, onUploadUrl }) {
       </div>
         
         <div className='flex '>
-        <FaRegFilePdf className='w-8 h-8 mr-2'/>
+        <FaRegFilePdf className='max-w-10 max-h-10 min-w-10 min-h-10 mr-1 pt-3'/>
         <h4 className="font-medium text-primary mb-1">{paper.title}</h4>
         </div>
         
-        <div className="pl-6 flex flex-wrap text-xs text-tertiary mb-2">
+        <div className="pl-10 pt-1 flex flex-wrap text-xs text-tertiary mb-2">
           <span className="mr-3">{paper.authors.join(', ')}</span>
           <span>{formatDate(paper.published)}</span>
         </div>
@@ -357,7 +357,7 @@ function PaperCard({ paper, searchTerm, onUploadUrl }) {
         {!expanded && (
           <button 
             onClick={() => setExpanded(true)}
-            className="pl-6 text-xs text-primary mt-1 hover:underline font-medium active:translate-y-[0.5px] active:scale-95"
+            className="pl-10 text-xs text-primary mt-1 hover:underline font-medium active:translate-y-[0.5px] active:scale-95"
           >
             Read discription...
           </button>
@@ -366,7 +366,7 @@ function PaperCard({ paper, searchTerm, onUploadUrl }) {
         {expanded && (
           <button 
             onClick={() => setExpanded(false)}
-            className="pl-6 text-xs text-primary mt-1 hover:underline active:translate-y-[0.5px] active:scale-95"
+            className=" text-xs text-primary mt-1 pt-2 hover:underline active:translate-y-[0.5px] active:scale-95"
           >
             Hide discription
           </button>

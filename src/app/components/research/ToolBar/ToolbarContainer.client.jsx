@@ -50,6 +50,10 @@ export function ToolbarContainer({
   onToggleSearchBarVisibility,
   onViewDocument,
   onViewSearchResults,
+
+  onUpdateReferences,
+
+
   notes,
   onSaveNote,
   onDeleteNote,
@@ -152,7 +156,7 @@ export function ToolbarContainer({
       case 'document-details':
         return <DocumentDetails document={document} onToolSelect={onToolSelect} />;
       case 'references':
-        return <ReferenceList document={document} />;
+        return <ReferenceList document={document} onUpdateReferences={onUpdateReferences}  />;
       case 'notes-list':
         return <NotesList notes={notes} onDeleteNote={onDeleteNote} onNoteSelect={onNoteSelect} />;
       // case 'create-note':
@@ -175,8 +179,8 @@ export function ToolbarContainer({
           className={`flex-1 relative mr-2 
             ${activeTool 
               ? isExpanded 
-                ?  `${ 'w-[600px]'  } `
-                : `${ !results?.length && activeTool == 'search-results' ? 'w-[300px] ' : 'w-[400px] '  } `
+                ?  `${ 'w-[860px]'  } `
+                : `${ !results?.length && activeTool == 'search-results' ? 'w-[300px]' : 'w-[400px] '  } `
               : 'w-[0px] pr-0'
             } 
             overflow-hidden transition-all duration-300`}
@@ -190,6 +194,7 @@ export function ToolbarContainer({
                 className="p-1.5 px-3 rounded-lg bg-white
                   text-tertiary hover:text-primary hover:bg-tertiary/5 
                   transition-colors active:translate-y-[0.5px] active:scale-95"
+                  title={isExpanded ? 'Shrink' : 'Expand'}
               >
                 {isExpanded ? <ArrowRightFromLine className="w-6 h-6" /> : <ArrowLeftFromLine className="w-6 h-6" />}
               </button>
@@ -199,6 +204,7 @@ export function ToolbarContainer({
                 className="p-1.5 px-3 rounded-lg bg-white
                   text-tertiary hover:text-primary hover:bg-tertiary/5 
                   transition-colors active:translate-y-[0.5px] active:scale-95"
+                  title={`Close  `}
               >
                 <X className="w-6 h-6" />
               </button>
@@ -217,7 +223,7 @@ export function ToolbarContainer({
               damping: 30,
               duration: 0.6 
             }}
-            className={`h-full overflow-y-auto overflow-x-hidden pl-6 border-l ${activeTool ? 'pt-6' : ''} custom-scrollbar`}
+            className={`h-full overflow-y-auto overflow-x-hidden pl-6 ${activeTool ? 'pt-6' : ''} custom-scrollbar`}
             ref={contentRef}
           >
             {getToolContent()}

@@ -24,7 +24,7 @@ export function DocumentActions({
           e.stopPropagation();
           onView(document);
         }}
-        className="p-2 rounded-md flex flex-col items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors active:translate-y-[0.5px] active:scale-95"
+        className="p-2 rounded-md flex flex-col items-center justify-center text-gray-600  transition-colors active:translate-y-[0.5px] active:scale-95"
       >
        <FileText className="w-3 h-3 text-gray-400" /> 
        <p className="text-xs ">View</p>
@@ -35,7 +35,7 @@ export function DocumentActions({
           e.stopPropagation();
           onDelete(document);
         }}
-        className="p-1.5 rounded-md text-red-600 hover:bg-red-50 transition-colors active:translate-y-[0.5px] active:scale-95"
+        className="p-1.5 rounded-md text-red-600 transition-colors active:translate-y-[0.5px] active:scale-95"
       >
         <Trash2 className="w-4 h-4" />
       </button>

@@ -305,7 +305,7 @@ export function DocumentViewer({ document, onClose, searchInResults, className =
   return (
     <div className={`flex flex-col h-full bg-background ${className}`}>
       
-      <div className="flex sticky top-0 items-center justify-center px-4 py-2 border-b border-tertiary/10 min-w-[70%] z-50 bg-white">
+      <div className="flex sticky top-0 items-center justify-center px-4 py-2 min-w-[70%] z-50 bg-white">
       {/* Left Section - Always visible */}
       <div className="flex items-center gap-4 min-w-0">
         <button

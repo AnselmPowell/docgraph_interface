@@ -315,11 +315,12 @@ export function SearchResults({
       {/* Pending Documents Display */}
       {pendingCount > 0 && (
         <div className="px-4 py-3 border-b border-tertiary/10">
-          <div className="flex items-center gap-2 mb-2">
-            <Loader2 className="w-4 h-4 text-primary animate-spin" />
+          <div className="flex items-center gap-2 mb-3 pb-3 border-b-2">
+           
             <h3 className="text-sm font-medium text-primary">
-              Searching {pendingCount} Document{pendingCount !== 1 ? 's' : ''}
+              Searching {pendingCount} Document{pendingCount !== 1 ? 's' : ''}...
             </h3>
+            <Loader2 className="w-4 h-4 text-primary animate-spin" />
           </div>
           
           <div className="mt-2">

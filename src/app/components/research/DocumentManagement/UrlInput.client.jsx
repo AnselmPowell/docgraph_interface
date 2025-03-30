@@ -62,12 +62,9 @@ export function UrlInput({ onUrlSubmit }) {
     try {
       setIsLoading(true);
       
-      // Create FormData for the API request
-      const formData = new FormData();
-      formData.append('url', url);
   
       // Call the handler with FormData
-      await onUrlSubmit(formData);
+      await onUrlSubmit(url);
       
       // Reset the form on success
       setUrl('');
@@ -88,7 +85,7 @@ export function UrlInput({ onUrlSubmit }) {
   };
 
   return (
-    <div className=" px-2 pt-3 border-b border-tertiary/10">
+    <div className=" px-2 pt-3 border-b border-tertiary/10 w-full">
         <form onSubmit={handleSubmit} >
           <div className="flex items-center">
             <div className="relative flex-1">

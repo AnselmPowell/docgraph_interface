@@ -151,7 +151,7 @@ if (!visible) {
       {/* Search Button with Selection Counter */}
         <button
           onClick={() => onToggleVisibility(true)}
-          className={`fixed bottom-12 right-44 z-[500]
+          className={`fixed bottom-6 right-32 z-[500]
             p-8
             rounded-full 
             bg-white/95
@@ -234,8 +234,6 @@ if (!visible) {
           <span>Hide</span>
         </button>
         
-
-
 
 
                   {isExpanded && ( 

@@ -92,6 +92,7 @@ export function ResearchAssistant() {
   // User Role Management State
 
   const [userData, setUserData] = useState(); // Processed documents
+  const [isUserLoggedIn, setIsUserLoggedIn] = useState(); // Processed documents
   const [openAuthModal, setOpenAuthModal] = useState(false); // Processed documents
   
 
@@ -99,7 +100,7 @@ export function ResearchAssistant() {
   // Handles different states of documents in the system
   const [isDocumentFetched,  setIsDocumentsFetched] = useState(false)
   const [documents, setDocuments] = useState([]); // Processed documents
-  const [openSidebar, setOpenSidebar] = useState(true); // Processed documents
+  const [isSideBarOpen, setIsSideBarOpen] = useState(true); // Processed documents
   const [selectedDocuments, setSelectedDocuments] = useState([]); // Selected for search
   const [activeDocument, setActiveDocument] = useState(null); // Currently viewed
   const [stagedDocuments, setStagedDocuments] = useState([]); // Pending upload
@@ -131,6 +132,7 @@ export function ResearchAssistant() {
 
 
    const [searchArxivSearchResults, setSearchArxivSearchResults] = useState(null)
+
 
 
 
@@ -171,11 +173,30 @@ export function ResearchAssistant() {
   useEffect( () => {
 
     const fetchUserData = async () => {
-    console.log("User Data:", user);
-    console.log("User Data (userData):", userData);
-    setUserData(userData)
+      const savedUser = localStorage.getItem("user");  
+      const userObject = savedUser ? JSON.parse(savedUser) : null;
+      console.log("User Data:", user);
+      console.log("User Data (userData):", userData);
+      console.log("User Data (SavedUser):", savedUser);
 
-    const savedUser = localStorage.getItem("user");  
+      if(userData){
+        setUserData(userData)
+        setIsUserLoggedIn(true)
+      } else if(user) {
+        setUserData(user)
+        setIsUserLoggedIn(true)
+      }
+
+      if(savedUser) {
+       
+        console.log("User Data (userObject):", userObject);
+        setUserData(userObject)
+        setIsUserLoggedIn(true)
+      }
+
+      setTimeout(() => {
+        console.log("IS LOGGED IN ", isUserLoggedIn);
+      }, 10000);
 
     let userDataCookie = await document.cookie
         .split("; ")
@@ -217,9 +238,10 @@ export function ResearchAssistant() {
 
     if (userDataCookie) {
         // const parsedUserData = JSON.parse(decodeURIComponent(userDataCookie.split("=")[1]));
+        console.log("User Data (userDataCookie):", userDataCookie);
         await updateUser(userDataCookie);
         await initializeFromCache();
-        // updateUser(userDataCookie);
+        setIsUserLoggedIn(true)
 
         // Clean up cookie
         document.cookie = "userData=; Max-Age=0; path=/;";
@@ -229,7 +251,10 @@ export function ResearchAssistant() {
         document.cookie = 'accessToken=; Max-Age=0; path=/;';
         document.cookie = 'refreshToken=; Max-Age=0; path=/;';
     } else if (savedUser || userData) {
-        console.log("[ResearchAssistant] Fetching documents for saved user or userData:", userData?.email);
+      console.log("[ResearchAssistant] Fetching documents for saved user or userObject:", userObject);
+        setIsUserLoggedIn(true)
+        await updateUser(userObject);
+        setUserData(userObject)
         // fetchData();
     } else {
         console.log("User not found, resetting state.");
@@ -240,6 +265,7 @@ export function ResearchAssistant() {
         setActiveDocument(null)
         setActiveTab(null)
         setNotes([])
+        setIsUserLoggedIn(false)
         // fetchData();
     }
   }
@@ -256,10 +282,10 @@ useEffect(() => {
       console.log("user found")
       
       setUserData(event.detail.user)
+      setIsUserLoggedIn(true)
     } else {
       console.log("user not found")
       setUserData("")
-      handleDocumentView(null)
       setDocuments([])
       setTabs([])
       setSearchResults([])
@@ -397,6 +423,7 @@ useEffect(() => {
     if(userData){
       console.log(" Set User Data {userData}:", userData )
       setUserData(userData)
+      setIsUserLoggedIn(true)
     }
 
   }
@@ -554,7 +581,8 @@ useEffect(() => {
 
   // Updated handleUploadStaged to properly handle response and pending docs
 const handleUploadStaged = useCallback(async (stagedDocuments) => {
-  if (!user && !userData) {
+  const savedUser = localStorage.getItem("user");  
+  if (!user && !userData && !isUserLoggedIn && !savedUser) {
     toast.info('To process the document please login', 9000);
     setIsProcessing(false);
     return;
@@ -620,15 +648,15 @@ const handleUploadStaged = useCallback(async (stagedDocuments) => {
 
 
 
-const handleUrlSubmit = useCallback(async (formData) => {
+const handleUrlSubmit = useCallback(async (url, file_name=null) => {
+  console.log("URL Upload------1:", url)
+  handleOpenSidebar(true)
 
-  handleOpenSidebar(false)
-  if (typeof formData.type !== 'string') {
-    let newFormData = new FormData();
-    newFormData.append('url', formData);
-    formData = newFormData
-  }
-  handleOpenSidebar(false)
+  const formData = new FormData();
+  formData.append('url', url);
+  formData.append('file_name', file_name)
+
+  console.log("URL Upload-----2:", formData)
   try {
   
 
@@ -663,7 +691,7 @@ const handleUrlSubmit = useCallback(async (formData) => {
       // This keeps your code path consistent with file uploads
       setTimeout(() => {
         handleUploadStaged(data.documents);
-      }, 500);
+      }, 1000);
     } else {
       throw new Error('No documents received from server');
     }
@@ -791,10 +819,17 @@ const checkDocumentStatus = useCallback(async (documentIds) => {
    const handleRemoveDocument = useCallback(async(document) => {
 
     const updates = () => {
+      console.log("Stage delete:", stagedDocuments)
     if(stagedDocuments){
+      console.log("Stage delete remove", document.file_name)
       setStagedDocuments(prev => 
-        prev.filter(file => file.document_id !== document.document_id)
+        prev.filter(file => file.file_name !== document.file_name)
       );
+      setPendingDocuments(prev => 
+        prev.filter(file => file.file_name !== document.file_name)
+      );
+    } else {
+      setStagedDocuments([])
     }
     setDocuments(prev => 
       prev.filter(file => file.document_id !== document.document_id)
@@ -1075,7 +1110,8 @@ const checkDocumentStatus = useCallback(async (documentIds) => {
    **************************************************************************/
 
   const fetchSearchResult = useMemo(() => async () => {
-    if (!user && !userData) {
+    const savedUser = localStorage.getItem("user");  
+    if (!user && !userData && !isUserLoggedIn && !savedUser) {
         return;
     }
     try {
@@ -1140,7 +1176,8 @@ const checkDocumentStatus = useCallback(async (documentIds) => {
 
 // Update handleSearch function
 const handleSearch = useCallback(async (searchParams) => {
-  if (!user && !userData) {
+  const savedUser = localStorage.getItem("user");  
+  if (!user && !userData && !isUserLoggedIn && !savedUser) {
     toast.info('To search a document please login', 9000);
     handelOpenAuthModel(true)
     return;
@@ -1512,9 +1549,13 @@ const handleSaveNote = useCallback(async (noteData) => {
 
 // Add save handler
 const handleSaveResearchContext = useCallback(async (contextData) => {
+  const savedUser = localStorage.getItem("user");  
   console.log("User data ------------:", user)
   console.log("User data ------------2:", userData)
-  if (!user && !userData) {
+  console.log("User data ------------3:", savedUser)
+  console.log("User data ------------4:", isUserLoggedIn)
+
+  if (!user && !userData && !isUserLoggedIn && !savedUser) {
     toast.info('To save research context please login', 9000);
     handelOpenAuthModel(true)
     return;
@@ -1567,8 +1608,7 @@ const handleDeleteResearchContext = useCallback(async () => {
     
     if (!response.ok) {
       throw new Error('Failed to delete research context');
-      // Restore context on error
-      fetchResearchContext();
+      
     }
     
     return true;
@@ -1591,27 +1631,81 @@ const handelSetArxivSearchResult = useCallback(async (results) => {
 
 
 
+const updateReferences = useCallback(async(documentId, referenceText)=> {
+  try {
+    toast.info('Saving reference list', 4000);
+    const response = await fetch('/api/research/documents/references', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+      },
+      body: JSON.stringify({
+        document_id: documentId,
+        reference_text: referenceText
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to update references');
+    }
+   
+    const referenceList = await response.json();
+
+    await fetchDocuments();
+    return referenceList
+
+  } catch (error) {
+    console.error('Error updating references:', error);
+    throw error;
+  }
+})
+
+
+
+
+
+
+
+
+
 
 
  /**************************************************************************
    * APPLICATION COMPONENT FUNCTIONALITY
    * Core functionality for handling document operations
    **************************************************************************/
-
+ const [isSidebarLocked, setIsSidebarLocked] = useState(false);
 
  const handleOpenSidebar = useCallback(async (isOpen) => {
-  
-  if(!isOpen){
-    setOpenSidebar(true)
 
-   } else {
-    setOpenSidebar(false)
- 
-   }
+  setIsSidebarLocked((prevState) => {
+
+    if (prevState) return prevState; // If locked, prevent opening
+    setIsSideBarOpen(isOpen);
+    return prevState;
+  });
 
 }, []);
 
 
+
+const handleLockSidebar = (lockSidebar) => {
+
+  setIsSidebarLocked((prevState) => {
+
+    return lockSidebar; // Set it to the new value
+  });
+
+  setTimeout(() => {
+    console.log("Sidebar Locked State After Update:", isSidebarLocked); // This will still log the stale value
+  }, 0);
+};
+
+useEffect(() => {
+  console.log("Sidebar Lock State Updated:", isSidebarLocked);
+}, [isSidebarLocked]);
 
   /**************************************************************************
    * RENDER
@@ -1625,7 +1719,7 @@ const handelSetArxivSearchResult = useCallback(async (results) => {
       <ResearchLayout 
 
         onOpenSidebar={handleOpenSidebar}
-        isSidebarOpen={openSidebar}
+        isSidebarOpen={isSideBarOpen}
         tabs={tabs}
         activeTab={activeTab}
         activeTool={activeTool}
@@ -1634,6 +1728,9 @@ const handelSetArxivSearchResult = useCallback(async (results) => {
         selectedDocuments={selectedDocuments}
         setAuthUserData={setAuthUserData}
         onToggleSearchBarVisibility={handleSearchBarVisibility}
+
+        isSidebarLocked={isSidebarLocked}
+
 
 
         authState={{
@@ -1661,6 +1758,9 @@ const handelSetArxivSearchResult = useCallback(async (results) => {
             onUploadStaged={handleUploadStaged}
             onUrlSubmit={handleUrlSubmit}
             isFetchingDocuments={isProcessing}
+            onLockSidebar={handleLockSidebar}
+            isSidebarLocked={isSidebarLocked}
+
           />
         }
 
@@ -1674,8 +1774,8 @@ const handelSetArxivSearchResult = useCallback(async (results) => {
               userData={userData}
             />
             {/* Conditional Content Rendering */}
-            <DocGraphLogo isAnimating={isProcessing} hasUser={userData} sidebarOpen={openSidebar} />
-
+            {!activeDocument && <DocGraphLogo isAnimating={isProcessing} hasUser={userData} sidebarOpen={isSideBarOpen} />}
+            
             { activeDocument && (
               // Document Viewer
               <DocumentViewer
@@ -1697,7 +1797,7 @@ const handelSetArxivSearchResult = useCallback(async (results) => {
           onToggleVisibility={handleSearchBarVisibility}
           isSearching={isSearching}
           onSelect={handleSelectDocuments}
-          isSidebarOpen={openSidebar}
+          isSidebarOpen={isSideBarOpen}
         />
         }
 
@@ -1717,6 +1817,8 @@ const handelSetArxivSearchResult = useCallback(async (results) => {
 
             onViewDocument={handleDocumentView}
             onViewSearchResults={handleViewSearchResults}
+
+            onUpdateReferences={updateReferences}
 
             researchContext={researchContext}
             onSaveResearchContext={handleSaveResearchContext}

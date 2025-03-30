@@ -140,7 +140,7 @@ export function NotesList({ notes = [], onDeleteNote }) {
       </div>
 
       {sortedNotes.length === 0 ? (
-        <div className="text-center text-tertiary p-4">
+        <div className="text-center border-t pt-40 justify-center text-tertiary ">
           {notes.length > 0 && filteredNotes.length === 0 
             ? `No notes from "${truncateTitle(selectedFilter)}" document` 
             : "No notes saved yet"}

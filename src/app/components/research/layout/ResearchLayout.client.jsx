@@ -13,6 +13,7 @@ export function ResearchLayout({
   sidebarContent,
   onOpenSidebar,
   isSidebarOpen,
+  isSidebarLocked,
   mainContent,
   searchBarContent,
   toolbarContent,
@@ -25,7 +26,8 @@ export function ResearchLayout({
   setAuthUserData,
   onToggleSearchBarVisibility
 }) {
-  const [showSidebar, setShowSidebar] = useState(true);
+  const [showSidebar, setShowSidebar] = useState();
+
   const [showToolbar, setShowToolbar] = useState(false);
   const [sidebarWidth] = useState(320); // Store sidebar width as state
   const [isOpening, setIsOpening] = useState(false);
@@ -39,18 +41,12 @@ export function ResearchLayout({
   const hoverTimerRef = useRef(null);
   const sidebarRef = useRef(null);
 
-  const handleOpenSidebar = (isOpen) => {
-    // Track whether we're opening or closing
-    setIsOpening(isOpen);
-    setShowSidebar(isOpen);
-    onOpenSidebar(isOpen);
-  };
-
   const handleClickOutside = (event) => {
     if (sidebarRef.current && 
         !sidebarRef.current.contains(event.target) && 
-        showSidebar) {
-        handleOpenSidebar(false);
+        isSidebarOpen) {
+        onOpenSidebar(false);
+        setShowSidebar(false);
     }
   };
 
@@ -60,39 +56,45 @@ export function ResearchLayout({
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [showSidebar]);
+  }, [isSidebarOpen]);
 
   useEffect(() => {
-    console.log("Open the side bar: User");
-
+    console.log(" handle change isSidebarLocked", isSidebarLocked)
+    if(!isSidebarLocked){
     const handleUserChange = (event) => {
-      if(event.detail.user) {
-        handleOpenSidebar(true);
+      console.log
+      
+        if(event.detail.user) {
+          onOpenSidebar(true);
+          setShowSidebar(true);
+        }
       }
-    };
+    
 
     window.addEventListener('userStateChanged', handleUserChange);
     return () => window.removeEventListener('userStateChanged', handleUserChange);
-  }, []);
+    }
+  }, [isSidebarLocked]);
 
- 
 
-
-  
 
     // Define shared animation settings with different configurations for opening/closing
     const getAnimationSettings = () => ({
       type: "spring",
-      stiffness: isOpening ? 170 : 280, // Lower stiffness when opening
-      damping: isOpening ? 22 : 26,     // Lower damping when opening
-      mass: isOpening ? 1.2 : 1.1,      // Higher mass when opening (more inertia)
+      stiffness: isSidebarOpen ? 250 : 280, // Lower stiffness when opening
+      damping: isSidebarOpen ? 26.8 : 26,     // Lower damping when opening
+      mass: isSidebarOpen ? 1.0 : 1.1,      // Higher mass when opening (more inertia)
       duration: 0.4
     });
+
   
     return (
       <div className="relative left-0 flex flex-col w-full min-w-fit h-screen bg-background overflow-y-auto">
         {/* Fixed Header with Tabs */}
         <Header
+          isSidebarOpen={isSidebarOpen}
+          showSidebar={showSidebar}
+          handleSidebarToggle={onOpenSidebar}
           authState={authState}
           tabs={tabs}
           activeTab={activeTab}
@@ -100,18 +102,18 @@ export function ResearchLayout({
           onTabClose={onTabClose}
           selectedDocuments={selectedDocuments}
           setUserData={setAuthUserData}
-          className={`${showSidebar || activeTool ? "border-b border-tertiary/10" : ""}`}
+          className={`${!(isSidebarOpen || activeTool) && activeTab ? "border-b border-tertiary/10" : ""}`}
         />
   
         {/* Main Content Area - Adjusted for header */}
-        <div className="flex flex-1 w-[100%] h-screen overflow-y-hidden">
+        <div className={`flex flex-1 w-[100%] h-screen overflow-y-hidden  `}>
           {/* Hover detection area - only show when sidebar is closed */}
-          {!showSidebar && (
+          {!isSidebarOpen && (
             <div 
               className="fixed left-2 top-1/2 -translate-y-1/2 w-32 h-full z-50 cursor-pointer"
               onMouseEnter={() => {
                 hoverTimerRef.current = setTimeout(() => {
-                  handleOpenSidebar(true);
+                  onOpenSidebar(true);
                 }, 200);
               }}
               onMouseLeave={() => {
@@ -123,42 +125,43 @@ export function ResearchLayout({
           )}
   
           {/* Layout container with animations */}
-          <div className="flex flex-1 relative overflow-hidden">
+          <div className={` flex flex-1 relative overflow-hidden  `}>
             {/* Sidebar */}
-            <AnimatePresence mode="sync">
-              {showSidebar && (
+            {/* <AnimatePresence mode="sync"> */}
+              {isSidebarOpen && (
                 <motion.aside
                   ref={sidebarRef}
                   initial={{ x: -sidebarWidth, width: sidebarWidth }}
                   animate={{ x: 0, width: sidebarWidth }}
                   exit={{ x: -sidebarWidth, width: 0 }}
                   transition={getAnimationSettings()}
-                  className="shrink-0 h-full border-r border-tertiary/10 z-50 bg-white relative"
+                  className="shrink-0 h-full z-50 bg-white relative"
                 >
                   {sidebarContent}
                 </motion.aside>
               )}
-            </AnimatePresence>
+            {/* </AnimatePresence> */}
   
             {/* Main Content with synchronized animation */}
             <motion.main
               initial={false}
               animate={{
-                marginLeft: showSidebar ? 0 : -sidebarWidth/2,
-                x: showSidebar ? 0 : sidebarWidth/2
+                marginLeft: isSidebarOpen ? 0 : -sidebarWidth/2,
+                x: isSidebarOpen ? 0 : sidebarWidth/2
               }}
               transition={getAnimationSettings()}
-              className="relative flex-1 h-full w-full overflow-hidden"
+              className={`relative flex-1 h-full w-[fill] overflow-hidden ${ activeTool  ? "border-t-4 border-r-4 border-tertiary/10 rounded-tr-xl mr-[164px]" : ""} ${isSidebarOpen  ? "border-t-4 border-l-4 border-tertiary/10 rounded-tl-xl mr-0" : ""} ${isSidebarOpen && activeTool ? "mr-0" : ""} 
+`}
             >
               <div className="h-full overflow-y-auto custom-scrollbar">
                 {mainContent}
               </div>
-             
+
             </motion.main>
 
         {/* Right Toolbar */}
         {/* Toolbar */}
-        <div className="flex overflow-y-auto z-10">
+        <div className={` flex overflow-y-auto z-10 ${isSidebarOpen && !activeTool  ? "border-t-4 border-tertiary/10" : ""} ${isSidebarOpen && !activeTool  ? "border-t-4 border-tertiary/10" : ""} `}>
           {/* Pass through the ToolbarContainer */}
           {toolbarContent}
         </div>
@@ -167,9 +170,9 @@ export function ResearchLayout({
         </div>
 
         {/* Sidebar Toggle */}
-        {!showSidebar && (
+        {!isSidebarOpen && (
           <button
-            onClick={() => handleOpenSidebar(true)}
+            onClick={() => onOpenSidebar(true)}
             className="fixed left-0 top-1/2 p-1.5 bg-background/80 
               backdrop-blur-sm border border-tertiary/10 rounded-r-lg
               hover:bg-tertiary/5 transition-colors z-50 cursor-pointer"

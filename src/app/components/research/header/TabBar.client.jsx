@@ -179,9 +179,9 @@ export function TabBar({
                     rounded-md cursor-pointer
                     shadow-sm
                     ${isActive 
-                      ? 'bg-gray-200 text-gray-800' 
+                      ? 'border-r-2 text-gray-800 hover:bg-gray-50 bg-gray-50' 
                       : isSelected
-                        ? 'bg-gray-100 hover:bg-gray-50 border-b-4 border-primary' 
+                        ? 'border-r-2 hover:bg-gray-50 bg-gray-50 border-primary' 
                         : 'bg-white text-gray-800 hover:bg-gray-50'
                     }
                     ${tabProperties.compressionFactor > 0 ? 'px-2 border border-gray-200' : 'px-3'}
